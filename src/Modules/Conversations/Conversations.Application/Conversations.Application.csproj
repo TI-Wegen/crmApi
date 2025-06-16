@@ -5,5 +5,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
+	<ItemGroup>
+  		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+    			<_Parameter1>Conversations.UnitTests</_Parameter1>
+  		</AssemblyAttribute>
+</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\..\..\Core\CRM.Application\CRM.Application.csproj" />
+	  <ProjectReference Include="..\Conversations.Domain\Conversations.Domain.csproj" />
+	</ItemGroup>	
 </Project>
