@@ -7,6 +7,7 @@ using Conversations.Domain.Entities;
 using Conversations.Domain.Enuns;
 using Conversations.Domain.Exceptions;
 using Conversations.Domain.ValueObjects;
+using CRM.Application.Interfaces;
 using FluentAssertions;
 using Moq;
 

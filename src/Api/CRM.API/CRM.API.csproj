@@ -1,17 +1,31 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>d3805ac2-1538-4299-aa3f-a3dcc32d701a</UserSecretsId>
+    <UserSecretsId>d7e50de1-d435-4a86-9ce4-054e9500b420</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..\..</DockerfileContext>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.4" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1-Preview.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.5.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="9.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\CRM.Application\CRM.Application.csproj" />
+    <ProjectReference Include="..\..\Core\CRM.Domain\CRM.Domain.csproj" />
+    <ProjectReference Include="..\..\Infrastructure\CRM.Infrastructure\CRM.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\Concatcs\Contacts.Infrastructure\Contacts.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\Conversations\Conversations.Application\Conversations.Application.csproj" />
+    <ProjectReference Include="..\..\Modules\Conversations\Conversations.Domain\Conversations.Domain.csproj" />
+    <ProjectReference Include="..\..\Modules\Conversations\Conversations.Infrastructure\Conversations.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

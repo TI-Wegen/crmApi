@@ -1,4 +1,4 @@
-﻿namespace Conversations.Application.Abstractions;
+﻿namespace CRM.Application.Interfaces;
 
 public interface IUnitOfWork
 {

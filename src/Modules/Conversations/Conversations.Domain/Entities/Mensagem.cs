@@ -12,7 +12,7 @@ namespace Conversations.Domain.Entities;
     public DateTime Timestamp { get; private set; }
     public Remetente Remetente { get; private set; }
 
-    internal Mensagem(string texto, Remetente remetente, string? anexoUrl = null)
+    public Mensagem(string texto, Remetente remetente, string? anexoUrl = null)
     {
         if (string.IsNullOrWhiteSpace(texto) && string.IsNullOrWhiteSpace(anexoUrl))
             throw new DomainException("A mensagem precisa ter um texto ou um anexo.");
@@ -23,6 +23,7 @@ namespace Conversations.Domain.Entities;
         AnexoUrl = anexoUrl;
         Timestamp = DateTime.UtcNow;
     }
+    private Mensagem() { }
 
     public void AdicionarMessageId(string messageId)
     {
