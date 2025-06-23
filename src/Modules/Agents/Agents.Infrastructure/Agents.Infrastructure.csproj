@@ -10,4 +10,9 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Infrastructure\CRM.Infrastructure\CRM.Infrastructure.csproj" />
+    <ProjectReference Include="..\Agents.Domain\Agents.Domain.csproj" />
+  </ItemGroup>
+
 </Project>

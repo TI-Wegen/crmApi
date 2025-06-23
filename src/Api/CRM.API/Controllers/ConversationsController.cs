@@ -19,16 +19,26 @@ public class ConversationsController : ControllerBase
     private readonly IQueryHandler<GetConversationByIdQuery, ConversationDetailsDto> _getByIdHandler;
     private readonly ICommandHandler<IniciarConversaCommand, Guid> _iniciarConversaHandler;
     private readonly ICommandHandler<AdicionarMensagemCommand, MessageDto> _adicionarMensagemHandler;
+    private readonly ICommandHandler<ResolverConversaCommand> _resolverConversaHandler;
+    private readonly ICommandHandler<TransferirConversaCommand> _transferirConversaHandler;
+    private readonly ICommandHandler<ReabrirConversaCommand> _reabrirConversaHandler;
     public ConversationsController(
  ICommandHandler<AtribuirAgenteCommand> atribuirAgenteHandler,
  IQueryHandler<GetConversationByIdQuery, ConversationDetailsDto> getByIdHandler,
  ICommandHandler<IniciarConversaCommand, Guid> iniciarConversaHandler,
- ICommandHandler<AdicionarMensagemCommand, MessageDto> adicionarMensagemHandler)
+ ICommandHandler<AdicionarMensagemCommand, MessageDto> adicionarMensagemHandler, 
+ ICommandHandler<ResolverConversaCommand> resolverConversaHandler,
+ ICommandHandler<TransferirConversaCommand> transferirConversaHandler,
+ ICommandHandler<ReabrirConversaCommand> reabrirConversaHandler
+ )
     {
         _atribuirAgenteHandler = atribuirAgenteHandler;
         _getByIdHandler = getByIdHandler;
         _iniciarConversaHandler = iniciarConversaHandler;
-        _adicionarMensagemHandler = adicionarMensagemHandler; // NOVO
+        _adicionarMensagemHandler = adicionarMensagemHandler; 
+        _resolverConversaHandler = resolverConversaHandler; 
+        _transferirConversaHandler = transferirConversaHandler;
+        _reabrirConversaHandler = reabrirConversaHandler;
 
     }
 
@@ -114,6 +124,77 @@ public class ConversationsController : ControllerBase
 
             // Retorna 200 OK com os dados da mensagem recém-criada no corpo.
             return Ok(messageDto);
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (DomainException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPatch("{id:guid}/resolver")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Resolver(Guid id)
+    {
+        try
+        {
+            var command = new ResolverConversaCommand(id);
+            await _resolverConversaHandler.HandleAsync(command);
+
+            // 204 NoContent é a resposta ideal para um comando de sucesso que não retorna dados.
+            return NoContent();
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (DomainException ex)
+        {
+            // Se tentarmos resolver uma conversa que não está "EmAtendimento", cairá aqui.
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPatch("{id:guid}/transferir")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Transferir(Guid id, [FromBody] TransferirConversaRequest request)
+    {
+        try
+        {
+            var command = new TransferirConversaCommand(id, request.NovoAgenteId, request.NovoSetorId);
+            await _transferirConversaHandler.HandleAsync(command);
+
+            return NoContent();
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (DomainException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPatch("{id:guid}/reabrir")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Reabrir(Guid id)
+    {
+        try
+        {
+            var command = new ReabrirConversaCommand(id);
+            await _reabrirConversaHandler.HandleAsync(command);
+
+            return NoContent();
         }
         catch (NotFoundException ex)
         {

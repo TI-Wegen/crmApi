@@ -1,0 +1,13 @@
+﻿using Agents.Domain.Aggregates;
+
+namespace Agents.Domain.Repository;
+
+public interface IAgentRepository
+{
+    Task AddAsync(Agente agente, CancellationToken cancellationToken = default);
+    Task<Agente?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Agente?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Agente>> GetAllAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default);
+
+    Task UpdateAsync(Agente agente, CancellationToken cancellationToken = default);
+}

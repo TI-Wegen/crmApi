@@ -1,0 +1,19 @@
+services:
+  crm.api:
+    image: "${DOCKER_REGISTRY:-}crmapi"
+    build:
+      context: .
+      dockerfile: src/Api/CRM.API/Dockerfile
+    depends_on:
+      - crm.db
+
+  crm.db:
+    image: postgres:16-alpine
+    container_name: crm-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: crm_db
+    ports:
+      - "5432:5432"
+

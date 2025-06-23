@@ -2,6 +2,7 @@
 
 using Conversations.Application.Abstractions;
 using Conversations.Domain.Aggregates;
+using Conversations.Domain.Enuns;
 using CRM.Infrastructure.Database;
 // Em Infrastructure/Repositories/
 using Microsoft.EntityFrameworkCore;
@@ -58,5 +59,12 @@ public class ConversationRepository : IConversationRepository
     {
         _context.Conversas.Update(conversa);
         return Task.CompletedTask;
+    }
+
+    public async Task<IEnumerable<Conversa>> GetConversasAtivasCriadasAntesDeAsync(DateTime limite, CancellationToken cancellationToken = default)
+    {
+        return await _context.Conversas
+         .Where(c => c.Status == ConversationStatus.AguardandoNaFila || c.Status == ConversationStatus.EmAtendimento)
+         .ToListAsync(cancellationToken);
     }
 }

@@ -1,4 +1,6 @@
 ﻿using CRM.Infrastructure.Database;
+using Hangfire;
+using Hangfire.PostgreSql;
 using Microsoft.EntityFrameworkCore;
 
 namespace CRM.API.Configurations;
@@ -11,7 +13,7 @@ public static class ConnectionsConfigurations
     {
         //services.AddDbConnection(config);
         services.AddInMemoryConnections();
-
+        services.AddHangFire(config);
         return services;
     }
 
@@ -19,7 +21,7 @@ public static class ConnectionsConfigurations
          this IServiceCollection services,
          IConfiguration config)
     {
-        var connectionString = config.GetConnectionString("Postgress");
+        var connectionString = config.GetConnectionString("DefaultConnection");
         services.AddDbContext<AppDbContext>(
             options => options.UseNpgsql(connectionString));
 
@@ -36,5 +38,19 @@ public static class ConnectionsConfigurations
         return services;
     }
 
+    public static IServiceCollection AddHangFire(
+     this IServiceCollection services,
+         IConfiguration config)
+    {
+        var connectionString = config.GetConnectionString("DefaultConnection");
+
+        services.AddHangfire(configuration => configuration
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UsePostgreSqlStorage(c => c.UseNpgsqlConnection(connectionString)));
+
+        return services;
+    }
 
 }

@@ -14,7 +14,7 @@ public class Conversa: Entity
     public ConversationStatus Status { get; private set; }
     private readonly List<Mensagem> _mensagens = new();
     public IReadOnlyCollection<Mensagem> Mensagens => _mensagens.AsReadOnly();
-
+    public DateTime DataCriacao { get; private set; } = DateTime.UtcNow;
     // Construtor privado para forçar a criação via métodos de fábrica (como Iniciar)
     private Conversa() { }
 
@@ -121,6 +121,23 @@ public class Conversa: Entity
         if (Status != ConversationStatus.SessaoExpirada)
             throw new DomainException("A conversa só pode ser marcada como aguardando na fila se estiver expirada.");
         Status = ConversationStatus.AguardandoNaFila;
+        var evento = new ConversaReabertaEvent(this.Id, DateTime.UtcNow);
+        this.AddDomainEvent(evento);
+    }
+
+    public void Reabrir()
+    {
+        // A regra de negócio permite reabrir conversas que foram Resolvidas.
+        // Podemos incluir SessaoExpirada para maior flexibilidade.
+        if (Status is not ConversationStatus.Resolvida and not ConversationStatus.SessaoExpirada)
+        {
+            throw new DomainException($"Não é possível reabrir uma conversa com o status '{Status}'.");
+        }
+
+        // Ao reabrir, a conversa volta para a fila geral, sem agente atribuído.
+        Status = ConversationStatus.AguardandoNaFila;
+        AgenteId = null; // Importante: Limpa a atribuição anterior.
+
         var evento = new ConversaReabertaEvent(this.Id, DateTime.UtcNow);
         this.AddDomainEvent(evento);
     }

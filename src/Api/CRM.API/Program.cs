@@ -1,4 +1,5 @@
 using CRM.API.Configurations;
+using Hangfire;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,10 +27,14 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+
 app.UseHttpsRedirection();
+app.UseHangfireDashboard("/hangfire");
 
 app.UseAuthorization();
 
 app.MapControllers();
+
+
 
 app.Run();

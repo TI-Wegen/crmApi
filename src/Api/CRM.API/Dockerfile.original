@@ -13,15 +13,6 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["src/Api/CRM.API/CRM.API.csproj", "src/Api/CRM.API/"]
-COPY ["src/Core/CRM.Application/CRM.Application.csproj", "src/Core/CRM.Application/"]
-COPY ["src/Core/CRM.Domain/CRM.Domain.csproj", "src/Core/CRM.Domain/"]
-COPY ["src/Infrastructure/CRM.Infrastructure/CRM.Infrastructure.csproj", "src/Infrastructure/CRM.Infrastructure/"]
-COPY ["src/Modules/Agents/Agents.Domain/Agents.Domain.csproj", "src/Modules/Agents/Agents.Domain/"]
-COPY ["src/Modules/Concatcs/Contacts.Domain/Contacts.Domain.csproj", "src/Modules/Concatcs/Contacts.Domain/"]
-COPY ["src/Modules/Conversations/Conversations.Domain/Conversations.Domain.csproj", "src/Modules/Conversations/Conversations.Domain/"]
-COPY ["src/Modules/Concatcs/Contacts.Infrastructure/Contacts.Infrastructure.csproj", "src/Modules/Concatcs/Contacts.Infrastructure/"]
-COPY ["src/Modules/Conversations/Conversations.Application/Conversations.Application.csproj", "src/Modules/Conversations/Conversations.Application/"]
-COPY ["src/Modules/Conversations/Conversations.Infrastructure/Conversations.Infrastructure.csproj", "src/Modules/Conversations/Conversations.Infrastructure/"]
 RUN dotnet restore "./src/Api/CRM.API/CRM.API.csproj"
 COPY . .
 WORKDIR "/src/src/Api/CRM.API"
