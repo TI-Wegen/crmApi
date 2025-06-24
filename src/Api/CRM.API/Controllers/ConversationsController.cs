@@ -21,6 +21,8 @@ public class ConversationsController : ControllerBase
     private readonly ICommandHandler<ResolverConversaCommand> _resolverConversaHandler;
     private readonly ICommandHandler<TransferirConversaCommand> _transferirConversaHandler;
     private readonly ICommandHandler<ReabrirConversaCommand> _reabrirConversaHandler;
+    private readonly IQueryHandler<GetAllConversationsQuery, IEnumerable<ConversationSummaryDto>> _getAllConversationsHandler; 
+
     public ConversationsController(
  ICommandHandler<AtribuirAgenteCommand> atribuirAgenteHandler,
  IQueryHandler<GetConversationByIdQuery, ConversationDetailsDto> getByIdHandler,
@@ -28,7 +30,8 @@ public class ConversationsController : ControllerBase
  ICommandHandler<AdicionarMensagemCommand, MessageDto> adicionarMensagemHandler, 
  ICommandHandler<ResolverConversaCommand> resolverConversaHandler,
  ICommandHandler<TransferirConversaCommand> transferirConversaHandler,
- ICommandHandler<ReabrirConversaCommand> reabrirConversaHandler
+ ICommandHandler<ReabrirConversaCommand> reabrirConversaHandler,
+  IQueryHandler<GetAllConversationsQuery, IEnumerable<ConversationSummaryDto>> getAllConversationsHandler
  )
     {
         _atribuirAgenteHandler = atribuirAgenteHandler;
@@ -38,6 +41,7 @@ public class ConversationsController : ControllerBase
         _resolverConversaHandler = resolverConversaHandler; 
         _transferirConversaHandler = transferirConversaHandler;
         _reabrirConversaHandler = reabrirConversaHandler;
+        _getAllConversationsHandler = getAllConversationsHandler; 
 
     }
 
@@ -212,5 +216,15 @@ public class ConversationsController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
+    }
+
+    [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<ConversationSummaryDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAll([FromQuery] GetAllConversationsQuery query)
+    {
+        // O model binding do ASP.NET Core mapeia automaticamente os parâmetros da query string
+        // para o nosso objeto 'GetAllConversationsQuery'.
+        var result = await _getAllConversationsHandler.HandleAsync(query);
+        return Ok(result);
     }
 }

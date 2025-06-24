@@ -67,4 +67,16 @@ public class ConversationRepository : IConversationRepository
          .Where(c => c.Status == ConversationStatus.AguardandoNaFila || c.Status == ConversationStatus.EmAtendimento)
          .ToListAsync(cancellationToken);
     }
+
+    public Task<Conversa?> FindActiveByContactIdAsync(Guid contactId, CancellationToken cancellationToken = default)
+    {
+        // A MUDANÇA ESTÁ AQUI: Adicionamos .Include(c => c.Mensagens)
+        // Isso garante que a coleção de mensagens seja carregada e rastreada pelo EF Core.
+        return _context.Conversas
+            .Include(c => c.Mensagens)
+            .FirstOrDefaultAsync(c =>
+                c.ContatoId == contactId &&
+                (c.Status == ConversationStatus.AguardandoNaFila || c.Status == ConversationStatus.EmAtendimento),
+                cancellationToken);
+    }
 }

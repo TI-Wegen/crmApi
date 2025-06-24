@@ -1,22 +1,35 @@
 using CRM.API.Configurations;
 using CRM.API.Hubs;
 using Hangfire;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+var frontEndUrl = "http://localhost:3000";
+
 
 builder.Services
     .AddAppConnections(builder.Configuration)
     .AddUseCases();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowNextAppPolicy", policy =>
+    {
+        policy.WithOrigins(frontEndUrl)  // IMPORTANTE: Substitui .AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();      // ESSENCIAL: Adicione esta linha
+    });
+});
 var app = builder.Build();
 
-
+app.UseCors("AllowNextAppPolicy");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

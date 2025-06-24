@@ -1,9 +1,12 @@
 ﻿using Conversations.Application.Abstractions;
+using CRM.API.Services;
 using CRM.Infrastructure.Database;
 using CRM.Infrastructure.Storage;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using System.Data;
 
 namespace CRM.API.Configurations;
 
@@ -17,6 +20,8 @@ public static class ConnectionsConfigurations
         //services.AddInMemoryConnections();
         services.AddHangFire(config);
         services.AddFileStorage(config);
+        services.AddSignalRConnection(config);
+        services.AddDapperConnection(config);
         return services;
     }
 
@@ -65,13 +70,20 @@ public static class ConnectionsConfigurations
         return services;
     }
 
-    public static IServiceCollection AddSignalR(
+    public static IServiceCollection AddSignalRConnection(
     this IServiceCollection services,
         IConfiguration config)
     {
         services.AddSignalR();
-
+        services.AddScoped<IRealtimeNotifier, SignalRNotifier>();
         return services;
     }
-
+    public static IServiceCollection AddDapperConnection (
+        this IServiceCollection services,
+        IConfiguration config)
+    {
+        var connectionString = config.GetConnectionString("DefaultConnection");
+        services.AddScoped<IDbConnection>(sp => new NpgsqlConnection(connectionString));
+        return services;
+    }
 }

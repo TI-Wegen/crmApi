@@ -1,18 +1,16 @@
 ﻿namespace CRM.API.Services;
 
 
-using Api.Hubs; // Onde o ConversationHub está
 using Conversations.Application.Abstractions;
 // Em Api/Services/ (pode criar esta pasta)
 using Conversations.Application.Dtos;
-using Conversations.Application.Ports;
 using CRM.API.Hubs;
 using Microsoft.AspNetCore.SignalR;
 
 public class SignalRNotifier : IRealtimeNotifier
 {
     private readonly IHubContext<ConversationHub> _hubContext;
-
+    private const string UnassignedQueueGroupName = "UnassignedQueue"; 
     public SignalRNotifier(IHubContext<ConversationHub> hubContext)
     {
         _hubContext = hubContext;
@@ -26,5 +24,14 @@ public class SignalRNotifier : IRealtimeNotifier
         await _hubContext.Clients
             .Group(conversationId)
             .SendAsync("ReceiveMessage", messageDto);
+    }
+
+    public async Task NotificarNovaConversaNaFilaAsync(ConversationSummaryDto conversationDto)
+    {
+        // Envia uma mensagem para o grupo geral dos agentes.
+        // O evento se chamará "ReceiveNewConversation".
+        await _hubContext.Clients
+            .Group(UnassignedQueueGroupName)
+            .SendAsync("ReceiveNewConversation", conversationDto);
     }
 }

@@ -18,6 +18,7 @@ using Conversations.Application.UseCases.Commands.Handlers;
 using Conversations.Application.UseCases.Queries;
 using Conversations.Application.UseCases.Queries.Handlers;
 using Conversations.Infrastructure.Repositories;
+using Conversations.Infrastructure.Services;
 using CRM.API.Services;
 using CRM.Application.Interfaces;
 using CRM.Infrastructure.Database.Configurations;
@@ -44,6 +45,7 @@ public static class UseCaseConfigurations
         services.AddScoped<IConversationRepository, ConversationRepository>();
         services.AddScoped<IContactRepository, ContactRepository>();
         services.AddScoped<IAgentRepository, AgentRepository>();
+        services.AddScoped<IConversationReadService, DapperConversationReadService>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<ExpirarSessoesJob>();
 
@@ -60,19 +62,23 @@ public static class UseCaseConfigurations
         services.AddScoped<ICommandHandler<ResolverConversaCommand>, ResolverConversaCommandHandler>();
         services.AddScoped<ICommandHandler<TransferirConversaCommand>, TransferirConversaCommandHandler>();
         services.AddScoped<ICommandHandler<ReabrirConversaCommand>, ReabrirConversaCommandHandler>();
-        services.AddScoped<IAgentRepository, AgentRepository>();
+        services.AddScoped<IQueryHandler<GetAllConversationsQuery, IEnumerable<ConversationSummaryDto>>, GetAllConversationsQueryHandler>();
+
         services.AddScoped<ICommandHandler<CriarAgenteCommand, AgenteDto>, CriarAgenteCommandHandler>();
         services.AddScoped<ICommandHandler<AtualizarAgenteCommand>, AtualizarAgenteCommandHandler>();
         services.AddScoped<IQueryHandler<GetAllAgentsQuery, IEnumerable<AgenteDto>>, GetAllAgentsQueryHandler>();
-        services.AddScoped<IContactRepository, ContactRepository>();
+        services.AddScoped<IQueryHandler<GetAgentByIdQuery, AgenteDto>, GetAgentByIdQueryHandler>();
+        services.AddScoped<ICommandHandler<InativarAgenteCommand>, InativarAgenteCommandHandler>();
+
+
+
         services.AddScoped<ICommandHandler<CriarContatoCommand, ContatoDto>, CriarContatoCommandHandler>();
         services.AddScoped<IQueryHandler<GetContactByIdQuery, ContatoDto>, GetContactByIdQueryHandler>();
         services.AddScoped<IQueryHandler<GetAllContactsQuery, IEnumerable<ContatoDto>>, GetAllContactsQueryHandler>();
         services.AddScoped<ICommandHandler<AtualizarContatoCommand>, AtualizarContatoCommandHandler>();
         services.AddScoped<ICommandHandler<InativarContatoCommand>, InativarContatoCommandHandler>();
-        services.AddScoped<IRealtimeNotifier, SignalRNotifier>();
 
-
+      
         return services;
     }
 }

@@ -10,5 +10,6 @@ public interface IConversationRepository
     Task UpdateAsync(Conversa conversa, CancellationToken cancellationToken = default);
     Task<Conversa?> GetByIdWithMessagesAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IEnumerable<Conversa>> GetConversasAtivasCriadasAntesDeAsync(DateTime limite, CancellationToken cancellationToken = default);
+    Task<Conversa?> FindActiveByContactIdAsync(Guid contactId, CancellationToken cancellationToken = default);
 
 }
