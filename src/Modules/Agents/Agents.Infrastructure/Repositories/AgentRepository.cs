@@ -1,4 +1,5 @@
 ﻿using Agents.Domain.Aggregates;
+using Agents.Domain.Enuns;
 using Agents.Domain.Repository;
 using CRM.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
@@ -31,11 +32,16 @@ public class AgentRepository : IAgentRepository
         return _context.Agentes.FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
     }
 
-    public async Task<IEnumerable<Agente>> GetAllAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Agente>> GetAllAsync(int pageNumber, int pageSize, bool incluirInativos, CancellationToken cancellationToken = default)
     {
-        // Ordenar é importante para que a paginação seja consistente.
-        // Skip e Take são os comandos do LINQ que o EF Core traduz para a paginação em SQL.
-        return await _context.Agentes
+        var query = _context.Agentes.AsQueryable();
+
+        if (!incluirInativos)
+        {
+            query = query.Where(a => a.Status != AgenteStatus.Inativo);
+        }
+
+        return await query
             .OrderBy(a => a.Nome)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)

@@ -4,6 +4,6 @@ public enum AgenteStatus
 {
     Online,
     Offline,
-    Ocupado
+    Ocupado,
         Inativo
 }

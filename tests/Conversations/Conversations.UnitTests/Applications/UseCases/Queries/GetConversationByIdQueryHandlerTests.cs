@@ -1,12 +1,12 @@
 ﻿using Conversations.Application.Abstractions;
 using Conversations.Application.Dtos;
-using Conversations.Application.Exceptions;
 using Conversations.Application.UseCases.Queries;
 using Conversations.Application.UseCases.Queries.Handlers;
 using Conversations.Domain.Aggregates;
 using Conversations.Domain.Entities;
 using Conversations.Domain.Enuns;
 using Conversations.Domain.ValueObjects;
+using CRM.Application.Exceptions;
 using FluentAssertions;
 using Moq;
 

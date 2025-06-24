@@ -1,8 +1,7 @@
 ﻿namespace Conversations.Application.UseCases.Commands.Handlers;
 
 using Conversations.Application.Abstractions;
-using Conversations.Application.Exceptions;
-using Conversations.Domain.Exceptions;
+using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 
 public class ResolverConversaCommandHandler : ICommandHandler<ResolverConversaCommand>

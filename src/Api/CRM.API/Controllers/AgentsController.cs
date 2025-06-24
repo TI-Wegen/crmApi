@@ -2,6 +2,7 @@
 using Agents.Application.UseCases.Commands;
 using Agents.Application.UseCases.Queries;
 using Conversations.Domain.Exceptions;
+using CRM.API.Dtos;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -15,17 +16,21 @@ public class AgentsController : ControllerBase
     private readonly ICommandHandler<CriarAgenteCommand, AgenteDto> _criarAgenteHandler;
     private readonly IQueryHandler<GetAgentByIdQuery, AgenteDto> _getAgentByIdHandler;
     private readonly IQueryHandler<GetAllAgentsQuery, IEnumerable<AgenteDto>> _getAllAgentsHandler;
-    private readonly ICommandHandler<AtualizarAgenteCommand> _atualizarAgenteHandler; 
+    private readonly ICommandHandler<AtualizarAgenteCommand> _atualizarAgenteHandler;
+    private readonly ICommandHandler<InativarAgenteCommand> _inativarAgenteHandler; 
 
     public AgentsController(ICommandHandler<CriarAgenteCommand, AgenteDto> criarAgenteHandler, 
         IQueryHandler<GetAgentByIdQuery, AgenteDto> getAgentByIdHandler,
         IQueryHandler<GetAllAgentsQuery, IEnumerable<AgenteDto>> getAllAgentsHandler,
-        ICommandHandler<AtualizarAgenteCommand> atualizarAgenteHandler)
+        ICommandHandler<AtualizarAgenteCommand> atualizarAgenteHandler,
+        ICommandHandler<InativarAgenteCommand> inativarAgenteHandler
+        )
     {
         _criarAgenteHandler = criarAgenteHandler;
         _getAgentByIdHandler = getAgentByIdHandler;
         _getAllAgentsHandler = getAllAgentsHandler;
         _atualizarAgenteHandler = atualizarAgenteHandler;
+        _inativarAgenteHandler = inativarAgenteHandler;
     }
 
     [HttpPost]
@@ -90,6 +95,32 @@ public class AgentsController : ControllerBase
         }
         catch (DomainException ex)
         {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        try
+        {
+            var command = new InativarAgenteCommand(id);
+            await _inativarAgenteHandler.HandleAsync(command);
+
+            // 204 NoContent é a resposta padrão para um DELETE bem-sucedido.
+            return NoContent();
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (DomainException ex)
+        {
+            // Se a regra "não inativar com conversas ativas" for violada, cairá aqui.
             return BadRequest(new { message = ex.Message });
         }
     }

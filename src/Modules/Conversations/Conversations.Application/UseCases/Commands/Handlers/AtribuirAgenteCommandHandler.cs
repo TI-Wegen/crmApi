@@ -1,5 +1,5 @@
 ﻿using Conversations.Application.Abstractions;
-using Conversations.Application.Exceptions;
+using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 
 namespace Conversations.Application.UseCases.Commands.Handlers;

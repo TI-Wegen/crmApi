@@ -1,6 +1,6 @@
 ﻿namespace Conversations.Application.UseCases.Commands.Handlers;
 using Conversations.Application.Abstractions;
-using Conversations.Application.Exceptions;
+using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 
 public class TransferirConversaCommandHandler : ICommandHandler<TransferirConversaCommand>

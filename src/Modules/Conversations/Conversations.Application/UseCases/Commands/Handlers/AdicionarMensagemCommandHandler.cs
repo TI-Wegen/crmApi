@@ -1,12 +1,11 @@
 ﻿namespace Conversations.Application.UseCases.Commands.Handlers;
 using Conversations.Application.Abstractions;
 using Conversations.Application.Dtos;
-using Conversations.Application.Exceptions;
 using Conversations.Application.Mappers;
-using Conversations.Domain.Aggregates;
 using Conversations.Domain.Entities;
 using Conversations.Domain.Enuns;
 using Conversations.Domain.ValueObjects;
+using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 
 // Implementa a interface que retorna um resultado, neste caso, o DTO da mensagem criada.

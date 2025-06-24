@@ -1,7 +1,7 @@
 ﻿using Conversations.Application.Abstractions;
 using Conversations.Application.Dtos;
-using Conversations.Application.Exceptions;
 using Conversations.Application.Mappers;
+using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 
 namespace Conversations.Application.UseCases.Queries.Handlers;

@@ -75,4 +75,18 @@ public class Agente : Entity
         // Opcional: Disparar um evento de domínio
         // AddDomainEvent(new AgenteAtualizadoEvent(this.Id));
     }
+
+    public void Inativar()
+    {
+        // Regra de negócio: não se pode inativar um agente com atendimentos em andamento.
+        if (CargaDeTrabalho.Valor > 0)
+            throw new DomainException("Não é possível inativar um agente com conversas ativas.");
+
+        if (Status == AgenteStatus.Inativo) return; // Já está inativo, nenhuma ação necessária.
+
+        Status = AgenteStatus.Inativo;
+
+        // Disparar evento de domínio: AgenteInativadoEvent
+        // AddDomainEvent(new AgenteInativadoEvent(this.Id));
+    }
 }
