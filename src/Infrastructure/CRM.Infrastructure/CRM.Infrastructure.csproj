@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AWSSDK.S3" Version="4.0.2.1" />
     <PackageReference Include="Hangfire.AspNetCore" Version="1.8.20" />
     <PackageReference Include="Hangfire.PostgreSql" Version="1.20.12" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.4" />
@@ -23,7 +24,12 @@
     <ProjectReference Include="..\..\Core\CRM.Domain\CRM.Domain.csproj" />
     <ProjectReference Include="..\..\Modules\Agents\Agents.Domain\Agents.Domain.csproj" />
     <ProjectReference Include="..\..\Modules\Concatcs\Contacts.Domain\Contacts.Domain.csproj" />
+    <ProjectReference Include="..\..\Modules\Conversations\Conversations.Application\Conversations.Application.csproj" />
     <ProjectReference Include="..\..\Modules\Conversations\Conversations.Domain\Conversations.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Database\Migrations\" />
   </ItemGroup>
 
 </Project>

@@ -13,11 +13,19 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
 {
     private readonly IConversationRepository _conversationRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IFileStorageService _fileStorageService;
+    private readonly IRealtimeNotifier _notifier; 
 
-    public AdicionarMensagemCommandHandler(IConversationRepository conversationRepository, IUnitOfWork unitOfWork)
+    public AdicionarMensagemCommandHandler(
+        IConversationRepository conversationRepository,
+        IUnitOfWork unitOfWork,
+        IFileStorageService fileStorageService,
+        IRealtimeNotifier notifier)
     {
         _conversationRepository = conversationRepository;
         _unitOfWork = unitOfWork;
+        _fileStorageService = fileStorageService;
+        _notifier = notifier;
     }
 
     public async Task<MessageDto> HandleAsync(AdicionarMensagemCommand command, CancellationToken cancellationToken)
@@ -27,13 +35,24 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         if (conversa is null)
             throw new NotFoundException($"Conversa com o Id '{command.ConversaId}' não encontrada.");
 
+        string? anexoUrl = null;
+        if (command.AnexoStream is not null)
+        {
+            // Gera um nome de arquivo único para evitar colisões
+            var nomeUnicoAnexo = $"{Guid.NewGuid()}-{command.AnexoNome}";
+            anexoUrl = await _fileStorageService.UploadAsync(
+                command.AnexoStream,
+                nomeUnicoAnexo,
+                command.AnexoContentType!);
+        }
+
         // 2. Criamos o Value Object 'Remetente' a partir dos dados do comando.
         var remetente = command.RemetenteTipo == RemetenteTipo.Agente
             ? Remetente.Agente(command.AgenteId ?? Guid.Empty)
             : Remetente.Cliente();
 
         // 3. Criamos a entidade 'Mensagem'.
-        var novaMensagem = new Mensagem(command.Texto, remetente, command.AnexoUrl);
+        var novaMensagem = new Mensagem(command.Texto, remetente, anexoUrl);
 
         // 4. Invocamos o método de domínio.
         conversa.AdicionarMensagem(novaMensagem);
@@ -42,7 +61,10 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         await _conversationRepository.UpdateAsync(conversa, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // 6. Mapeamos a nova mensagem para um DTO e a retornamos.
+        var messageDto = novaMensagem.ToDto();
+
+        await _notifier.NotificarNovaMensagemAsync(conversa.Id.ToString(), messageDto);
+
         return novaMensagem.ToDto();
     }
 }

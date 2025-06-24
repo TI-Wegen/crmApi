@@ -1,4 +1,6 @@
-﻿using CRM.Infrastructure.Database;
+﻿using Conversations.Application.Abstractions;
+using CRM.Infrastructure.Database;
+using CRM.Infrastructure.Storage;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.EntityFrameworkCore;
@@ -11,9 +13,10 @@ public static class ConnectionsConfigurations
         this IServiceCollection services,
         IConfiguration config)
     {
-        //services.AddDbConnection(config);
-        services.AddInMemoryConnections();
+        services.AddDbConnection(config);
+        //services.AddInMemoryConnections();
         services.AddHangFire(config);
+        services.AddFileStorage(config);
         return services;
     }
 
@@ -49,6 +52,24 @@ public static class ConnectionsConfigurations
     .UseSimpleAssemblyNameTypeSerializer()
     .UseRecommendedSerializerSettings()
     .UsePostgreSqlStorage(c => c.UseNpgsqlConnection(connectionString)));
+
+        return services;
+    }
+
+    public static IServiceCollection AddFileStorage(
+        this IServiceCollection services,
+     IConfiguration config)
+    {
+        services.Configure<MinioSettings>(config.GetSection("MinioSettings"));
+        services.AddSingleton<IFileStorageService, MinioStorageService>();
+        return services;
+    }
+
+    public static IServiceCollection AddSignalR(
+    this IServiceCollection services,
+        IConfiguration config)
+    {
+        services.AddSignalR();
 
         return services;
     }

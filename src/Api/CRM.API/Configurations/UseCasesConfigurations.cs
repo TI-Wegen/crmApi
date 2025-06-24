@@ -18,6 +18,7 @@ using Conversations.Application.UseCases.Commands.Handlers;
 using Conversations.Application.UseCases.Queries;
 using Conversations.Application.UseCases.Queries.Handlers;
 using Conversations.Infrastructure.Repositories;
+using CRM.API.Services;
 using CRM.Application.Interfaces;
 using CRM.Infrastructure.Database.Configurations;
 using System.Net;
@@ -41,6 +42,8 @@ public static class UseCaseConfigurations
     {
 
         services.AddScoped<IConversationRepository, ConversationRepository>();
+        services.AddScoped<IContactRepository, ContactRepository>();
+        services.AddScoped<IAgentRepository, AgentRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<ExpirarSessoesJob>();
 
@@ -67,6 +70,8 @@ public static class UseCaseConfigurations
         services.AddScoped<IQueryHandler<GetAllContactsQuery, IEnumerable<ContatoDto>>, GetAllContactsQueryHandler>();
         services.AddScoped<ICommandHandler<AtualizarContatoCommand>, AtualizarContatoCommandHandler>();
         services.AddScoped<ICommandHandler<InativarContatoCommand>, InativarContatoCommandHandler>();
+        services.AddScoped<IRealtimeNotifier, SignalRNotifier>();
+
 
         return services;
     }

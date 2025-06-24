@@ -6,7 +6,9 @@ namespace Conversations.Application.UseCases.Commands;
 public record AdicionarMensagemCommand(
     Guid ConversaId,
     string Texto,
-    string? AnexoUrl,
-    RemetenteTipo RemetenteTipo, // Precisamos saber QUEM está enviando
-    Guid? AgenteId = null         // Necessário se o remetente for um Agente
+    RemetenteTipo RemetenteTipo,
+    Stream? AnexoStream,
+    string? AnexoNome,
+    string? AnexoContentType,
+    Guid? AgenteId = null
 ) : ICommand;

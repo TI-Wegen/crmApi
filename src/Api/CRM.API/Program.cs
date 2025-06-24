@@ -1,4 +1,5 @@
 using CRM.API.Configurations;
+using CRM.API.Hubs;
 using Hangfire;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,6 +36,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+app.MapHub<ConversationHub>("/conversationHub"); 
 
 
 app.Run();

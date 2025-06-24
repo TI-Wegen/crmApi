@@ -118,7 +118,16 @@ public class ConversationsController : ControllerBase
 
         try
         {
-            var command = new AdicionarMensagemCommand(id, request.Texto, request.AnexoUrl, remetenteTipo, request.AgenteId);
+            var command = new AdicionarMensagemCommand(
+                   id,
+                   request.Texto,
+                   remetenteTipo,
+                   request.Anexo?.OpenReadStream(), 
+                   request.Anexo?.FileName,        
+                   request.Anexo?.ContentType,
+                   request.AgenteId
+               );
+            
             var messageDto = await _adicionarMensagemHandler.HandleAsync(command);
 
             // Retorna 200 OK com os dados da mensagem recém-criada no corpo.
