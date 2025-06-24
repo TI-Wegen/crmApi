@@ -4,6 +4,12 @@ using Agents.Application.UseCases.Commands.Handlers;
 using Agents.Application.UseCases.Queries;
 using Agents.Domain.Repository;
 using Agents.Infrastructure.Repositories;
+using Contacts.Application.Dtos;
+using Contacts.Application.UseCases.Commands;
+using Contacts.Application.UseCases.Commands.Handlers;
+using Contacts.Application.UseCases.Commands.Queries;
+using Contacts.Domain.Repository;
+using Contacts.Infrastructure.Repositories;
 using Conversations.Application.Abstractions;
 using Conversations.Application.Dtos;
 using Conversations.Application.Jobs;
@@ -55,7 +61,12 @@ public static class UseCaseConfigurations
         services.AddScoped<ICommandHandler<CriarAgenteCommand, AgenteDto>, CriarAgenteCommandHandler>();
         services.AddScoped<ICommandHandler<AtualizarAgenteCommand>, AtualizarAgenteCommandHandler>();
         services.AddScoped<IQueryHandler<GetAllAgentsQuery, IEnumerable<AgenteDto>>, GetAllAgentsQueryHandler>();
-
+        services.AddScoped<IContactRepository, ContactRepository>();
+        services.AddScoped<ICommandHandler<CriarContatoCommand, ContatoDto>, CriarContatoCommandHandler>();
+        services.AddScoped<IQueryHandler<GetContactByIdQuery, ContatoDto>, GetContactByIdQueryHandler>();
+        services.AddScoped<IQueryHandler<GetAllContactsQuery, IEnumerable<ContatoDto>>, GetAllContactsQueryHandler>();
+        services.AddScoped<ICommandHandler<AtualizarContatoCommand>, AtualizarContatoCommandHandler>();
+        services.AddScoped<ICommandHandler<InativarContatoCommand>, InativarContatoCommandHandler>();
 
         return services;
     }

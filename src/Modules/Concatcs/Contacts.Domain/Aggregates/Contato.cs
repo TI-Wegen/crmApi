@@ -65,4 +65,32 @@ public class Contato : Entity
         var novaEntrada = new HistoricoStatus(status, DateTime.UtcNow);
         _historicoStatus.Add(novaEntrada);
     }
+
+    public void Atualizar(string novoNome, string novoTelefone, List<string> novasTags)
+    {
+        if (string.IsNullOrWhiteSpace(novoNome))
+            throw new DomainException("O nome do contato não pode ser vazio.");
+        if (string.IsNullOrWhiteSpace(novoTelefone))
+            throw new DomainException("O telefone do contato não pode ser vazio.");
+
+        Nome = novoNome;
+        Telefone = novoTelefone;
+
+        _tags.Clear();
+        foreach (var textoTag in novasTags ?? new List<string>())
+        {
+            AdicionarTag(textoTag);
+        }
+
+    }
+
+    public void Inativar()
+    {
+    
+        if (Status == ContatoStatus.Inativo) return; // Nenhuma ação necessária
+
+        // Reutilizamos o método que já criamos para alterar o status e registrar no histórico!
+        AlterarStatus(ContatoStatus.Inativo);
+
+    }
 }

@@ -1,6 +1,7 @@
 ﻿namespace CRM.Infrastructure.Database;
 
 using Agents.Domain.Aggregates;
+using Contacts.Domain.Aggregates;
 using Conversations.Domain.Aggregates;
 using Conversations.Domain.Entities;
 // Em Infrastructure/Database/
@@ -15,6 +16,8 @@ public class AppDbContext : DbContext
     public DbSet<Mensagem> Mensagens { get; set; }
     public DbSet<Agente> Agentes { get; set; }
     public DbSet<Setor> Setores { get; set; }
+    public DbSet<Contato> Contatos { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Aplica todas as configurações de entidade definidas neste assembly

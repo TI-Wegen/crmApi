@@ -10,4 +10,10 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Infrastructure\CRM.Infrastructure\CRM.Infrastructure.csproj" />
+    <ProjectReference Include="..\Contacts.Application\Contacts.Application.csproj" />
+    <ProjectReference Include="..\Contacts.Domain\Contacts.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
