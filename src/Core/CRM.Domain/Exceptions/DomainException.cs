@@ -1,6 +1,6 @@
-﻿namespace Conversations.Domain.Exceptions;
+﻿namespace CRM.Domain.Exceptions;
 
-    public class DomainException : Exception
+public class DomainException : Exception
     {
         public DomainException(string message) : base(message)
         {

@@ -1,6 +1,6 @@
 ﻿using Conversations.Domain.Entities;
 using Conversations.Domain.Enuns;
-using Conversations.Domain.Exceptions;
+using CRM.Domain.Exceptions;
 using CRM.Domain.DomainEvents;
 
 namespace Conversations.Domain.Aggregates;

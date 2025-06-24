@@ -1,4 +1,4 @@
-﻿using Conversations.Domain.Exceptions;
+﻿using CRM.Domain.Exceptions;
 using CRM.Domain.DomainEvents;
 
 namespace Agents.Domain.Aggregates;

@@ -1,5 +1,5 @@
 ﻿// Em Modules/Agents/Domain/ValueObjects/
-using Conversations.Domain.Exceptions;
+using CRM.Domain.Exceptions;
 
 // Usamos 'record' para imutabilidade e comparação baseada em valor.
 public record CargaDeTrabalho

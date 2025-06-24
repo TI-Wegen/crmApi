@@ -1,4 +1,4 @@
-﻿using Conversations.Domain.Exceptions;
+﻿using CRM.Domain.Exceptions;
 using Conversations.Domain.ValueObjects;
 
 namespace Conversations.Domain.Entities;

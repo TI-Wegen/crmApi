@@ -1,5 +1,5 @@
 ﻿using Conversations.Domain.Enuns;
-using Conversations.Domain.Exceptions;
+using CRM.Domain.Exceptions;
 
 namespace Conversations.Domain.ValueObjects;
 

@@ -4,7 +4,7 @@ using Conversations.Application.UseCases.Commands.Handlers;
 using Conversations.Domain.Aggregates;
 using Conversations.Domain.Entities;
 using Conversations.Domain.Enuns;
-using Conversations.Domain.Exceptions;
+using CRM.Domain.Exceptions;
 using Conversations.Domain.ValueObjects;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;

@@ -1,8 +1,8 @@
 ﻿namespace Agents.Domain.Aggregates;
 
 using Agents.Domain.Enuns;
-using Conversations.Domain.Exceptions;
 using CRM.Domain.DomainEvents;
+using CRM.Domain.Exceptions;
 
 public class Agente : Entity
 {

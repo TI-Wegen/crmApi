@@ -2,7 +2,7 @@
 using Conversations.Application.UseCases.Commands;
 using Conversations.Application.UseCases.Queries;
 using Conversations.Domain.Enuns;
-using Conversations.Domain.Exceptions;
+using CRM.Domain.Exceptions;
 using CRM.API.Dtos;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
