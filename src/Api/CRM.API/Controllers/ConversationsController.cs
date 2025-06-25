@@ -94,11 +94,14 @@ public class ConversationsController : ControllerBase
     {
         try
         {
-            var command = new IniciarConversaCommand(request.ContatoId, request.Texto, request.AnexoUrl);
+            var command = new IniciarConversaCommand(request.ContatoId, 
+                request.Texto,
+                  request.Anexo?.OpenReadStream(),
+                  request.Anexo?.FileName,
+                  request.Anexo?.ContentType);
+
             var novaConversaId = await _iniciarConversaHandler.HandleAsync(command);
 
-            // Retorna 201 Created com o header 'Location' apontando para o novo recurso
-            // e o ID da nova conversa no corpo da resposta.
             return CreatedAtAction(nameof(GetById), new { id = novaConversaId }, new { id = novaConversaId });
         }
         catch (DomainException ex)
