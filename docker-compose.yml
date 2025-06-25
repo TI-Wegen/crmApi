@@ -17,3 +17,7 @@ services:
     ports:
       - "5432:5432"
 
+volumes:
+    crm_db_data:
+        driver: local
+  
