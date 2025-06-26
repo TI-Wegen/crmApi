@@ -39,20 +39,19 @@ public class DapperConversationReadService : IConversationReadService
 
         var parameters = new DynamicParameters();
         var whereClauses = new List<string>();
-
         if (query.Status.HasValue)
         {
-            whereClauses.Add(@"c.Status = @Status");
+            whereClauses.Add(@"c.""Status"" = @Status");
             parameters.Add("Status", query.Status.ToString());
         }
         if (query.AgenteId.HasValue)
         {
-            whereClauses.Add(@"c.AgenteId = @AgenteId");
+            whereClauses.Add(@"c.""AgenteId"" = @AgenteId");
             parameters.Add("AgenteId", query.AgenteId.Value);
         }
         if (query.SetorId.HasValue)
         {
-            whereClauses.Add(@"c.SetorId = @SetorId");
+            whereClauses.Add(@"c.""SetorId"" = @SetorId");
             parameters.Add("SetorId", query.SetorId.Value);
         }
 
@@ -75,7 +74,6 @@ public class DapperConversationReadService : IConversationReadService
 
     public async Task<ConversationSummaryDto?> GetSummaryByIdAsync(Guid conversationId, CancellationToken cancellationToken = default)
     {
-        // A query é a mesma da listagem, mas filtrando por um ID específico.
         var sql = @"
         SELECT
             c.""Id"",

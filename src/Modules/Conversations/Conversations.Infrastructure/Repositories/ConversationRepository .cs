@@ -33,10 +33,10 @@ public class ConversationRepository : IConversationRepository
             .Include(c => c.Mensagens)
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
     }
-    public async Task UpdateAsync(Conversa conversa, CancellationToken cancellationToken = default)
+    public  Task UpdateAsync(Conversa conversa, CancellationToken cancellationToken = default)
     {
         _context.Conversas.Update(conversa);
-        return;
+        return Task.CompletedTask;
     }
 
     public async Task<IEnumerable<Conversa>> GetConversasAtivasCriadasAntesDeAsync(DateTime limite, CancellationToken cancellationToken = default)
@@ -48,10 +48,8 @@ public class ConversationRepository : IConversationRepository
 
     public Task<Conversa?> FindActiveByContactIdAsync(Guid contactId, CancellationToken cancellationToken = default)
     {
-        // A MUDANÇA ESTÁ AQUI: Adicionamos .Include(c => c.Mensagens)
-        // Isso garante que a coleção de mensagens seja carregada e rastreada pelo EF Core.
         return _context.Conversas
-            .Include(c => c.Mensagens)
+            .Include(c => c.Mensagens) // Manter o Include é uma boa prática.
             .FirstOrDefaultAsync(c =>
                 c.ContatoId == contactId &&
                 (c.Status == ConversationStatus.AguardandoNaFila || c.Status == ConversationStatus.EmAtendimento),

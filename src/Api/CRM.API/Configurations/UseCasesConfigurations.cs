@@ -8,6 +8,7 @@ using Contacts.Application.Dtos;
 using Contacts.Application.UseCases.Commands;
 using Contacts.Application.UseCases.Commands.Handlers;
 using Contacts.Application.UseCases.Commands.Queries;
+using Contacts.Application.UseCases.Commands.Queries.Handlers;
 using Contacts.Domain.Repository;
 using Contacts.Infrastructure.Repositories;
 using Conversations.Application.Abstractions;
@@ -48,6 +49,7 @@ public static class UseCaseConfigurations
         services.AddScoped<IConversationReadService, DapperConversationReadService>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<ExpirarSessoesJob>();
+        services.AddScoped<IMetaMessageSender, MetaMessageSender>();
 
         return services;
     }
@@ -77,6 +79,9 @@ public static class UseCaseConfigurations
         services.AddScoped<IQueryHandler<GetAllContactsQuery, IEnumerable<ContatoDto>>, GetAllContactsQueryHandler>();
         services.AddScoped<ICommandHandler<AtualizarContatoCommand>, AtualizarContatoCommandHandler>();
         services.AddScoped<ICommandHandler<InativarContatoCommand>, InativarContatoCommandHandler>();
+        services.AddScoped<IQueryHandler<GetContactByTelefoneQuery, ContatoDto?>, GetContactByTelefoneQueryHandler>();
+
+
 
       
         return services;

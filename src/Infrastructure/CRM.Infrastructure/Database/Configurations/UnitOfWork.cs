@@ -13,9 +13,12 @@ namespace CRM.Infrastructure.Database.Configurations;
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        // Aqui também seria o local ideal para disparar os eventos de domínio
-        // antes ou depois de salvar as alterações.
         return _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public Task ReloadEntityAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default) where TEntity : class
+    {
+        return _context.Entry(entity).ReloadAsync(cancellationToken);
     }
 }
 

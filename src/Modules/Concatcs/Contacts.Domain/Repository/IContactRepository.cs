@@ -4,7 +4,7 @@ namespace Contacts.Domain.Repository
 {
     public interface IContactRepository
     {
-        Task AddAsync(Contato contato, CancellationToken cancellationToken = default);
+        Task <Contato> AddAsync(Contato contato, CancellationToken cancellationToken = default);
         Task<Contato?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
         Task<Contato?> GetByTelefoneAsync(string telefone, CancellationToken cancellationToken = default);
         Task<Contato?> GetByIdWithDetailsAsync(Guid id, CancellationToken cancellationToken = default);

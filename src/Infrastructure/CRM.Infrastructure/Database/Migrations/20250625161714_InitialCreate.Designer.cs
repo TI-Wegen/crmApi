@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CRM.Infrastructure.Database.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250625144555_InitialCreate")]
+    [Migration("20250625161714_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -50,6 +50,9 @@ namespace CRM.Infrastructure.Database.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<Guid>("Version")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
@@ -72,6 +75,9 @@ namespace CRM.Infrastructure.Database.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("Version")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -99,6 +105,9 @@ namespace CRM.Infrastructure.Database.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<Guid>("Version")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Telefone")
@@ -121,6 +130,9 @@ namespace CRM.Infrastructure.Database.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
+
+                    b.Property<Guid>("Version")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -151,6 +163,10 @@ namespace CRM.Infrastructure.Database.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 

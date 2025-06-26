@@ -31,7 +31,9 @@ public static class ConnectionsConfigurations
     {
         var connectionString = config.GetConnectionString("DefaultConnection");
         services.AddDbContext<AppDbContext>(
-            options => options.UseNpgsql(connectionString));
+            options => options.UseNpgsql(connectionString)
+             .LogTo(Console.WriteLine, LogLevel.Information)
+        .EnableSensitiveDataLogging());
 
         return services;
     }

@@ -1,5 +1,6 @@
 using CRM.API.Configurations;
 using CRM.API.Hubs;
+using CRM.Infrastructure.Config;
 using Hangfire;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +13,7 @@ builder.Services.AddOpenApi();
 
 var frontEndUrl = "http://localhost:3000";
 
+builder.Services.Configure<MetaSettings>(builder.Configuration.GetSection("MetaSettings"));
 
 builder.Services
     .AddAppConnections(builder.Configuration)

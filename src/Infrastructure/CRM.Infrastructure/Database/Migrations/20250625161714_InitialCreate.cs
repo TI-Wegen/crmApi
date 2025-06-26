@@ -21,7 +21,8 @@ namespace CRM.Infrastructure.Database.Migrations
                     Email = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     Status = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     CargaDeTrabalho = table.Column<int>(type: "integer", nullable: false),
-                    SetorIds = table.Column<string>(type: "text", nullable: false)
+                    SetorIds = table.Column<string>(type: "text", nullable: false),
+                    Version = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -35,7 +36,8 @@ namespace CRM.Infrastructure.Database.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Nome = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     Telefone = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    Status = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false)
+                    Status = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Version = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -51,7 +53,8 @@ namespace CRM.Infrastructure.Database.Migrations
                     AgenteId = table.Column<Guid>(type: "uuid", nullable: true),
                     SetorId = table.Column<Guid>(type: "uuid", nullable: true),
                     Status = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    DataCriacao = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    DataCriacao = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Version = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -64,7 +67,8 @@ namespace CRM.Infrastructure.Database.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Nome = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    Descricao = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true)
+                    Descricao = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    Version = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -98,7 +102,8 @@ namespace CRM.Infrastructure.Database.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     DataDeAlteracao = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ContatoId = table.Column<Guid>(type: "uuid", nullable: true)
+                    ContatoId = table.Column<Guid>(type: "uuid", nullable: true),
+                    Version = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {

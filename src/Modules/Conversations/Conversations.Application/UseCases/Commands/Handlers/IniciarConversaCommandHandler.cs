@@ -2,6 +2,7 @@
 using Conversations.Application.Mappers;
 using Conversations.Domain.Aggregates;
 using Conversations.Domain.Entities;
+using Conversations.Domain.Enuns;
 using Conversations.Domain.ValueObjects;
 using CRM.Application.Interfaces;
 
@@ -31,46 +32,41 @@ namespace Conversations.Application.UseCases.Commands.Handlers;
     }
     public async Task<Guid> HandleAsync(IniciarConversaCommand command, CancellationToken cancellationToken)
     {
-        var existingConversation =
-            await _conversationRepository.FindActiveByContactIdAsync(command.ContatoId, cancellationToken);
+       
+        var existingConversation = await _conversationRepository.FindActiveByContactIdAsync(command.ContatoId, cancellationToken);
 
         var remetente = Remetente.Cliente();
-        string? anexoUrl = null;
-        if (command.AnexoStream is not null)
-        {
-            // Gera um nome de arquivo único para evitar colisões
-            var nomeUnicoAnexo = $"{Guid.NewGuid()}-{command.AnexoNome}";
-            anexoUrl = await _fileStorageService.UploadAsync(
-                command.AnexoStream,
-                nomeUnicoAnexo,
-                command.AnexoContentType!);
-        }
+        string? anexoUrl = null; // Lógica do anexo
         var novaMensagem = new Mensagem(command.TextoDaPrimeiraMensagem, remetente, anexoUrl);
+
 
         if (existingConversation is not null)
         {
-            try
-            {
-                existingConversation.AdicionarMensagem(novaMensagem);
-                await _unitOfWork.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new ApplicationException("Erro ao processar a conversa existente.", ex);
-            }
+            existingConversation.AdicionarMensagem(novaMensagem);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            await _notifier.NotificarNovaMensagemAsync(existingConversation.Id.ToString(), novaMensagem.ToDto());
+            if (existingConversation.Status == ConversationStatus.AguardandoNaFila)
+            {
+                var summaryDto = await _readService.GetSummaryByIdAsync(existingConversation.Id, cancellationToken);
+                if (summaryDto is not null)
+                {
+                    await _notifier.NotificarNovaConversaNaFilaAsync(summaryDto);
+                }
+            }
+            else // O status é EmAtendimento
+            {
+                
+                await _notifier.NotificarNovaMensagemAsync(existingConversation.Id.ToString(), novaMensagem.ToDto());
+            }
 
             return existingConversation.Id;
         }
         else
         {
-            // 3. SE NÃO EXISTE: Cria uma nova conversa (comportamento antigo)
             var novaConversa = Conversa.Iniciar(command.ContatoId, novaMensagem);
             await _conversationRepository.AddAsync(novaConversa, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            // Notifica o frontend sobre a NOVA CONVERSA na fila
             var summaryDto = await _readService.GetSummaryByIdAsync(novaConversa.Id, cancellationToken);
             if (summaryDto is not null)
             {

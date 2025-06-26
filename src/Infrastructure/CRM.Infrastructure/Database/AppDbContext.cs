@@ -4,6 +4,7 @@ using Agents.Domain.Aggregates;
 using Contacts.Domain.Aggregates;
 using Conversations.Domain.Aggregates;
 using Conversations.Domain.Entities;
+using CRM.Domain.DomainEvents;
 // Em Infrastructure/Database/
 using Microsoft.EntityFrameworkCore;
 
@@ -18,6 +19,19 @@ public class AppDbContext : DbContext
     public DbSet<Setor> Setores { get; set; }
     public DbSet<Contato> Contatos { get; set; }
 
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        var entries = ChangeTracker.Entries<Entity>()
+            .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified);
+
+        foreach (var entry in entries)
+        {
+            // Esta linha garante que, para qualquer UPDATE, o token de concorrência mude.
+            entry.Property("Version").CurrentValue = Guid.NewGuid();
+        }
+
+        return base.SaveChangesAsync(cancellationToken);
+    }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Aplica todas as configurações de entidade definidas neste assembly

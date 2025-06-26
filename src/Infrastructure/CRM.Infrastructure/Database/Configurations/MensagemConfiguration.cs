@@ -18,6 +18,7 @@ public class MensagemConfiguration : IEntityTypeConfiguration<Mensagem>
             remetenteBuilder.Property(r => r.Tipo).HasConversion<string>().HasColumnName("RemetenteTipo");
             remetenteBuilder.Property(r => r.AgenteId).HasColumnName("RemetenteAgenteId");
         });
+        builder.Property(m => m.Id).ValueGeneratedOnAdd();
 
         builder.Property(m => m.MessageId)
        .HasColumnName("MessageId")

@@ -11,6 +11,7 @@ public class ConversaConfiguration : IEntityTypeConfiguration<Conversa>
     {
         builder.ToTable("Conversas"); // Nome da tabela no banco
         builder.HasKey(c => c.Id); // Chave primária
+        builder.Property(c => c.Version).IsConcurrencyToken();
 
         // Mapeia o Enum 'Status' para ser salvo como uma string no banco
         builder.Property(c => c.Status).HasConversion<string>().HasMaxLength(50);
@@ -22,5 +23,6 @@ public class ConversaConfiguration : IEntityTypeConfiguration<Conversa>
 
         // Ignora a propriedade de eventos de domínio, para não ser persistida
         builder.Ignore(c => c.DomainEvents);
+
     }
 }

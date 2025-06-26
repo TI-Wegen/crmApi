@@ -61,20 +61,40 @@ public class Conversa: Entity
 
     public void AdicionarMensagem(Mensagem novaMensagem)
     {
+        // Regra 1: Validações de estado terminal (não pode adicionar msg em conversa resolvida/expirada)
         if (Status is ConversationStatus.Resolvida or ConversationStatus.SessaoExpirada)
+        {
             throw new DomainException($"Não é possível adicionar mensagens a uma conversa com status '{Status}'.");
+        }
 
-        if (Status == ConversationStatus.SessaoExpirada && novaMensagem.Remetente.Tipo == RemetenteTipo.Agente)
+        var remetenteIsAgente = novaMensagem.Remetente.Tipo == RemetenteTipo.Agente;
+
+        // Regra 2: A nova lógica de atribuição implícita
+        if (Status == ConversationStatus.AguardandoNaFila && remetenteIsAgente)
+        {
+            // Se a conversa está na fila e um agente responde, ele se torna o dono.
+            Status = ConversationStatus.EmAtendimento;
+            AgenteId = novaMensagem.Remetente.AgenteId;
+
+            // Disparamos o evento para que outros sistemas saibam da atribuição
+            AddDomainEvent(new ConversaAtribuidaEvent(this.Id, AgenteId.Value, DateTime.UtcNow));
+        }
+        // Regra 3: Tratamento de "Race Condition"
+        else if (Status == ConversationStatus.EmAtendimento && remetenteIsAgente && AgenteId != novaMensagem.Remetente.AgenteId)
+        {
+            // Se outro agente tentar responder uma conversa que já está em atendimento por outra pessoa.
+            throw new DomainException("Esta conversa já está sendo atendida por outro agente.");
+        }
+
+        // Regra 4: Validação da janela de 24h da Meta
+        if (Status == ConversationStatus.SessaoExpirada && remetenteIsAgente)
         {
             throw new DomainException("A sessão de 24h expirou. O agente não pode mais enviar mensagens de formato livre.");
         }
 
+        // Ação Principal: Adicionar a mensagem e disparar o evento
         _mensagens.Add(novaMensagem);
-
-
-        var evento = new MensagemAdicionadaEvent(this.Id, novaMensagem.Id, novaMensagem.Texto, DateTime.UtcNow);
-        this.AddDomainEvent(evento);
-
+        AddDomainEvent(new MensagemAdicionadaEvent(this.Id, novaMensagem.Id, novaMensagem.Texto, DateTime.UtcNow));
     }
 
     public void Resolver()

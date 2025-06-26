@@ -15,9 +15,11 @@ public class ContactRepository : IContactRepository
         _context = context;
     }
 
-    public async Task AddAsync(Contato contato, CancellationToken cancellationToken = default)
+    public async Task <Contato> AddAsync(Contato contato, CancellationToken cancellationToken = default)
     {
         await _context.Contatos.AddAsync(contato, cancellationToken);
+
+        return contato;
     }
 
     public Task<Contato?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)

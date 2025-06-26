@@ -7,7 +7,7 @@ namespace Conversations.Domain.Entities;
 {
     public Guid Id { get; private set; }
     public string Texto { get; private set; }
-    public string MessageId {get; private set; }
+    public string? MessageId {get; private set; }
     public string? AnexoUrl { get; private set; }
     public DateTime Timestamp { get; private set; }
     public Remetente Remetente { get; private set; }
@@ -17,7 +17,7 @@ namespace Conversations.Domain.Entities;
         if (string.IsNullOrWhiteSpace(texto) && string.IsNullOrWhiteSpace(anexoUrl))
             throw new DomainException("A mensagem precisa ter um texto ou um anexo.");
 
-        Id = Guid.NewGuid();
+        //Id = Guid.NewGuid();
         Texto = texto;
         Remetente = remetente;
         AnexoUrl = anexoUrl;

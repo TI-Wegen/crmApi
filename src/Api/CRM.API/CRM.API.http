@@ -1,6 +1,154 @@
-@CRM.API_HostAddress = http://localhost:5233
+# =================================================================
+# VARIÁVEIS GLOBAIS
+# Altere a baseUrl para o endereço da sua API rodando localmente
+# =================================================================
+@baseUrl = http://localhost:5233
 
-GET {{CRM.API_HostAddress}}/weatherforecast/
-Accept: application/json
+@contactId =ebc19e79-29f9-41df-a697-cafc676061eb
+@agentId =9cbb3ac3-16e4-4916-a491-444758a5b351
+@conversationId =591f5dbc-5e9e-498c-b76f-80644d880efa
 
-###
+
+# =================================================================
+# MÓDULO DE CONTATOS
+# =================================================================
+
+### 1. Criar um novo Contato 
+# @name createContact
+POST {{baseUrl}}/api/contacts
+Content-Type: application/json
+
+{
+  "nome": "Cliente de Teste",
+  "telefone": "5531999999999"
+}
+
+### Armazenar o ID do contato criado
+@contactId = {{createContact.response.body.id}}
+
+### -------------------------------------------------------------
+
+### 2. Listar todos os Contatos 
+GET {{baseUrl}}/api/contacts?pageNumber=1&pageSize=5
+
+### -------------------------------------------------------------
+
+### 3. Buscar o Contato criado por ID
+GET {{baseUrl}}/api/contacts/{{contactId}}
+
+### -------------------------------------------------------------
+
+### 4. Atualizar o Contato criado
+PUT {{baseUrl}}/api/contacts/{{contactId}}
+Content-Type: application/json
+
+{
+  "nome": "Cliente de Teste (Atualizado)",
+  "telefone": "5531988888888",
+  "tags": ["teste", "api"]
+}
+
+
+# =================================================================
+# MÓDULO DE AGENTES
+# =================================================================
+
+### 5. Criar um novo Agente 
+# @name createAgent
+POST {{baseUrl}}/api/agents
+Content-Type: application/json
+
+{
+  "nome": "Agente Milan",
+  "email": "milan.macoratti2@teste.com"
+}
+
+### Armazenar o ID do agente criado
+@agentId = {{createAgent.response.body.id}}
+
+
+# =================================================================
+# MÓDULO DE CONVERSAS - CICLO DE VIDA
+# =================================================================
+
+### 6. Iniciar uma nova Conversa 
+# @name createConversation
+POST {{baseUrl}}/api/conversations
+Content-Type: application/json
+
+{
+  "contatoId": "{{contactId}}",
+  "texto": "teste"
+}
+
+### Armazenar o ID da conversa criada
+@conversationId = {{createConversation.response.body.id}}
+
+### -------------------------------------------------------------
+
+### 7. Listar Conversas na Fila de Atendimento
+# Vamos filtrar para ver apenas as conversas aguardando na fila.
+GET {{baseUrl}}/api/conversations
+
+### -------------------------------------------------------------
+
+### 8. Atribuir a Conversa a um Agente 
+PATCH {{baseUrl}}/api/conversations/{{conversationId}}/atribuir-agente
+Content-Type: application/json
+
+{
+  "agenteId": "{{agentId}}"
+}
+
+### -------------------------------------------------------------
+
+# Vamos filtrar para ver apenas as conversas aguardando na fila.
+GET {{baseUrl}}/api/conversations
+
+### -------------------------------------------------------------
+
+### 8. Atribuir a Conversa a um Agente 
+GET {{baseUrl}}/api/conversations/{{conversationId}}
+Content-Type: application/json
+
+{
+  "agenteId": "{{agentId}}"
+}
+
+### -------------------------------------------------------------
+
+### 9. Adicionar uma nova Mensagem (pelo Agente) 
+# ATENÇÃO: Esta requisição é 'multipart/form-data' devido ao anexo opcional.
+# A sintaxe em texto pode variar. É mais fácil montar esta requisição na UI do seu cliente REST.
+# Crie uma requisição POST para a URL abaixo com os seguintes campos de formulário:
+# - Texto: "Com certeza, como posso ajudar?"
+# - RemetenteTipo: "Agente"
+# - AgenteId: "{{agentId}}"
+# - Anexo: (opcional, anexe um arquivo de imagem ou pdf)
+POST {{baseUrl}}/api/conversations/{{conversationId}}/messages
+# Content-Type: multipart/form-data; boundary=----WebKitFormBoundary...
+# ... (Corpo complexo do formulário aqui) ...
+
+
+### -------------------------------------------------------------
+
+### 10. Resolver a Conversa 
+PATCH {{baseUrl}}/api/conversations/{{conversationId}}/resolver
+
+### -------------------------------------------------------------
+
+### 11. Reabrir a Conversa 
+PATCH {{baseUrl}}/api/conversations/{{conversationId}}/reabrir
+
+
+# =================================================================
+# OPERAÇÕES DE EXCLUSÃO (SOFT DELETE)
+# =================================================================
+
+### 12. Inativar o Contato
+DELETE {{baseUrl}}/api/contacts/{{contactId}}
+
+### -------------------------------------------------------------
+
+### 13. Inativar o Agente
+DELETE {{baseUrl}}/api/agents/{{agentId}}

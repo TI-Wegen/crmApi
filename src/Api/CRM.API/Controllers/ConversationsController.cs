@@ -110,14 +110,14 @@ public class ConversationsController : ControllerBase
         }
     }
 
-
     [HttpPost("{id:guid}/messages")]
     [ProducesResponseType(typeof(MessageDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> AdicionarMensagem(Guid id, [FromBody] AdicionarMensagemRequest request)
+    public async Task<IActionResult> AdicionarMensagem(
+    [FromRoute] Guid id,
+    [FromForm] AdicionarMensagemRequest request) 
     {
-        // É uma boa prática validar a string 'RemetenteTipo'
         if (!Enum.TryParse<RemetenteTipo>(request.RemetenteTipo, true, out var remetenteTipo))
         {
             return BadRequest("RemetenteTipo inválido. Use 'Agente' ou 'Cliente'.");
@@ -126,18 +126,17 @@ public class ConversationsController : ControllerBase
         try
         {
             var command = new AdicionarMensagemCommand(
-                   id,
-                   request.Texto,
-                   remetenteTipo,
-                   request.Anexo?.OpenReadStream(), 
-                   request.Anexo?.FileName,        
-                   request.Anexo?.ContentType,
-                   request.AgenteId
-               );
-            
+                id,
+                request.Texto,
+                remetenteTipo,
+                request.Anexo?.OpenReadStream(),
+                request.Anexo?.FileName,
+                request.Anexo?.ContentType,
+                request.AgenteId
+            );
+
             var messageDto = await _adicionarMensagemHandler.HandleAsync(command);
 
-            // Retorna 200 OK com os dados da mensagem recém-criada no corpo.
             return Ok(messageDto);
         }
         catch (NotFoundException ex)
@@ -149,6 +148,7 @@ public class ConversationsController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+    
 
     [HttpPatch("{id:guid}/resolver")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
