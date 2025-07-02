@@ -30,7 +30,7 @@ public class CriarAgenteCommandHandler : ICommandHandler<CriarAgenteCommand, Age
 
         // 2. Usar o método de fábrica do domínio para criar o agregado
         var agente = Agente.Criar(command.Nome, command.Email);
-
+        agente.DefinirSenha(command.Senha);
         // 3. Adicionar ao repositório
         await _agentRepository.AddAsync(agente, cancellationToken);
 

@@ -21,7 +21,7 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
     private readonly IRealtimeNotifier _notifier;
     private readonly IMetaMessageSender _metaSender; // NOVO
     private readonly IContactRepository _contactRepository; // NOVO
-
+    private readonly IUserContext _userContext;
 
 
 
@@ -31,7 +31,8 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         IFileStorageService fileStorageService,
         IRealtimeNotifier notifier,
         IMetaMessageSender metaSender,
-        IContactRepository contactRepository)
+        IContactRepository contactRepository,
+        IUserContext userContext)
     {
         _conversationRepository = conversationRepository;
         _unitOfWork = unitOfWork;
@@ -39,6 +40,7 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         _notifier = notifier;
         _metaSender = metaSender;
         _contactRepository = contactRepository;
+        _userContext = userContext;
     }
 
     public async Task<MessageDto> HandleAsync(AdicionarMensagemCommand command, CancellationToken cancellationToken)
@@ -54,9 +56,19 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
             anexoUrl = await _fileStorageService.UploadAsync(command.AnexoStream, nomeUnicoAnexo, command.AnexoContentType!);
         }
 
+        Guid? agenteId = null;
+        if (command.RemetenteTipo == RemetenteTipo.Agente)
+        {
+            agenteId = _userContext.GetCurrentUserId();
+            if (agenteId is null)
+            {
+                throw new UnauthorizedAccessException("Não foi possível identificar o agente autenticado.");
+            }
+        }
+
         var remetente = command.RemetenteTipo == RemetenteTipo.Agente
-            ? Remetente.Agente(command.AgenteId ?? Guid.Empty)
-            : Remetente.Cliente();
+                    ? Remetente.Agente(agenteId.Value)
+                    : Remetente.Cliente();
 
         var novaMensagem = new Mensagem(command.Texto, remetente, anexoUrl);
 

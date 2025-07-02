@@ -1,4 +1,4 @@
-﻿namespace CRM.Infrastructure.Config;
+﻿namespace CRM.Infrastructure.Config.Meta;
 
 public class MetaSettings
 {

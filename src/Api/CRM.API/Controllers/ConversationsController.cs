@@ -2,14 +2,15 @@
 using Conversations.Application.UseCases.Commands;
 using Conversations.Application.UseCases.Queries;
 using Conversations.Domain.Enuns;
-using CRM.Domain.Exceptions;
 using CRM.API.Dtos;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
+using CRM.Domain.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CRM.API.Controllers;
-
+[Authorize]
 [Route("api/[controller]")]
 [ApiController]
 public class ConversationsController : ControllerBase
@@ -128,11 +129,11 @@ public class ConversationsController : ControllerBase
             var command = new AdicionarMensagemCommand(
                 id,
                 request.Texto,
+                request.AnexoUrl,
                 remetenteTipo,
                 request.Anexo?.OpenReadStream(),
                 request.Anexo?.FileName,
-                request.Anexo?.ContentType,
-                request.AgenteId
+                request.Anexo?.ContentType
             );
 
             var messageDto = await _adicionarMensagemHandler.HandleAsync(command);

@@ -1,5 +1,6 @@
 ﻿using Conversations.Application.Abstractions;
-using CRM.Infrastructure.Config;
+using CRM.Infrastructure.Config.Meta;
+using CRM.Infrastructure.Config.Meta.Dtos;
 using Microsoft.Extensions.Options;
 using System.Text;
 using System.Text.Json;
@@ -25,19 +26,14 @@ public class MetaMessageSender : IMetaMessageSender
         var requestUrl = $"{_metaSettings.MetaApiVersion}/{_metaSettings.WhatsAppBusinessPhoneNumberId}/messages";
 
         // Monta o corpo da requisição que a API da Meta espera
-        var requestBody = new
-        {
-            MessagingProduct = "whatsapp",
-            To = numeroDestino,
-            Type = "text",
-            Text = new { Body = textoMensagem }
-        };
+        var requestBody = new MetaSendMessageRequest(numeroDestino, textoMensagem);
+
 
         var jsonContent = new StringContent(
-            JsonSerializer.Serialize(requestBody, _jsonOptions),
-            Encoding.UTF8,
-            "application/json"
-        );
+          JsonSerializer.Serialize(requestBody),
+          Encoding.UTF8,
+          "application/json"
+      );
 
         var response = await httpClient.PostAsync(requestUrl, jsonContent);
 

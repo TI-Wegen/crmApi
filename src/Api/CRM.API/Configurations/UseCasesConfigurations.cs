@@ -2,6 +2,7 @@
 using Agents.Application.UseCases.Commands;
 using Agents.Application.UseCases.Commands.Handlers;
 using Agents.Application.UseCases.Queries;
+using Agents.Application.UseCases.Queries.Handler;
 using Agents.Domain.Repository;
 using Agents.Infrastructure.Repositories;
 using Contacts.Application.Dtos;
@@ -36,6 +37,7 @@ public static class UseCaseConfigurations
 
         services.AddRepositories();
         services.AddHandlers();
+        services.AddServicesConfiguration();
         return services;
     }
 
@@ -46,11 +48,19 @@ public static class UseCaseConfigurations
         services.AddScoped<IConversationRepository, ConversationRepository>();
         services.AddScoped<IContactRepository, ContactRepository>();
         services.AddScoped<IAgentRepository, AgentRepository>();
-        services.AddScoped<IConversationReadService, DapperConversationReadService>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<ExpirarSessoesJob>();
-        services.AddScoped<IMetaMessageSender, MetaMessageSender>();
+  
+        return services;
+    }
 
+    private static IServiceCollection AddServicesConfiguration(
+      this IServiceCollection services)
+    {
+
+        services.AddHttpContextAccessor();
+        services.AddScoped<IConversationReadService, DapperConversationReadService>();
+        services.AddScoped<ExpirarSessoesJob>();
+        services.AddScoped<IUserContext, UserContext>();
         return services;
     }
 
@@ -71,6 +81,8 @@ public static class UseCaseConfigurations
         services.AddScoped<IQueryHandler<GetAllAgentsQuery, IEnumerable<AgenteDto>>, GetAllAgentsQueryHandler>();
         services.AddScoped<IQueryHandler<GetAgentByIdQuery, AgenteDto>, GetAgentByIdQueryHandler>();
         services.AddScoped<ICommandHandler<InativarAgenteCommand>, InativarAgenteCommandHandler>();
+        services.AddScoped<IQueryHandler<LoginQuery, string>, LoginQueryHandler>();
+
 
 
 

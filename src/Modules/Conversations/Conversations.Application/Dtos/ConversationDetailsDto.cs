@@ -20,3 +20,9 @@ public record MessageDto
     public string RemetenteTipo { get; init; } // "Agente" ou "Cliente"
     public Guid? RemetenteAgenteId { get; init; }
 }
+
+
+public record MessageWithConversationIdDto : MessageDto
+{
+    public string ConversationId { get; set; } = default!;
+}

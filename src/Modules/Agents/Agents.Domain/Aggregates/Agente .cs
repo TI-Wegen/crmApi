@@ -8,6 +8,8 @@ public class Agente : Entity
 {
     public string Nome { get; private set; }
     public string Email { get; private set; }
+    public string PasswordHash { get; private set; }
+
     public AgenteStatus Status { get; private set; }
     public CargaDeTrabalho CargaDeTrabalho { get; private set; }
 
@@ -88,5 +90,20 @@ public class Agente : Entity
 
         // Disparar evento de domínio: AgenteInativadoEvent
         // AddDomainEvent(new AgenteInativadoEvent(this.Id));
+    }
+
+    public void DefinirSenha(string senha)
+    {
+        if (string.IsNullOrWhiteSpace(senha) || senha.Length < 8)
+        {
+            throw new DomainException("A senha deve ter no mínimo 8 caracteres.");
+        }
+        // Gera o hash da senha usando BCrypt
+        PasswordHash = BCrypt.Net.BCrypt.HashPassword(senha);
+    }
+
+    public bool VerificarSenha(string senha)
+    {
+        return BCrypt.Net.BCrypt.Verify(senha, this.PasswordHash);
     }
 }

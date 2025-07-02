@@ -1,6 +1,6 @@
 using CRM.API.Configurations;
 using CRM.API.Hubs;
-using CRM.Infrastructure.Config;
+using CRM.Infrastructure.Config.Meta;
 using Hangfire;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddHttpClient();
 
 var frontEndUrl = "http://localhost:3000";
 
@@ -42,11 +43,11 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/openapi/v1.json", "CRM API");
     });
 }
+//app.UseHealthChecks("/health");
 
-
-app.UseHttpsRedirection();
 app.UseHangfireDashboard("/hangfire");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

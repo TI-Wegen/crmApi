@@ -3,5 +3,6 @@
 namespace Agents.Application.UseCases.Commands;
 public record CriarAgenteCommand(
     string Nome,
-    string Email
+    string Email,
+    string Senha
 ) : ICommand;

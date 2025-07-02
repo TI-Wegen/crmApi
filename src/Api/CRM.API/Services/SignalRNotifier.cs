@@ -18,12 +18,20 @@ public class SignalRNotifier : IRealtimeNotifier
 
     public async Task NotificarNovaMensagemAsync(string conversationId, MessageDto messageDto)
     {
-        // Envia uma mensagem para um grupo específico.
-        // O primeiro argumento "ReceiveMessage" é o nome do método que o JAVASCRIPT
-        // no frontend estará ouvindo.
+        var enrichedMessage = new MessageWithConversationIdDto
+        {
+            ConversationId = conversationId,
+            Id = messageDto.Id,
+            Texto = messageDto.Texto,
+            AnexoUrl = messageDto.AnexoUrl,
+            Timestamp = messageDto.Timestamp,
+            RemetenteTipo = messageDto.RemetenteTipo,
+            RemetenteAgenteId = messageDto.RemetenteAgenteId
+        };
+
         await _hubContext.Clients
             .Group(conversationId)
-            .SendAsync("ReceiveMessage", messageDto);
+            .SendAsync("ReceiveMessage", enrichedMessage);
     }
 
     public async Task NotificarNovaConversaNaFilaAsync(ConversationSummaryDto conversationDto)

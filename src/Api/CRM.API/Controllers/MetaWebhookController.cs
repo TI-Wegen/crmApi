@@ -5,7 +5,7 @@ using Contacts.Application.UseCases.Commands.Queries;
 using Conversations.Application.UseCases.Commands;
 using CRM.API.Dtos.Meta;
 using CRM.Application.Interfaces;
-using CRM.Infrastructure.Config;
+using CRM.Infrastructure.Config.Meta;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.Text.Json.Nodes;

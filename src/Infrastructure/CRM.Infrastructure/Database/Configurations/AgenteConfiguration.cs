@@ -14,6 +14,7 @@ public class AgenteConfiguration : IEntityTypeConfiguration<Agente>
         builder.Property(a => a.Nome).IsRequired().HasMaxLength(100);
         builder.Property(a => a.Email).IsRequired().HasMaxLength(150);
         builder.HasIndex(a => a.Email).IsUnique(); // Garante unicidade do e-mail no banco
+        builder.Property(a => a.PasswordHash).IsRequired();
 
         builder.Property(a => a.Status).HasConversion<string>().HasMaxLength(50);
 

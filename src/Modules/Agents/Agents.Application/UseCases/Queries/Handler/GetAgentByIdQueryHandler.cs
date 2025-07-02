@@ -1,4 +1,4 @@
-﻿namespace Agents.Application.UseCases.Commands.Handlers;
+﻿namespace Agents.Application.UseCases.Queries.Handler;
 
 
 // Em Modules/Agents/Application/UseCases/Queries/Handlers/

@@ -15,7 +15,7 @@ public class Conversa: Entity
     private readonly List<Mensagem> _mensagens = new();
     public IReadOnlyCollection<Mensagem> Mensagens => _mensagens.AsReadOnly();
     public DateTime DataCriacao { get; private set; } = DateTime.UtcNow;
-    // Construtor privado para forçar a criação via métodos de fábrica (como Iniciar)
+    public BotStatus BotStatus { get; private set; }
     private Conversa() { }
 
     public static Conversa Iniciar(Guid contatoId, Mensagem primeiraMensagem)
@@ -31,7 +31,8 @@ public class Conversa: Entity
         {
             Id = Guid.NewGuid(),
             ContatoId = contatoId,
-            Status = ConversationStatus.AguardandoNaFila // O estado inicial definido 
+            Status = ConversationStatus.AguardandoNaFila, // O estado inicial definido 
+            BotStatus =  BotStatus.AguardandoOpcaoMenuPrincipal, // Estado inicial do bot
         };
 
         // A primeira mensagem é adicionada ao estado interno da conversa.
