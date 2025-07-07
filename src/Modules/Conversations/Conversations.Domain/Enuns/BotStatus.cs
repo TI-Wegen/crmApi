@@ -5,5 +5,6 @@ public enum BotStatus
     Nenhum,
     AguardandoOpcaoMenuPrincipal,
     AguardandoCpfParaBoleto,
+    AguardandoEscolhaDeBoleto
 }
 

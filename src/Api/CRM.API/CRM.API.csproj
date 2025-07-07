@@ -29,6 +29,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Core\CRM.Application\CRM.Application.csproj" />
     <ProjectReference Include="..\..\Core\CRM.Domain\CRM.Domain.csproj" />
+    <ProjectReference Include="..\..\External\Infrastructure.ExternalServices\Infrastructure.ExternalServices.csproj" />
     <ProjectReference Include="..\..\Infrastructure\CRM.Infrastructure\CRM.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Modules\Agents\Agents.Application\Agents.Application.csproj" />
     <ProjectReference Include="..\..\Modules\Agents\Agents.Infrastructure\Agents.Infrastructure.csproj" />

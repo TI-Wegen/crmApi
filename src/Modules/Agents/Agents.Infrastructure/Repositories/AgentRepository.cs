@@ -53,4 +53,9 @@ public class AgentRepository : IAgentRepository
         _context.Agentes.Update(agente);
         await _context.SaveChangesAsync(cancellationToken);
     }
+    public async Task<Setor?> GetSetorByNomeAsync(string nome, CancellationToken cancellationToken = default)
+    {
+        return await _context.Setores
+            .FirstOrDefaultAsync(s => s.Nome == nome, cancellationToken);
+    }
 }

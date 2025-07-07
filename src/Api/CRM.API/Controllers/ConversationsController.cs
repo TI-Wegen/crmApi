@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CRM.API.Controllers;
-[Authorize]
+//[Authorize]
 [Route("api/[controller]")]
 [ApiController]
 public class ConversationsController : ControllerBase

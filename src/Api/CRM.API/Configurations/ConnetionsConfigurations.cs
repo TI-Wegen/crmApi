@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
+using StackExchange.Redis;
 using System.Data;
 using System.Text;
 
@@ -30,6 +31,7 @@ public static class ConnectionsConfigurations
         services.AddDapperConnection(config);
         services.AddMetaConnection(config);
         services.AddJwtBearer(config);
+        services.AddRedisConnection(config);
         return services;
     }
 
@@ -65,8 +67,8 @@ public static class ConnectionsConfigurations
         this IServiceCollection services,
      IConfiguration config)
     {
-        services.Configure<MinioSettings>(config.GetSection("MinioSettings"));
-        services.AddSingleton<IFileStorageService, MinioStorageService>();
+        services.Configure<S3Settings>(config.GetSection("S3Config"));
+        services.AddSingleton<IFileStorageService, S3FileStorageService>();
         return services;
     }
 
@@ -84,6 +86,17 @@ public static class ConnectionsConfigurations
     {
         var connectionString = config.GetConnectionString("DefaultConnection");
         services.AddScoped<IDbConnection>(sp => new NpgsqlConnection(connectionString));
+        return services;
+    }
+    public static IServiceCollection AddRedisConnection(
+    this IServiceCollection services,
+    IConfiguration config)
+    {
+       services.AddSingleton<IConnectionMultiplexer>(
+         ConnectionMultiplexer.Connect(config["RedisConnectionString"]));
+
+        // Registra nosso serviço de cache
+       services.AddScoped<IBotSessionCache, RedisBotSessionCache>();
         return services;
     }
 

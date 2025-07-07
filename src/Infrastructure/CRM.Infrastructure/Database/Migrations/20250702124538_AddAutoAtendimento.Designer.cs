@@ -3,6 +3,7 @@ using System;
 using CRM.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CRM.Infrastructure.Database.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250702124538_AddAutoAtendimento")]
+    partial class AddAutoAtendimento
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,19 +45,17 @@ namespace CRM.Infrastructure.Database.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("SetorIds")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
                     b.Property<Guid>("Version")
-                        .IsConcurrencyToken()
                         .HasColumnType("uuid");
-
-                    b.Property<string>("_setorIds")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("SetorIds");
 
                     b.HasKey("Id");
 
@@ -84,26 +85,7 @@ namespace CRM.Infrastructure.Database.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Nome")
-                        .IsUnique();
-
                     b.ToTable("Setores", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("f4d4a8e2-8e6a-4b2a-8b8d-9b8e1f0c3b1a"),
-                            Descricao = "Setor responsável por questões financeiras e boletos.",
-                            Nome = "Financeiro",
-                            Version = new Guid("f6b3a2a8-8e6a-4b2a-8b8d-9b8e1f0c3b1a")
-                        },
-                        new
-                        {
-                            Id = new Guid("c2a3b4d5-6e7f-8a9b-0c1d-2e3f4a5b6c7d"),
-                            Descricao = "Setor responsável por vendas e novas oportunidades.",
-                            Nome = "Comercial",
-                            Version = new Guid("d4a3b4d5-6e7f-8a9b-0c1d-2e3f4a5b6c7d")
-                        });
                 });
 
             modelBuilder.Entity("Contacts.Domain.Aggregates.Contato", b =>
@@ -188,13 +170,6 @@ namespace CRM.Infrastructure.Database.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
-
-                    b.PrimitiveCollection<int[]>("Tags")
-                        .IsRequired()
-                        .HasColumnType("integer[]");
-
-                    b.Property<Guid?>("UltimoAgenteId")
-                        .HasColumnType("uuid");
 
                     b.Property<Guid>("Version")
                         .IsConcurrencyToken()

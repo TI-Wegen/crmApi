@@ -22,6 +22,7 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
     private readonly IMetaMessageSender _metaSender; // NOVO
     private readonly IContactRepository _contactRepository; // NOVO
     private readonly IUserContext _userContext;
+    private readonly IBotSessionCache _botSessionCache;
 
 
 
@@ -32,6 +33,7 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         IRealtimeNotifier notifier,
         IMetaMessageSender metaSender,
         IContactRepository contactRepository,
+        IBotSessionCache botSessionCache,
         IUserContext userContext)
     {
         _conversationRepository = conversationRepository;
@@ -41,6 +43,7 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         _metaSender = metaSender;
         _contactRepository = contactRepository;
         _userContext = userContext;
+        _botSessionCache = botSessionCache;
     }
 
     public async Task<MessageDto> HandleAsync(AdicionarMensagemCommand command, CancellationToken cancellationToken)

@@ -24,6 +24,7 @@ using Conversations.Infrastructure.Services;
 using CRM.API.Services;
 using CRM.Application.Interfaces;
 using CRM.Infrastructure.Database.Configurations;
+using Infrastructure.ExternalServices.Services;
 using System.Net;
 
 namespace CRM.API.Configurations;
@@ -61,6 +62,7 @@ public static class UseCaseConfigurations
         services.AddScoped<IConversationReadService, DapperConversationReadService>();
         services.AddScoped<ExpirarSessoesJob>();
         services.AddScoped<IUserContext, UserContext>();
+        services.AddScoped<IBoletoService, BoletoService>(); 
         return services;
     }
 
@@ -75,6 +77,7 @@ public static class UseCaseConfigurations
         services.AddScoped<ICommandHandler<TransferirConversaCommand>, TransferirConversaCommandHandler>();
         services.AddScoped<ICommandHandler<ReabrirConversaCommand>, ReabrirConversaCommandHandler>();
         services.AddScoped<IQueryHandler<GetAllConversationsQuery, IEnumerable<ConversationSummaryDto>>, GetAllConversationsQueryHandler>();
+        services.AddScoped<ICommandHandler<ProcessarRespostaDoMenuCommand>, ProcessarRespostaDoMenuCommandHandler>();
 
         services.AddScoped<ICommandHandler<CriarAgenteCommand, AgenteDto>, CriarAgenteCommandHandler>();
         services.AddScoped<ICommandHandler<AtualizarAgenteCommand>, AtualizarAgenteCommandHandler>();

@@ -3,6 +3,7 @@ using System;
 using CRM.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CRM.Infrastructure.Database.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250703134623_SeedSetores")]
+    partial class SeedSetores
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,19 +45,17 @@ namespace CRM.Infrastructure.Database.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("SetorIds")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
                     b.Property<Guid>("Version")
-                        .IsConcurrencyToken()
                         .HasColumnType("uuid");
-
-                    b.Property<string>("_setorIds")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("SetorIds");
 
                     b.HasKey("Id");
 
@@ -95,14 +96,14 @@ namespace CRM.Infrastructure.Database.Migrations
                             Id = new Guid("f4d4a8e2-8e6a-4b2a-8b8d-9b8e1f0c3b1a"),
                             Descricao = "Setor responsável por questões financeiras e boletos.",
                             Nome = "Financeiro",
-                            Version = new Guid("f6b3a2a8-8e6a-4b2a-8b8d-9b8e1f0c3b1a")
+                            Version = new Guid("228a1086-316e-488e-af5f-5a0b61616f83")
                         },
                         new
                         {
                             Id = new Guid("c2a3b4d5-6e7f-8a9b-0c1d-2e3f4a5b6c7d"),
                             Descricao = "Setor responsável por vendas e novas oportunidades.",
                             Nome = "Comercial",
-                            Version = new Guid("d4a3b4d5-6e7f-8a9b-0c1d-2e3f4a5b6c7d")
+                            Version = new Guid("f49b23b6-a53e-4b4b-ac8f-c5319ba6d765")
                         });
                 });
 

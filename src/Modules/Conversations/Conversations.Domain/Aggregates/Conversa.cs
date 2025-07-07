@@ -16,6 +16,8 @@ public class Conversa: Entity
     public IReadOnlyCollection<Mensagem> Mensagens => _mensagens.AsReadOnly();
     public DateTime DataCriacao { get; private set; } = DateTime.UtcNow;
     public BotStatus BotStatus { get; private set; }
+    public IReadOnlyCollection<ConversaTag> Tags { get; private set; } = new List<ConversaTag>().AsReadOnly();
+    public Guid? UltimoAgenteId { get; private set; } // Para rastrear o último agente que atendeu a conversa.
     private Conversa() { }
 
     public static Conversa Iniciar(Guid contatoId, Mensagem primeiraMensagem)
@@ -31,7 +33,7 @@ public class Conversa: Entity
         {
             Id = Guid.NewGuid(),
             ContatoId = contatoId,
-            Status = ConversationStatus.AguardandoNaFila, // O estado inicial definido 
+            Status = ConversationStatus.EmAutoAtendimento, // O estado inicial definido 
             BotStatus =  BotStatus.AguardandoOpcaoMenuPrincipal, // Estado inicial do bot
         };
 
@@ -63,15 +65,25 @@ public class Conversa: Entity
     public void AdicionarMensagem(Mensagem novaMensagem)
     {
         // Regra 1: Validações de estado terminal (não pode adicionar msg em conversa resolvida/expirada)
-        if (Status is ConversationStatus.Resolvida or ConversationStatus.SessaoExpirada)
-        {
-            throw new DomainException($"Não é possível adicionar mensagens a uma conversa com status '{Status}'.");
-        }
+        //if (Status is ConversationStatus.Resolvida or ConversationStatus.SessaoExpirada)
+        //{
+        //    throw new DomainException($"Não é possível adicionar mensagens a uma conversa com status '{Status}'.");
+        //}
 
         var remetenteIsAgente = novaMensagem.Remetente.Tipo == RemetenteTipo.Agente;
 
         // Regra 2: A nova lógica de atribuição implícita
         if (Status == ConversationStatus.AguardandoNaFila && remetenteIsAgente)
+        {
+            // Se a conversa está na fila e um agente responde, ele se torna o dono.
+            Status = ConversationStatus.EmAtendimento;
+            BotStatus = BotStatus.Nenhum;
+            AgenteId = novaMensagem.Remetente.AgenteId;
+
+            // Disparamos o evento para que outros sistemas saibam da atribuição
+            AddDomainEvent(new ConversaAtribuidaEvent(this.Id, AgenteId.Value, DateTime.UtcNow));
+        }
+        if (Status == ConversationStatus.EmAutoAtendimento && remetenteIsAgente)
         {
             // Se a conversa está na fila e um agente responde, ele se torna o dono.
             Status = ConversationStatus.EmAtendimento;
@@ -93,6 +105,12 @@ public class Conversa: Entity
             throw new DomainException("A sessão de 24h expirou. O agente não pode mais enviar mensagens de formato livre.");
         }
 
+        if (Status is ConversationStatus.Resolvida or ConversationStatus.SessaoExpirada && !remetenteIsAgente)
+        {
+            Status = ConversationStatus.EmAutoAtendimento; // O estado inicial definido 
+            BotStatus = BotStatus.AguardandoOpcaoMenuPrincipal; // Estado inicial do bot
+                                                                //
+        }
         // Ação Principal: Adicionar a mensagem e disparar o evento
         _mensagens.Add(novaMensagem);
         AddDomainEvent(new MensagemAdicionadaEvent(this.Id, novaMensagem.Id, novaMensagem.Texto, DateTime.UtcNow));
@@ -100,16 +118,17 @@ public class Conversa: Entity
 
     public void Resolver()
     {
-        if (Status != ConversationStatus.EmAtendimento)
-            throw new DomainException("Apenas conversas em atendimento podem ser resolvidas.");
+        if (Status is not ConversationStatus.EmAtendimento and not ConversationStatus.EmAutoAtendimento)
+            throw new DomainException($"Apenas conversas em andamento podem ser resolvidas. Status atual: {Status}");
 
         Status = ConversationStatus.Resolvida;
+        BotStatus = BotStatus.Nenhum;
+
 
         var evento = new ConversaResolvidaEvent(this.Id, this.AgenteId, DateTime.UtcNow);
         this.AddDomainEvent(evento);
     }
 
-    // Dentro da classe Conversa
     public void Transferir(Guid novoAgenteId, Guid novoSetorId)
     {
         // Regra de negócio: só pode transferir conversas em andamento.
@@ -145,7 +164,24 @@ public class Conversa: Entity
         var evento = new ConversaReabertaEvent(this.Id, DateTime.UtcNow);
         this.AddDomainEvent(evento);
     }
+    public void IniciarTransferenciaParaFila(Guid setorId)
+    {
+        // Regra de negócio: só pode transferir se estiver no bot.
+        if (Status != ConversationStatus.EmAutoAtendimento)
+        {
+            throw new DomainException("A conversa não está em autoatendimento para ser transferida para a fila.");
+        }
 
+        Status = ConversationStatus.AguardandoNaFila;
+        BotStatus = BotStatus.Nenhum; // O bot não está mais no controle.
+        SetorId = setorId; // Define o setor para o qual a conversa deve ser roteada.
+
+        //var evento = new ConversaTransferidaParaFilaEvent(this.Id, setorId, DateTime.UtcNow);
+
+        // Dispara um evento para que o sistema de roteamento automático (que planejamos) possa agir.
+        // Ou para que o frontend atualize a lista daquele setor.
+        // AddDomainEvent(new ConversaEnfileiradaEvent(this.Id, setorId));
+    }
     public void Reabrir()
     {
         // A regra de negócio permite reabrir conversas que foram Resolvidas.
@@ -161,6 +197,37 @@ public class Conversa: Entity
 
         var evento = new ConversaReabertaEvent(this.Id, DateTime.UtcNow);
         this.AddDomainEvent(evento);
+    }
+
+    public void AguardarCpf()
+    {
+        if (Status != ConversationStatus.EmAutoAtendimento)
+            throw new DomainException("A conversa deve estar em autoatendimento para aguardar CPF.");
+        BotStatus = BotStatus.AguardandoCpfParaBoleto;
+      
+    }
+
+    public void VoltarAoMenuPrincipal()
+    {
+        BotStatus = BotStatus.AguardandoOpcaoMenuPrincipal;
+
+    }
+    public void AguardarEscolhaDeBoleto()
+    {
+        if (Status != ConversationStatus.EmAutoAtendimento || BotStatus != BotStatus.AguardandoCpfParaBoleto)
+        {
+            throw new DomainException("Não é possível aguardar a escolha de um boleto neste estado.");
+        }
+        BotStatus = BotStatus.AguardandoEscolhaDeBoleto;
+    }
+
+    public void AdicionarTag(ConversaTag tag)
+    {
+        if (tag == null)
+            throw new DomainException("A tag não pode ser nula.");
+
+        Tags = Tags.Append(tag).ToList().AsReadOnly(); // Adiciona a nova tag e atualiza a coleção.
+        //var evento = new TagAdicionadaEvent(this.Id, tag.Nome, DateTime.UtcNow);
     }
 }
 

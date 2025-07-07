@@ -57,6 +57,10 @@ Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Conversation.IntegrationTest", "tests\Conversations\Conversation.IntegrationTest\Conversation.IntegrationTest.csproj", "{7AE743CD-E06E-43C3-A321-7687EDEE78B9}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External", "External", "{C4C9AD48-980C-4155-B27D-1857950A501C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure.ExternalServices", "src\External\Infrastructure.ExternalServices\Infrastructure.ExternalServices.csproj", "{5AC71953-C501-4153-B99D-5D87909CF557}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -127,6 +131,10 @@ Global
 		{7AE743CD-E06E-43C3-A321-7687EDEE78B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7AE743CD-E06E-43C3-A321-7687EDEE78B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7AE743CD-E06E-43C3-A321-7687EDEE78B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5AC71953-C501-4153-B99D-5D87909CF557}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5AC71953-C501-4153-B99D-5D87909CF557}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5AC71953-C501-4153-B99D-5D87909CF557}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5AC71953-C501-4153-B99D-5D87909CF557}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -156,6 +164,8 @@ Global
 		{958D22CA-BE8B-4881-B71C-9DFCD452D3E0} = {A8D796EB-A9B1-4690-86F8-02D9C1CA9B40}
 		{BCE87E09-B2AD-465B-8EF8-D63061869456} = {301FF91C-9BFC-4879-8C77-B2D1BCC532E3}
 		{7AE743CD-E06E-43C3-A321-7687EDEE78B9} = {EF8AB014-CE2A-4841-8DA1-D7A8C0E7227F}
+		{C4C9AD48-980C-4155-B27D-1857950A501C} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{5AC71953-C501-4153-B99D-5D87909CF557} = {C4C9AD48-980C-4155-B27D-1857950A501C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CE2B67F5-98C2-4A33-9093-61E9D2660BD1}

@@ -51,8 +51,7 @@ public class ConversationRepository : IConversationRepository
         return _context.Conversas
             .Include(c => c.Mensagens) // Manter o Include é uma boa prática.
             .FirstOrDefaultAsync(c =>
-                c.ContatoId == contactId &&
-                (c.Status == ConversationStatus.AguardandoNaFila || c.Status == ConversationStatus.EmAtendimento),
+                c.ContatoId == contactId,
                 cancellationToken);
     }
 

@@ -1,8 +1,13 @@
-﻿namespace CRM.Infrastructure.Database.Configurations;
-
-using Agents.Domain.Aggregates;
+﻿using Agents.Domain.Aggregates;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace CRM.Infrastructure.Database.Configurations;
 
 public class AgenteConfiguration : IEntityTypeConfiguration<Agente>
 {
@@ -13,7 +18,7 @@ public class AgenteConfiguration : IEntityTypeConfiguration<Agente>
 
         builder.Property(a => a.Nome).IsRequired().HasMaxLength(100);
         builder.Property(a => a.Email).IsRequired().HasMaxLength(150);
-        builder.HasIndex(a => a.Email).IsUnique(); // Garante unicidade do e-mail no banco
+        builder.HasIndex(a => a.Email).IsUnique();
         builder.Property(a => a.PasswordHash).IsRequired();
 
         builder.Property(a => a.Status).HasConversion<string>().HasMaxLength(50);
@@ -23,12 +28,27 @@ public class AgenteConfiguration : IEntityTypeConfiguration<Agente>
             cargaBuilder.Property(c => c.Valor).HasColumnName("CargaDeTrabalho");
         });
 
-        // EF Core não sabe mapear List<Guid> diretamente, então usamos uma conversão simples.
-        // Isso salvará os Ids dos setores como uma string de texto separada por vírgulas.
-        // Para relações muitos-para-muitos mais complexas, usaríamos uma tabela de junção.
-        builder.Property(a => a.SetorIds).HasConversion(
+        // --- CONFIGURAÇÃO CORRIGIDA E EXPLÍCITA ---
+
+        var converter = new ValueConverter<List<Guid>, string>(
             v => string.Join(',', v),
             v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(Guid.Parse).ToList());
+
+        var comparer = new ValueComparer<List<Guid>>(
+            (c1, c2) => c1.SequenceEqual(c2),
+            c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+            c => c.ToList());
+
+        // Mapeia o campo privado "_setorIds" diretamente pelo nome
+        builder.Property<List<Guid>>("_setorIds")
+               // Define o nome da coluna no banco para clareza
+               .HasColumnName("SetorIds")
+               .HasConversion(converter)
+               .Metadata.SetValueComparer(comparer);
+
+        // --- FIM DA MUDANÇA PRINCIPAL ---
+
+        builder.Property(a => a.Version).IsConcurrencyToken();
 
         builder.Ignore(a => a.DomainEvents);
     }
