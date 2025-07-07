@@ -1,6 +1,7 @@
 ﻿namespace Agents.Infrastructure.Services;
 
 using Agents.Domain.Aggregates;
+using Agents.Domain.Repository;
 using CRM.Application.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -8,25 +9,36 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
 
 public class JwtTokenService : ITokenService
 {
     private readonly SymmetricSecurityKey _key;
     private readonly IConfiguration _config;
+    private readonly IAgentRepository _agentRepository;
 
-    public JwtTokenService(IConfiguration config)
+    public JwtTokenService(IConfiguration config, IAgentRepository agentRepository)
     {
         _config = config;
         _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JwtSettings:Secret"]));
+        _agentRepository = agentRepository;
     }
 
-    public string GerarToken(Agente agente)
+    public async Task<string> GerarToken(Agente agente)
     {
+        var setor = await _agentRepository.GetSetorByIdAsync(agente.SetorIds.FirstOrDefault(), CancellationToken.None);
+
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, agente.Id.ToString()), // 'Subject' - o ID do usuário
             new Claim(JwtRegisteredClaimNames.Email, agente.Email),
-            new Claim(JwtRegisteredClaimNames.Name, agente.Nome)
+            new Claim(JwtRegisteredClaimNames.Name, agente.Nome),
+            new Claim("setorId", setor?.Id.ToString() ?? string.Empty), // Adiciona o ID do setor
+            new Claim("setorNome", setor?.Nome ?? string.Empty), // Adiciona o nome do setor
+           
+
+
+
             // Podemos adicionar 'Roles' aqui no futuro
         };
 
@@ -46,4 +58,7 @@ public class JwtTokenService : ITokenService
 
         return tokenHandler.WriteToken(token);
     }
+
+
+    
 }

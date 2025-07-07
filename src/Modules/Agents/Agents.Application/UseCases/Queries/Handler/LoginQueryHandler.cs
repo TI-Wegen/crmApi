@@ -22,7 +22,7 @@ namespace Agents.Application.UseCases.Queries.Handler;
             throw new UnauthorizedAccessException("E-mail ou senha inválidos.");
         }
 
-        var token = _tokenService.GerarToken(agente);
+        var token = await _tokenService.GerarToken(agente);
         return token;
     }
 }

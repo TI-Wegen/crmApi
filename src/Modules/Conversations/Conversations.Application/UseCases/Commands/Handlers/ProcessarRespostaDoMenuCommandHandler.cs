@@ -28,7 +28,7 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
         IBoletoService boletoService,
         IFileStorageService fileStorageService,
         IAgentRepository agentRepository,
-        ILogger<ProcessarRespostaDoMenuCommandHandler> logger 
+        ILogger<ProcessarRespostaDoMenuCommandHandler> logger
 
         )
     {
@@ -46,10 +46,11 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
     {
         // 1. Busca o estado atual da sessão do bot no Redis usando o telefone.
         var sessionState = await _botSessionCache.GetStateAsync(command.ContatoTelefone);
-        if (sessionState is null) {
+        if (sessionState is null)
+        {
             _logger.LogWarning("Sessão do bot não encontrada para o telefone {Telefone}.", command.ContatoTelefone);
             return;
-        } 
+        }
 
         // 2. Busca a conversa correspondente no banco de dados.
         var conversa = await _conversationRepository.GetByIdAsync(sessionState.ConversationId, cancellationToken);
@@ -85,7 +86,7 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
         }
 
         // 4. Se o bot ainda estiver ativo na conversa, atualiza a sessão no Redis e reseta o timer de 2h.
-      
+
 
         // 5. Salva todas as alterações feitas na conversa no banco de dados.
         await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -105,12 +106,21 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
                 await _metaMessageSender.EnviarMensagemTextoAsync(contatoTelefone, "Por favor, digite seu CPF para gerarmos a segunda via.");
                 break;
 
-            //case "2": // Falar com o Comercial
-            //    conversa.IniciarTransferenciaParaFila(setorComercialId);
-            //    // Remove a sessão do bot, pois agora um humano vai assumir.
-            //    await _botSessionCache.DeleteStateAsync(contatoTelefone);
-            //    await _metaMessageSender.EnviarMensagemTextoAsync(contatoTelefone, "Ok, estou te transferindo para um de nossos especialistas do setor comercial.");
-            //    break;
+            case "2": // Falar com o Comercial
+                var setorComercial = await _agentRepository.GetSetorByNomeAsync(SetorNome.Comercial.ToDbValue());
+                conversa.IniciarTransferenciaParaFila(setorComercial.Id);
+                // Remove a sessão do bot, pois agora um humano vai assumir.
+                await _botSessionCache.DeleteStateAsync(contatoTelefone);
+                await _metaMessageSender.EnviarMensagemTextoAsync(contatoTelefone, "Ok, estou te transferindo para um de nossos especialistas do setor comercial.");
+                break;
+
+            case "3": // Falar com o Financeiro
+                var setorFinanceiro = await _agentRepository.GetSetorByNomeAsync(SetorNome.Financeiro.ToDbValue());
+                conversa.IniciarTransferenciaParaFila(setorFinanceiro.Id);
+                // Remove a sessão do bot, pois agora um humano vai assumir.
+                await _botSessionCache.DeleteStateAsync(contatoTelefone);
+                await _metaMessageSender.EnviarMensagemTextoAsync(contatoTelefone, "Ok, estou te transferindo para um de nossos especialistas do setor Financeiro.");
+                break;
 
             case "4": // Encerrar atendimento
                 conversa.Resolver();
@@ -125,7 +135,7 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
         }
     }
 
-   
+
 
     private async Task ProcessarPedidoDeBoleto(Conversa conversa, string contatoTelefone, string cpf)
     {
@@ -137,7 +147,7 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
             var setorFinanceiro = await _agentRepository.GetSetorByNomeAsync(nomeSetor);
             if (setorFinanceiro is null)
             {
-                
+
                 Console.WriteLine($"ERRO CRÍTICO: O setor semeado '{nomeSetor}' não foi encontrado no banco.");
                 return;
             }
@@ -231,7 +241,7 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
         var boletoEmBytes = Convert.FromBase64String(boleto.PdfBoleto);
         var memoryStream = new MemoryStream(boletoEmBytes);
         var nomeArquivo = $"boleto-{contatoTelefone}-{DateTime.UtcNow:yyyyMMdd}.pdf";
-        var legenda = $"Pronto! Segue seu boleto referente a conta '{boleto.IdFatura}' com vencimento em {boleto.DataVencimento:dd/MM/yyyy}.";
+        var legenda = $"Pronto! Segue seu boleto referente a conta '{boleto.IdFatura}' com vencimento em {boleto.DataVencimento:dd/MM/yyyy}.O Atendimento foi encerrado";
         var urlDoBoleto = await _fileStorageService.UploadAsync(memoryStream, nomeArquivo, "application/pdf");
         await _metaMessageSender.EnviarDocumentoAsync(contatoTelefone, urlDoBoleto, nomeArquivo, legenda);
     }

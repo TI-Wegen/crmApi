@@ -58,4 +58,9 @@ public class AgentRepository : IAgentRepository
         return await _context.Setores
             .FirstOrDefaultAsync(s => s.Nome == nome, cancellationToken);
     }
+
+    public Task<Setor?> GetSetorByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return _context.Setores.FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+    }
 }

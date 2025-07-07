@@ -4,5 +4,5 @@ namespace CRM.Application.Interfaces;
 
 public interface ITokenService
 {
-    string GerarToken(Agente agente);
+    Task<string> GerarToken(Agente agente);
 }
