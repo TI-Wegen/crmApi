@@ -11,7 +11,7 @@ public interface IBotSessionCache
 }
 
 public record BotSessionState(
-    Guid ConversationId,
+    Guid AtendimentoId,
     BotStatus Status,
     List<BoletoDto>? BoletosDisponiveis = null
 );

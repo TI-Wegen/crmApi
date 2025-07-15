@@ -63,4 +63,13 @@ public class AgentRepository : IAgentRepository
     {
         return _context.Setores.FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
     }
+
+    public async Task<IEnumerable<Setor>> GetSetoresAsync(CancellationToken cancellationToken = default)
+    {
+        var query = _context.Setores.AsQueryable();
+
+        return await query
+            .OrderBy(s => s.Nome)
+            .ToListAsync(cancellationToken);
+    }
 }

@@ -1,8 +1,6 @@
 ﻿namespace CRM.API.Services;
 
-using CRM.API.Dtos.Meta;
-
-
+using CRM.Infrastructure.Config.Meta;
 
 public static class WebhookMessageParser
 {

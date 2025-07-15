@@ -2,12 +2,17 @@
 
 public record ConversationDetailsDto
 {
+    // Informações da Conversa (Histórico)
     public Guid Id { get; init; }
     public Guid ContatoId { get; init; }
+    public IReadOnlyCollection<MessageDto> Mensagens { get; init; } = new List<MessageDto>();
+
+    // Informações do Atendimento Atual
+    public Guid? AtendimentoId { get; init; }
     public Guid? AgenteId { get; init; }
     public Guid? SetorId { get; init; }
-    public string Status { get; init; } // Enviamos como string para ser facilmente consumível
-    public IReadOnlyCollection<MessageDto> Mensagens { get; init; } = new List<MessageDto>();
+    public string Status { get; init; }
+    public string BotStatus { get; init; }
 }
 
 // DTO aninhado para as mensagens

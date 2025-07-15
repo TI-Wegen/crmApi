@@ -9,10 +9,14 @@ namespace Conversations.Application.UseCases.Queries.Handlers;
 public class GetConversationByIdQueryHandler : IQueryHandler<GetConversationByIdQuery, ConversationDetailsDto>
 {
     private readonly IConversationRepository _conversationRepository;
+    private readonly IAtendimentoRepository _atendimentoRepository;
 
-    public GetConversationByIdQueryHandler(IConversationRepository conversationRepository)
+
+    public GetConversationByIdQueryHandler(IConversationRepository conversationRepository, 
+        IAtendimentoRepository atendimentoRepository)
     {
         _conversationRepository = conversationRepository;
+        _atendimentoRepository = atendimentoRepository;
     }
 
     public async Task<ConversationDetailsDto> HandleAsync(GetConversationByIdQuery query, CancellationToken cancellationToken)
@@ -27,9 +31,8 @@ public class GetConversationByIdQueryHandler : IQueryHandler<GetConversationById
             throw new NotFoundException($"Conversa com o Id '{query.ConversaId}' não encontrada.");
         }
 
-        // 3. Mapeamos o agregado de domínio para o DTO de resposta.
-        // Nada de UnitOfWork.SaveChangesAsync() aqui, pois é uma operação de leitura.
+        var atendimentoAtivo = await _atendimentoRepository.FindActiveByConversaIdAsync(query.ConversaId, cancellationToken);
 
-        return conversa.ToDetailsDto();
+        return conversa.ToDetailsDto(atendimentoAtivo);
     }
 }

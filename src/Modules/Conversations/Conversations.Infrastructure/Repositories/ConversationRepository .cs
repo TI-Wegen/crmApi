@@ -39,12 +39,7 @@ public class ConversationRepository : IConversationRepository
         return Task.CompletedTask;
     }
 
-    public async Task<IEnumerable<Conversa>> GetConversasAtivasCriadasAntesDeAsync(DateTime limite, CancellationToken cancellationToken = default)
-    {
-        return await _context.Conversas
-         .Where(c => c.Status == ConversationStatus.AguardandoNaFila || c.Status == ConversationStatus.EmAtendimento)
-         .ToListAsync(cancellationToken);
-    }
+
 
     public Task<Conversa?> FindActiveByContactIdAsync(Guid contactId, CancellationToken cancellationToken = default)
     {

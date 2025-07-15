@@ -19,31 +19,30 @@ public class ConversationsController : ControllerBase
     private readonly IQueryHandler<GetConversationByIdQuery, ConversationDetailsDto> _getByIdHandler;
     private readonly ICommandHandler<IniciarConversaCommand, Guid> _iniciarConversaHandler;
     private readonly ICommandHandler<AdicionarMensagemCommand, MessageDto> _adicionarMensagemHandler;
-    private readonly ICommandHandler<ResolverConversaCommand> _resolverConversaHandler;
-    private readonly ICommandHandler<TransferirConversaCommand> _transferirConversaHandler;
-    private readonly ICommandHandler<ReabrirConversaCommand> _reabrirConversaHandler;
-    private readonly IQueryHandler<GetAllConversationsQuery, IEnumerable<ConversationSummaryDto>> _getAllConversationsHandler; 
+    private readonly ICommandHandler<ResolverAtendimentoCommand> _resolverAtendimentoHandler;
+    private readonly ICommandHandler<TransferirAtendimentoCommand> _transferirAtendimentoHandler;
+    private readonly IQueryHandler<GetAllConversationsQuery, IEnumerable<ConversationSummaryDto>> _getAllConversationsHandler;
+    private readonly IQueryHandler<GetActiveChatQuery, ActiveChatDto> _getActiveChatHandler; 
 
-    public ConversationsController(
- ICommandHandler<AtribuirAgenteCommand> atribuirAgenteHandler,
- IQueryHandler<GetConversationByIdQuery, ConversationDetailsDto> getByIdHandler,
- ICommandHandler<IniciarConversaCommand, Guid> iniciarConversaHandler,
- ICommandHandler<AdicionarMensagemCommand, MessageDto> adicionarMensagemHandler, 
- ICommandHandler<ResolverConversaCommand> resolverConversaHandler,
- ICommandHandler<TransferirConversaCommand> transferirConversaHandler,
- ICommandHandler<ReabrirConversaCommand> reabrirConversaHandler,
-  IQueryHandler<GetAllConversationsQuery, IEnumerable<ConversationSummaryDto>> getAllConversationsHandler
- )
+    public ConversationsController(ICommandHandler<AtribuirAgenteCommand> atribuirAgenteHandler, 
+        IQueryHandler<GetConversationByIdQuery, ConversationDetailsDto> getByIdHandler, 
+        ICommandHandler<IniciarConversaCommand, Guid> iniciarConversaHandler,
+        ICommandHandler<AdicionarMensagemCommand, MessageDto> adicionarMensagemHandler,
+        ICommandHandler<ResolverAtendimentoCommand> resolverAtendimentoHandler,
+        ICommandHandler<TransferirAtendimentoCommand> transferirAtendimentoHandler,
+        IQueryHandler<GetAllConversationsQuery, IEnumerable<ConversationSummaryDto>> getAllConversationsHandler,
+        IQueryHandler<GetActiveChatQuery, ActiveChatDto> getActiveChatHandler
+
+        )
     {
         _atribuirAgenteHandler = atribuirAgenteHandler;
         _getByIdHandler = getByIdHandler;
         _iniciarConversaHandler = iniciarConversaHandler;
-        _adicionarMensagemHandler = adicionarMensagemHandler; 
-        _resolverConversaHandler = resolverConversaHandler; 
-        _transferirConversaHandler = transferirConversaHandler;
-        _reabrirConversaHandler = reabrirConversaHandler;
-        _getAllConversationsHandler = getAllConversationsHandler; 
-
+        _adicionarMensagemHandler = adicionarMensagemHandler;
+        _resolverAtendimentoHandler = resolverAtendimentoHandler;
+        _transferirAtendimentoHandler = transferirAtendimentoHandler;
+        _getAllConversationsHandler = getAllConversationsHandler;
+        _getActiveChatHandler = getActiveChatHandler; 
     }
 
     [HttpGet("{id:guid}", Name = "GetConversationById")]
@@ -159,8 +158,8 @@ public class ConversationsController : ControllerBase
     {
         try
         {
-            var command = new ResolverConversaCommand(id);
-            await _resolverConversaHandler.HandleAsync(command);
+            var command = new ResolverAtendimentoCommand(id);
+            await _resolverAtendimentoHandler.HandleAsync(command);
 
             // 204 NoContent é a resposta ideal para um comando de sucesso que não retorna dados.
             return NoContent();
@@ -184,31 +183,8 @@ public class ConversationsController : ControllerBase
     {
         try
         {
-            var command = new TransferirConversaCommand(id, request.NovoAgenteId, request.NovoSetorId);
-            await _transferirConversaHandler.HandleAsync(command);
-
-            return NoContent();
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (DomainException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-    }
-
-    [HttpPatch("{id:guid}/reabrir")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Reabrir(Guid id)
-    {
-        try
-        {
-            var command = new ReabrirConversaCommand(id);
-            await _reabrirConversaHandler.HandleAsync(command);
+            var command = new TransferirAtendimentoCommand(id, request.NovoAgenteId, request.NovoSetorId);
+            await _transferirAtendimentoHandler.HandleAsync(command);
 
             return NoContent();
         }
@@ -230,5 +206,13 @@ public class ConversationsController : ControllerBase
         // para o nosso objeto 'GetAllConversationsQuery'.
         var result = await _getAllConversationsHandler.HandleAsync(query);
         return Ok(result);
+    }
+
+    [HttpGet("{id:guid}/active-chat", Name = "GetActiveChat")]
+    public async Task<IActionResult> GetActiveChat(Guid id)
+    {
+        var query = new GetActiveChatQuery(id);
+        var chatData = await _getActiveChatHandler.HandleAsync(query); // Injete o novo handler
+        return Ok(chatData);
     }
 }

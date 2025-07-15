@@ -3,6 +3,7 @@
 public record ConversationSummaryDto
 {
     public Guid Id { get; init; }
+    public Guid AtendimentoId { get; init; } 
     public string ContatoNome { get; init; }
     public string ContatoTelefone { get; init; }
     public string? AgenteNome { get; init; }

@@ -14,16 +14,19 @@ namespace CRM.API.Controllers;
 public class AgentsController : ControllerBase
 {
     private readonly ICommandHandler<CriarAgenteCommand, AgenteDto> _criarAgenteHandler;
+    private readonly ICommandHandler<AtualizarAgenteCommand> _atualizarAgenteHandler;
+    private readonly ICommandHandler<InativarAgenteCommand> _inativarAgenteHandler;
     private readonly IQueryHandler<GetAgentByIdQuery, AgenteDto> _getAgentByIdHandler;
     private readonly IQueryHandler<GetAllAgentsQuery, IEnumerable<AgenteDto>> _getAllAgentsHandler;
-    private readonly ICommandHandler<AtualizarAgenteCommand> _atualizarAgenteHandler;
-    private readonly ICommandHandler<InativarAgenteCommand> _inativarAgenteHandler; 
+    private readonly IQueryHandler<GetSetoresQuery, IEnumerable<SetorDto>> _getSetoresHandler;
 
-    public AgentsController(ICommandHandler<CriarAgenteCommand, AgenteDto> criarAgenteHandler, 
+
+    public AgentsController(ICommandHandler<CriarAgenteCommand, AgenteDto> criarAgenteHandler,
         IQueryHandler<GetAgentByIdQuery, AgenteDto> getAgentByIdHandler,
         IQueryHandler<GetAllAgentsQuery, IEnumerable<AgenteDto>> getAllAgentsHandler,
         ICommandHandler<AtualizarAgenteCommand> atualizarAgenteHandler,
-        ICommandHandler<InativarAgenteCommand> inativarAgenteHandler
+        ICommandHandler<InativarAgenteCommand> inativarAgenteHandler,
+        IQueryHandler<GetSetoresQuery, IEnumerable<SetorDto>> getSetoresHandler
         )
     {
         _criarAgenteHandler = criarAgenteHandler;
@@ -31,6 +34,7 @@ public class AgentsController : ControllerBase
         _getAllAgentsHandler = getAllAgentsHandler;
         _atualizarAgenteHandler = atualizarAgenteHandler;
         _inativarAgenteHandler = inativarAgenteHandler;
+        _getSetoresHandler = getSetoresHandler;
     }
 
     [HttpPost]
@@ -123,5 +127,17 @@ public class AgentsController : ControllerBase
             // Se a regra "não inativar com conversas ativas" for violada, cairá aqui.
             return BadRequest(new { message = ex.Message });
         }
+    }
+
+
+    [HttpGet("setores")]
+    [ProducesResponseType(typeof(IEnumerable<SetorDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetSetores()
+    {
+        var query = new GetSetoresQuery();
+        var setores = await _getSetoresHandler.HandleAsync(query );
+        return Ok(setores);
     }
 }

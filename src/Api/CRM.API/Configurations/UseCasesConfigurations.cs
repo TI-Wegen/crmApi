@@ -17,15 +17,29 @@ using Conversations.Application.Dtos;
 using Conversations.Application.Jobs;
 using Conversations.Application.UseCases.Commands;
 using Conversations.Application.UseCases.Commands.Handlers;
+using Conversations.Application.UseCases.Events;
 using Conversations.Application.UseCases.Queries;
 using Conversations.Application.UseCases.Queries.Handlers;
 using Conversations.Infrastructure.Repositories;
 using Conversations.Infrastructure.Services;
 using CRM.API.Services;
 using CRM.Application.Interfaces;
+using CRM.Domain.DomainEvents;
+using CRM.Infrastructure.Config.Meta;
 using CRM.Infrastructure.Database.Configurations;
+using CRM.Infrastructure.Services;
 using Infrastructure.ExternalServices.Services;
 using System.Net;
+using Templates.Application.Abstractions;
+using Templates.Application.Dtos;
+using Templates.Application.UseCases.Commands;
+using Templates.Application.UseCases.Commands.Handler;
+using Templates.Application.UseCases.Queries;
+using Templates.Application.UseCases.Queries.Handler;
+using Templates.Domain.Repositories;
+using Templates.Infrastructure.Repositories;
+using Templates.Infrastructure.Services;
+using static Conversations.Domain.Events.AtendimentoEvent;
 
 namespace CRM.API.Configurations;
 
@@ -50,7 +64,9 @@ public static class UseCaseConfigurations
         services.AddScoped<IContactRepository, ContactRepository>();
         services.AddScoped<IAgentRepository, AgentRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-  
+        services.AddScoped<ITemplateRepository, TemplateRepository>();
+        services.AddScoped<IAtendimentoRepository, AtendimentoRepository>();
+
         return services;
     }
 
@@ -62,7 +78,14 @@ public static class UseCaseConfigurations
         services.AddScoped<IConversationReadService, DapperConversationReadService>();
         services.AddScoped<ExpirarSessoesJob>();
         services.AddScoped<IUserContext, UserContext>();
-        services.AddScoped<IBoletoService, BoletoService>(); 
+        services.AddScoped<IBoletoService, BoletoService>();
+        services.AddScoped<IMetaTemplateManager, MetaTemplateManager>();
+        services.AddScoped<IDomainEventHandler<ConversaResolvidaEvent>, ConversaResolvidaEventHandler>();
+        services.AddScoped<IDomainEventHandler<AtendimentoResolvidoEvent>, AtendimentoResolvidoEventHandler>();
+        services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
+        services.AddScoped<IDistributedLock, RedisDistributedLock>();
+        services.AddScoped<IMessageBufferService, RedisMessageBufferService>();
+
         return services;
     }
 
@@ -73,11 +96,15 @@ public static class UseCaseConfigurations
         services.AddScoped<IQueryHandler<GetConversationByIdQuery, ConversationDetailsDto>, GetConversationByIdQueryHandler>();
         services.AddScoped<ICommandHandler<IniciarConversaCommand, Guid>, IniciarConversaCommandHandler>();
         services.AddScoped<ICommandHandler<AdicionarMensagemCommand, MessageDto>, AdicionarMensagemCommandHandler>();
-        services.AddScoped<ICommandHandler<ResolverConversaCommand>, ResolverConversaCommandHandler>();
-        services.AddScoped<ICommandHandler<TransferirConversaCommand>, TransferirConversaCommandHandler>();
-        services.AddScoped<ICommandHandler<ReabrirConversaCommand>, ReabrirConversaCommandHandler>();
+        services.AddScoped<ICommandHandler<ResolverAtendimentoCommand>, ResolverAtendimentoCommandHandler>();
+        services.AddScoped<ICommandHandler<TransferirAtendimentoCommand>, TransferirAtendimentoCommandHandler>();
         services.AddScoped<IQueryHandler<GetAllConversationsQuery, IEnumerable<ConversationSummaryDto>>, GetAllConversationsQueryHandler>();
         services.AddScoped<ICommandHandler<ProcessarRespostaDoMenuCommand>, ProcessarRespostaDoMenuCommandHandler>();
+        services.AddScoped<ICommandHandler<RegistrarAvaliacaoCommand>, RegistrarAvaliacaoCommandHandler>();
+        services.AddScoped<IQueryHandler<GetActiveChatQuery, ActiveChatDto>, GetActiveChatQueryHandler>();
+
+
+
 
         services.AddScoped<ICommandHandler<CriarAgenteCommand, AgenteDto>, CriarAgenteCommandHandler>();
         services.AddScoped<ICommandHandler<AtualizarAgenteCommand>, AtualizarAgenteCommandHandler>();
@@ -85,6 +112,7 @@ public static class UseCaseConfigurations
         services.AddScoped<IQueryHandler<GetAgentByIdQuery, AgenteDto>, GetAgentByIdQueryHandler>();
         services.AddScoped<ICommandHandler<InativarAgenteCommand>, InativarAgenteCommandHandler>();
         services.AddScoped<IQueryHandler<LoginQuery, string>, LoginQueryHandler>();
+        services.AddScoped<IQueryHandler<GetSetoresQuery, IEnumerable<SetorDto>>, GetSetoresQueryHandler>();
 
 
 
@@ -95,10 +123,20 @@ public static class UseCaseConfigurations
         services.AddScoped<ICommandHandler<AtualizarContatoCommand>, AtualizarContatoCommandHandler>();
         services.AddScoped<ICommandHandler<InativarContatoCommand>, InativarContatoCommandHandler>();
         services.AddScoped<IQueryHandler<GetContactByTelefoneQuery, ContatoDto?>, GetContactByTelefoneQueryHandler>();
+        services.AddScoped<ICommandHandler<EnviarTemplateCommand>, EnviarTemplateCommandHandler>();
+        services.AddScoped<ICommandHandler<RegistrarMensagemEnviadaCommand>, RegistrarMensagemEnviadaCommandHandler>();
 
 
 
-      
+        // Módulo de Templates
+        services.AddScoped<ICommandHandler<CriarTemplateCommand, TemplateDto>, CriarTemplateCommandHandler>();
+        services.AddScoped<IQueryHandler<GetAllTemplatesQuery, IEnumerable<TemplateDto>>, GetAllTemplatesQueryHandler>();
+        services.AddScoped<ICommandHandler<AtualizarStatusTemplateCommand>, AtualizarStatusTemplateCommandHandler>();
+
+
+
+
+
         return services;
     }
 }

@@ -3,6 +3,6 @@
 namespace Conversations.Application.UseCases.Commands;
 
 public record AtribuirAgenteCommand(
-    Guid ConversaId,
+    Guid AtendimentoId,
     Guid AgenteId
 ) : ICommand;

@@ -23,14 +23,17 @@ public class SetorConfiguration : IEntityTypeConfiguration<Setor>
                 Id = Guid.Parse("f4d4a8e2-8e6a-4b2a-8b8d-9b8e1f0c3b1a"), // ID Fixo para o Financeiro
                 Nome = SetorNome.Financeiro.ToDbValue(),
                 Descricao = "Setor responsável por questões financeiras e boletos.",
-                Version = Guid.Parse("f6b3a2a8-8e6a-4b2a-8b8d-9b8e1f0c3b1a")
+                Version = Guid.Parse("f6b3a2a8-8e6a-4b2a-8b8d-9b8e1f0c3b1a"),
+                CreatedAt = DateTime.SpecifyKind(new DateTime(2024, 01, 01, 0, 0, 0), DateTimeKind.Utc)
             },
             new
             {
                 Id = Guid.Parse("c2a3b4d5-6e7f-8a9b-0c1d-2e3f4a5b6c7d"), // ID Fixo para o Comercial
                 Nome = SetorNome.Comercial.ToDbValue(),
                 Descricao = "Setor responsável por vendas e novas oportunidades.",
-                Version = Guid.Parse("d4a3b4d5-6e7f-8a9b-0c1d-2e3f4a5b6c7d")
+                Version = Guid.Parse("d4a3b4d5-6e7f-8a9b-0c1d-2e3f4a5b6c7d"),
+                CreatedAt = DateTime.SpecifyKind(new DateTime(2024, 01, 01, 0, 0, 0), DateTimeKind.Utc)
+
             }
         );
     }

@@ -122,4 +122,65 @@ public class MetaMessageSender : IMetaMessageSender
 
         Console.WriteLine("--> Áudio enviado com sucesso pela API da Meta!");
     }
+    public async Task<string> EnviarTemplateAsync(string numeroDestino, string templateName, List<string> bodyParameters)
+    {
+        var httpClient = _httpClientFactory.CreateClient("MetaApiClient");
+        var requestUrl = $"{_metaSettings.MetaApiVersion}/{_metaSettings.WhatsAppBusinessPhoneNumberId}/messages";
+
+        var requestBody = new MetaSendTemplateRequest(numeroDestino, templateName, bodyParameters);
+
+        // Usamos opções para ignorar valores nulos, caso um componente não tenha parâmetros
+        var serializerOptions = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
+        var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody, serializerOptions), Encoding.UTF8, "application/json");
+
+        var response = await httpClient.PostAsync(requestUrl, jsonContent);
+        var responseContent = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            Console.WriteLine($"--> Erro ao enviar TEMPLATE pela API da Meta: {responseContent}");
+            throw new Exception("Falha ao enviar template pela API da Meta.");
+        }
+
+        Console.WriteLine($"--> Resposta de SUCESSO da Meta (Template): {responseContent}");
+
+        // Extrai o ID da mensagem da resposta de sucesso
+        using var jsonDoc = JsonDocument.Parse(responseContent);
+        var messageId = jsonDoc.RootElement.GetProperty("messages")[0].GetProperty("id").GetString();
+
+        return messageId ?? string.Empty;
+    }
+
+    
+        public async Task EnviarPesquisaDeSatisfacaoAsync(string numeroDestino, Guid atendimentoId)
+    {
+        var httpClient = _httpClientFactory.CreateClient("MetaApiClient");
+        var requestUrl = $"{_metaSettings.MetaApiVersion}/{_metaSettings.WhatsAppBusinessPhoneNumberId}/messages";
+
+        var action = new ActionPayload(new List<ButtonPayload>
+    {
+        new(new ReplyPayload($"rating_{atendimentoId}_5", "⭐ Ótimo")),
+        new(new ReplyPayload($"rating_{atendimentoId}_3", "😐 Razoável")),
+        new(new ReplyPayload($"rating_{atendimentoId}_1", "👎 Ruim"))
+    });
+
+
+        // Agora podemos criar o payload interativo com os novos campos
+        var body = new InteractiveBodyPayload("Ficamos felizes em ajudar! Como você avalia nosso atendimento?");
+        var interactive = new InteractivePayload(body, action);
+
+        var requestBody = new MetaSendInteractiveRequest(numeroDestino, interactive);
+
+        // Para garantir que campos nulos (como o Header) não sejam enviados, usamos esta opção no serializador.
+        var serializerOptions = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
+        var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody, serializerOptions), Encoding.UTF8, "application/json");
+
+        var response = await httpClient.PostAsync(requestUrl, jsonContent);
+        var responseContent = await response.Content.ReadAsStringAsync();
+        if (!response.IsSuccessStatusCode)
+        {
+            Console.WriteLine($"--> Erro ao enviar PESQUISA DE SATISFAÇÃO pela API da Meta: {responseContent}");
+            throw new Exception("Falha ao enviar pesquisa de satisfação pela API da Meta.");
+        }
+    }
 }

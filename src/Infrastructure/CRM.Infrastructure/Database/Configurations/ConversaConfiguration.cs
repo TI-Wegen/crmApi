@@ -13,9 +13,6 @@ public class ConversaConfiguration : IEntityTypeConfiguration<Conversa>
         builder.HasKey(c => c.Id); // Chave primária
         builder.Property(c => c.Version).IsConcurrencyToken();
 
-        // Mapeia o Enum 'Status' para ser salvo como uma string no banco
-        builder.Property(c => c.Status).HasConversion<string>().HasMaxLength(50);
-
         // Configura o relacionamento "um-para-muitos" com Mensagem
         var navigation = builder.Navigation(c => c.Mensagens);
         navigation.UsePropertyAccessMode(PropertyAccessMode.Field); // Diz ao EF para usar o campo privado _mensagens

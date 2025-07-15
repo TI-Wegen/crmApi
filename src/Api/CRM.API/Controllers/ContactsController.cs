@@ -1,10 +1,12 @@
 ﻿using Contacts.Application.Dtos;
 using Contacts.Application.UseCases.Commands;
 using Contacts.Application.UseCases.Commands.Queries;
+using Conversations.Application.UseCases.Commands;
 using CRM.API.Dtos;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 using CRM.Domain.Exceptions;
+using CRM.Infrastructure.Config.Meta;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,6 +21,7 @@ public class ContactsController : ControllerBase
     private readonly IQueryHandler<GetAllContactsQuery, IEnumerable<ContatoDto>> _getAllContactsHandler;
     private readonly ICommandHandler<AtualizarContatoCommand> _atualizarContatoHandler; 
     private readonly ICommandHandler<InativarContatoCommand> _inativarContatoHandler; 
+    private readonly ICommandHandler<EnviarTemplateCommand> _enviarTemplateHandler; 
 
 
     public ContactsController(
@@ -26,13 +29,16 @@ public class ContactsController : ControllerBase
                 IQueryHandler<GetContactByIdQuery, ContatoDto> getContactByIdHandler,
                 IQueryHandler<GetAllContactsQuery, IEnumerable<ContatoDto>> getAllContactsHandler,
                 ICommandHandler<AtualizarContatoCommand> atualizarContatoHandler,
-                ICommandHandler<InativarContatoCommand> inativarContatoHandler )
+                ICommandHandler<InativarContatoCommand> inativarContatoHandler,
+                ICommandHandler<EnviarTemplateCommand> enviarTemplateHandler
+                )
     {
         _criarContatoHandler = criarContatoHandler;
         _getContactByIdHandler = getContactByIdHandler;
         _getAllContactsHandler = getAllContactsHandler;
         _atualizarContatoHandler = atualizarContatoHandler;
         _inativarContatoHandler = inativarContatoHandler;
+        _enviarTemplateHandler = enviarTemplateHandler;
     }
 
     [HttpPost]
@@ -120,5 +126,15 @@ public class ContactsController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
+    }
+
+    [HttpPost("{id:guid}/send-template")]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    public async Task<IActionResult> SendTemplate(Guid id, [FromBody] SendTemplateRequest request)
+    {
+        var command = new EnviarTemplateCommand(id, request.TemplateName, request.BodyParameters);
+        await _enviarTemplateHandler.HandleAsync(command); // Injete o novo handler no controller
+
+        return Accepted();
     }
 }

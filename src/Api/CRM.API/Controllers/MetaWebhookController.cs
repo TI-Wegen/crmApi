@@ -4,13 +4,13 @@ using Contacts.Application.UseCases.Commands;
 using Contacts.Application.UseCases.Commands.Queries;
 using Conversations.Application.Abstractions;
 using Conversations.Application.UseCases.Commands;
-using Conversations.Domain.Enuns;
-using CRM.API.Dtos.Meta;
+using CRM.API.Services;
 using CRM.Application.Interfaces;
 using CRM.Infrastructure.Config.Meta;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using System.Text.Json.Nodes;
+using Templates.Application.UseCases.Commands;
+using Templates.Domain.Enuns;
 
 
 namespace CRM.API.Controllers
@@ -25,6 +25,11 @@ namespace CRM.API.Controllers
         private readonly IQueryHandler<GetContactByTelefoneQuery, ContatoDto?> _getContactByTelefoneHandler;
         private readonly IBotSessionCache _botSessionCache;
         private readonly ICommandHandler<ProcessarRespostaDoMenuCommand> _processarRespostaHandler;
+        private readonly ICommandHandler<AtualizarStatusTemplateCommand> _atualizarStatusHandler;
+        private readonly ICommandHandler<RegistrarAvaliacaoCommand> _registrarAvaliacaoHandler;
+        private readonly IDistributedLock _distributedLock;
+        private readonly IMessageBufferService _messageBuffer;
+
 
         public MetaWebhookController(
             IOptions<MetaSettings> metaSettings,
@@ -32,8 +37,11 @@ namespace CRM.API.Controllers
             ICommandHandler<IniciarConversaCommand, Guid> iniciarConversaHandler,
             IQueryHandler<GetContactByTelefoneQuery, ContatoDto?> getContactByTelefoneHandler,
             IBotSessionCache botSessionCache,
-            ICommandHandler<ProcessarRespostaDoMenuCommand> processarRespostaHandler
-            )
+            ICommandHandler<ProcessarRespostaDoMenuCommand> processarRespostaHandler,
+            ICommandHandler<AtualizarStatusTemplateCommand> atualizarStatusHandler,
+            ICommandHandler<RegistrarAvaliacaoCommand> registrarAvaliacaoHandler,
+            IDistributedLock distributedLock,
+            IMessageBufferService messageBuffer)
 
         {
             _metaSettings = metaSettings.Value;
@@ -42,9 +50,12 @@ namespace CRM.API.Controllers
             _getContactByTelefoneHandler = getContactByTelefoneHandler;
             _botSessionCache = botSessionCache;
             _processarRespostaHandler = processarRespostaHandler;
+            _atualizarStatusHandler = atualizarStatusHandler;
+            _registrarAvaliacaoHandler = registrarAvaliacaoHandler;
+            _distributedLock = distributedLock;
+            _messageBuffer = messageBuffer;
         }
 
-        // Endpoint para a verificação do Webhook (executado uma vez)
         [HttpGet]
         public IActionResult VerifyWebhook(
             [FromQuery(Name = "hub.mode")] string mode,
@@ -64,85 +75,180 @@ namespace CRM.API.Controllers
 
         [HttpPost]
         public async Task<IActionResult> ReceiveNotification([FromBody] MetaWebhookPayload payload)
-
         {
-            // NOTA: A validação de assinatura (X-Hub-Signature-256) deve ser reativada para produção.
+
             try
             {
-                var change = payload.Entry?.FirstOrDefault()?.Changes?.FirstOrDefault();
-                if (change?.Field != "messages") return Ok("Evento ignorado.");
-
-
-                var status = change.Value?.Statuses?.FirstOrDefault();
-                var message = change.Value?.Messages?.FirstOrDefault();
-                if (status is not null && status.Status == "sent")
+                foreach (var change in payload.Entry.SelectMany(e => e.Changes))
                 {
-                    // É UMA NOTIFICAÇÃO SOBRE UMA MENSAGEM QUE NÓS ENVIAMOS!
-                    // Precisamos buscar o texto da mensagem original, o que é complexo.
-                    // UMA ABORDAGEM MAIS SIMPLES: A outra aplicação, ao enviar o template,
-                    // pode chamar um endpoint simples no nosso CRM para registrar a mensagem.
-                    // Vamos seguir com essa abordagem, pois é mais garantida.
-                    }else if (message is not null)
+                    switch (change.Field)
+                    {
+                        case "messages":
+                            await HandleMessageEvent(change.Value);
+                            break;
+                        case "message_template_status_update":
+                            await HandleTemplateStatusUpdate(change.Value);
+                            break;
+                        default:
+                            Console.WriteLine($"--> Evento de webhook do tipo '{change.Field}' recebido e ignorado.");
+                            break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"--> Erro crítico ao processar webhook: {ex.Message} \n {ex.StackTrace}");
+            }
+
+            return Ok();
+        }
+
+
+        private async Task HandleMessageEvent(ValueObject value)
+        {
+            // Ignora notificações de status de mensagem (ex: "sent", "delivered", "read") por enquanto.
+            if (value?.Statuses is not null && value.Statuses.Any())
+            {
+                Console.WriteLine("--> Notificação de status de mensagem recebida e ignorada.");
+                return;
+            }
+
+
+            var message = value?.Messages?.FirstOrDefault();
+            var contactPayload = value?.Contacts?.FirstOrDefault();
+            if (message is null || contactPayload is null) return;
+
+            var telefoneDoContato = message.From;
+
+            if (string.IsNullOrEmpty(telefoneDoContato))
+            {
+                Console.WriteLine("--> Mensagem recebida sem número de telefone do contato. Ignorando.");
+                return;
+            }
+            var lockKey = $"lock:contato:{telefoneDoContato}";
+
+            if (!await _distributedLock.AcquireLockAsync(lockKey, TimeSpan.FromSeconds(30)))
+            {
+                Console.WriteLine($"--> Trava não adquirida para {telefoneDoContato}. Requisição concorrente ignorada.");
+                return;
+            }
+
+            try {
+
+                if (message.Type == "interactive" && message.Interactive?.Type == "button_reply")
                 {
-                    //var message = change.Value?.Messages?.FirstOrDefault(m => m.Type == "text");
-                    var contactPayload = change.Value?.Contacts?.FirstOrDefault();
+                    var buttonReplyId = message.Interactive.ButtonReply.Id;
 
-                    if (message is null || contactPayload is null) return Ok("Payload sem mensagem ou contato válido.");
+                    // Extrai os dados do ID do botão
+                    var parts = buttonReplyId.Split('_');
+                    if (parts.Length == 3 && parts[0] == "rating" && Guid.TryParse(parts[1], out var conversaId) && int.TryParse(parts[2], out var nota))
+                    {
+                        // Despacha o comando para registrar a avaliação
+                        var command = new RegistrarAvaliacaoCommand(conversaId, nota);
+                        await _registrarAvaliacaoHandler.HandleAsync(command); // Injete este novo handler
+                    }
+                }
+                else if (message.Type == "text")
+                {
+                    // 2. Adiciona a mensagem atual ao buffer do Redis.
+                    await _messageBuffer.AddToBufferAsync(telefoneDoContato, message);
 
-                    var textoDaMensagem = message.Text.Body;
-                    var telefoneDoContato = message.From;
+                    // 3. Tenta se registrar como o "processador". Se falhar, outro processo já está cuidando disso.
+                    if (!await _messageBuffer.IsFirstProcessor(telefoneDoContato))
+                    {
+                        Console.WriteLine($"--> Mensagem para {telefoneDoContato} adicionada ao buffer. Outro processo irá tratar.");
+                        return;
+                    }
 
+                    // 4. Se chegamos aqui, somos os primeiros. Esperamos para agrupar mais mensagens.
+                    await Task.Delay(TimeSpan.FromSeconds(3)); // A janela de 3 segundos do seu ADR.
+
+                    // 5. Consome o buffer completo.
+                    var mensagensAgrupadas = (await _messageBuffer.ConsumeBufferAsync(telefoneDoContato)).ToList();
+                    if (!mensagensAgrupadas.Any()) return;
+
+                    // 6. Concatena o texto de todas as mensagens para obter o contexto completo.
+                    var textoDaMensagem = string.Join(" ", mensagensAgrupadas
+                        .Select(m => WebhookMessageParser.ParseMessage(m)) // Usa nosso parser para lidar com diferentes tipos
+                        .Where(b => !string.IsNullOrEmpty(b)));
+        
+
+                    // Filtro de segurança para desenvolvimento
                     if (_metaSettings.DeveloperPhoneNumbers.Any() && !_metaSettings.DeveloperPhoneNumbers.Contains(telefoneDoContato))
                     {
                         Console.WriteLine($"--> Mensagem do número {telefoneDoContato} ignorada (não está na lista de desenvolvedores).");
-                        return Ok("Mensagem ignorada.");
+                        return;
                     }
-
 
                     var nomeDoContato = contactPayload.Profile.Name;
 
-                    // 1. Verifica se existe uma sessão de bot ativa no Redis para este contato.
+                    // Roteia para o handler correto baseado na sessão do bot
                     var botSession = await _botSessionCache.GetStateAsync(telefoneDoContato);
-
                     if (botSession is null)
                     {
-                        // 2a. SE NÃO HÁ SESSÃO: Inicia um novo fluxo de autoatendimento.
-                        // Esta lógica encontra ou cria o contato e depois chama o IniciarConversaHandler.
-
+                        // Inicia um novo fluxo de bot
                         Guid contatoId;
                         var getContactQuery = new GetContactByTelefoneQuery(telefoneDoContato);
                         var contatoDto = await _getContactByTelefoneHandler.HandleAsync(getContactQuery);
-
                         if (contatoDto is null)
                         {
                             var createContactCommand = new CriarContatoCommand(nomeDoContato, telefoneDoContato);
                             var novoContatoDto = await _criarContatoHandler.HandleAsync(createContactCommand);
                             contatoId = novoContatoDto.Id;
                         }
-                        else
-                        {
-                            contatoId = contatoDto.Id;
-                        }
-
+                        else { contatoId = contatoDto.Id; }
 
                         var iniciarConversaCommand = new IniciarConversaCommand(contatoId, textoDaMensagem);
                         await _iniciarConversaHandler.HandleAsync(iniciarConversaCommand);
                     }
                     else
                     {
-                        // 2b. SE HÁ SESSÃO: Processa a resposta do usuário ao menu.
-                        // Chama nosso novo handler para lidar com a lógica do bot.
+                        // Continua um fluxo de bot existente
                         var processarRespostaCommand = new ProcessarRespostaDoMenuCommand(telefoneDoContato, textoDaMensagem);
                         await _processarRespostaHandler.HandleAsync(processarRespostaCommand);
                     }
+
                 }
-                return Ok();
+
+
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"--> Erro ao processar webhook: {ex.Message} \n {ex.StackTrace}");
-                return Ok(); // Sempre retorne 200 OK para a Meta
+                Console.WriteLine($"--> Erro ao adquirir a trava para {telefoneDoContato}: {ex.Message}");
+                return;
             }
+            finally
+            {
+                // Garante que a trava será liberada mesmo se ocorrer um erro
+                await _distributedLock.ReleaseLockAsync(lockKey);
+            }
+
+
+        }
+
+        private async Task HandleTemplateStatusUpdate(ValueObject value)
+        {
+            var novoStatus = ParseTemplateStatus(value.Event);
+            if (novoStatus.HasValue && !string.IsNullOrEmpty(value.MessageTemplateName))
+            {
+                var command = new AtualizarStatusTemplateCommand(
+                    value.MessageTemplateName,
+                    novoStatus.Value,
+                    value.Reason
+                );
+                await _atualizarStatusHandler.HandleAsync(command);
+            }
+        }
+
+        private TemplateStatus? ParseTemplateStatus(string? eventName)
+        {
+            return eventName?.ToUpper() switch
+            {
+                "APPROVED" => TemplateStatus.Aprovado,
+                "REJECTED" => TemplateStatus.Rejeitado,
+                // Adicione outros status como "PENDING" ou "PAUSED" se necessário
+                _ => null
+            };
         }
 
         private bool IsValidSignature(string payload, string signature)

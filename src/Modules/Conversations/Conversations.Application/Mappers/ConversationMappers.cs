@@ -7,16 +7,21 @@ namespace Conversations.Application.Mappers;
 public static class ConversationMappers
 {
     // Método de extensão que converte o agregado para o DTO detalhado
-    public static ConversationDetailsDto ToDetailsDto(this Conversa conversa)
+    public static ConversationDetailsDto ToDetailsDto(this Conversa conversa, Atendimento? atendimentoAtivo)
     {
         return new ConversationDetailsDto
         {
             Id = conversa.Id,
             ContatoId = conversa.ContatoId,
-            AgenteId = conversa.AgenteId,
-            SetorId = conversa.SetorId,
-            Status = conversa.Status.ToString(), // Converte o Enum para string
-            Mensagens = conversa.Mensagens?.Select(m => m.ToDto()).ToList() ?? new List<MessageDto>()
+            Mensagens = conversa.Mensagens?.Select(m => m.ToDto()).ToList() ?? new List<MessageDto>(),
+
+
+             // Dados do Atendimento Atual
+            AtendimentoId = atendimentoAtivo?.Id,
+            AgenteId = atendimentoAtivo?.AgenteId,
+            SetorId = atendimentoAtivo?.SetorId,
+            Status = atendimentoAtivo?.Status.ToString() ?? "N/A", // Se não houver atendimento ativo
+            BotStatus = atendimentoAtivo?.BotStatus.ToString() ?? "N/A"
         };
     }
 
@@ -31,6 +36,23 @@ public static class ConversationMappers
             Timestamp = mensagem.Timestamp,
             RemetenteTipo = mensagem.Remetente.Tipo.ToString(),
             RemetenteAgenteId = mensagem.Remetente.AgenteId
+        };
+    }
+
+    public static AtendimentoDto ToDto(this Atendimento atendimento)
+    {
+        return new AtendimentoDto
+        {
+            Id = atendimento.Id,
+            ConversaId = atendimento.ConversaId,
+            AgenteId = atendimento.AgenteId,
+            SetorId = atendimento.SetorId,
+            Status = atendimento.Status.ToString(),
+            BotStatus = atendimento.BotStatus.ToString(),
+            DataFinalizacao = atendimento.DataFinalizacao,
+            Avaliacao = atendimento.Avaliacao != null
+                ? new AvaliacaoDto { Nota = atendimento.Avaliacao.Nota, Comentario = atendimento.Avaliacao.Comentario }
+                : null
         };
     }
 }

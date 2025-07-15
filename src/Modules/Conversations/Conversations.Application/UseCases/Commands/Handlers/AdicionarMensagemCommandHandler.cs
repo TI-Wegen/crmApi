@@ -12,7 +12,6 @@ using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-// Implementa a interface que retorna um resultado, neste caso, o DTO da mensagem criada.
 public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagemCommand, MessageDto>
 {
     private readonly IConversationRepository _conversationRepository;
@@ -23,6 +22,7 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
     private readonly IContactRepository _contactRepository; // NOVO
     private readonly IUserContext _userContext;
     private readonly IBotSessionCache _botSessionCache;
+    private readonly IAtendimentoRepository _atendimentoRepository;
 
 
 
@@ -34,7 +34,8 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         IMetaMessageSender metaSender,
         IContactRepository contactRepository,
         IBotSessionCache botSessionCache,
-        IUserContext userContext)
+        IUserContext userContext,
+        IAtendimentoRepository atendimentoRepository)
     {
         _conversationRepository = conversationRepository;
         _unitOfWork = unitOfWork;
@@ -44,6 +45,7 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         _contactRepository = contactRepository;
         _userContext = userContext;
         _botSessionCache = botSessionCache;
+        _atendimentoRepository = atendimentoRepository;
     }
 
     public async Task<MessageDto> HandleAsync(AdicionarMensagemCommand command, CancellationToken cancellationToken)
@@ -51,7 +53,9 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         var conversa = await _conversationRepository.GetByIdAsync(command.ConversaId, cancellationToken);
         if (conversa is null)
             throw new NotFoundException($"Conversa com o Id '{command.ConversaId}' não encontrada.");
-
+        var atendimento = await _atendimentoRepository.FindActiveByConversaIdAsync(conversa.Id, cancellationToken);
+        if (atendimento is null)
+            throw new InvalidOperationException("Não há um atendimento ativo para adicionar esta mensagem.");
         string? anexoUrl = null;
         if (command.AnexoStream is not null)
         {
@@ -67,19 +71,23 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
             {
                 throw new UnauthorizedAccessException("Não foi possível identificar o agente autenticado.");
             }
+
+            if (atendimento.Status == ConversationStatus.AguardandoNaFila)
+            {
+                atendimento.AtribuirAgente(agenteId.Value);
+            }
         }
 
         var remetente = command.RemetenteTipo == RemetenteTipo.Agente
                     ? Remetente.Agente(agenteId.Value)
                     : Remetente.Cliente();
 
-        var novaMensagem = new Mensagem(command.Texto, remetente, anexoUrl);
+        var novaMensagem = new Mensagem(conversa.Id,atendimento.Id ,command.Texto, remetente, anexoUrl);
 
-        conversa.AdicionarMensagem(novaMensagem);
+        conversa.AdicionarMensagem(novaMensagem, atendimento.Id);
 
         if (command.RemetenteTipo == RemetenteTipo.Agente)
         {
-            // Precisamos do número do contato para enviar a mensagem
             var contato = await _contactRepository.GetByIdAsync(conversa.ContatoId, cancellationToken);
             if (contato is not null)
             {
@@ -96,7 +104,7 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         {
             await _unitOfWork.ReloadEntityAsync(conversa, cancellationToken);
 
-            conversa.AdicionarMensagem(novaMensagem);
+            conversa.AdicionarMensagem(novaMensagem, atendimento.Id);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 

@@ -1,23 +1,25 @@
-﻿using CRM.Domain.Exceptions;
-using Conversations.Domain.ValueObjects;
+﻿using Conversations.Domain.ValueObjects;
+using CRM.Domain.DomainEvents;
+using CRM.Domain.Exceptions;
 
 namespace Conversations.Domain.Entities;
 
-    public class Mensagem
+    public class Mensagem : Entity
 {
-    public Guid Id { get; private set; }
+    public Guid ConversaId { get; private set; } 
+    public Guid AtendimentoId { get; private set; }
     public string Texto { get; private set; }
     public string? MessageId {get; private set; }
     public string? AnexoUrl { get; private set; }
     public DateTime Timestamp { get; private set; }
     public Remetente Remetente { get; private set; }
-
-    public Mensagem(string texto, Remetente remetente, string? anexoUrl = null)
+    public Mensagem(Guid conversaId, Guid atendimentoId, string texto, Remetente remetente, string? anexoUrl = null)
     {
         if (string.IsNullOrWhiteSpace(texto) && string.IsNullOrWhiteSpace(anexoUrl))
             throw new DomainException("A mensagem precisa ter um texto ou um anexo.");
 
-        //Id = Guid.NewGuid();
+        ConversaId = conversaId;
+        AtendimentoId = atendimentoId;
         Texto = texto;
         Remetente = remetente;
         AnexoUrl = anexoUrl;
@@ -31,5 +33,8 @@ namespace Conversations.Domain.Entities;
             throw new DomainException("O MessageId não pode ser nulo ou vazio.");
         MessageId = messageId;
     }
+
+
+
 }
 

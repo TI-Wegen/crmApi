@@ -20,6 +20,7 @@ builder.Services
     .AddAppConnections(builder.Configuration)
     .AddUseCases();
 
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowNextAppPolicy", policy =>
