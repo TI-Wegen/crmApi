@@ -37,6 +37,7 @@
     <ProjectReference Include="..\..\Modules\Conversations\Conversations.Application\Conversations.Application.csproj" />
     <ProjectReference Include="..\..\Modules\Conversations\Conversations.Domain\Conversations.Domain.csproj" />
     <ProjectReference Include="..\..\Modules\Conversations\Conversations.Infrastructure\Conversations.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\Metrics\Metrics.Infrastructure\Metrics.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Modules\Templates\Templates.Application\Templates.Application.csproj" />
     <ProjectReference Include="..\..\Modules\Templates\Templates.Infrastructure\Templates.Infrastructure.csproj" />
   </ItemGroup>

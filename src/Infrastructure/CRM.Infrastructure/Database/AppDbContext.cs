@@ -3,6 +3,7 @@ using Contacts.Domain.Aggregates;
 using Conversations.Domain.Aggregates;
 using Conversations.Domain.Entities;
 using CRM.Domain.DomainEvents;
+using Metrics.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Templates.Domain.Aggregates;
 
@@ -28,6 +29,8 @@ public class AppDbContext : DbContext
     public DbSet<Contato> Contatos { get; set; }
     public DbSet<MessageTemplate> MessageTemplates { get; set; }
     public DbSet<Atendimento> Atendimentos { get; set; }
+    public DbSet<MetricaTemplateEnviado> MetricasTemplatesEnviados { get; set; }
+
 
     // O método SaveChangesAsync agora orquestra as duas lógicas.
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

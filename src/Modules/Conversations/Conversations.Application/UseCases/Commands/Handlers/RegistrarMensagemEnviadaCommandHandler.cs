@@ -65,11 +65,8 @@ public class RegistrarMensagemEnviadaCommandHandler : ICommandHandler<RegistrarM
 
         if (conversa is null)
         {
-            // 5a. Se a Conversa não existia, criamos uma nova, passando todos os parâmetros.
-            // O Id da nova conversa será gerado dentro do método Iniciar.
-            // A mensagem precisa ter o ID da conversa correto.
             var mensagemParaNovaConversa = new Mensagem(Guid.NewGuid(), novoAtendimento.Id, command.TextoDaMensagem, remetente, null);
-            conversa = Conversa.Iniciar(contato.Id, novoAtendimento.Id, mensagemParaNovaConversa);
+            conversa = Conversa.Iniciar(contato.Id);
             conversa.SetConversaId( mensagemParaNovaConversa.ConversaId); // Garante a consistência do ID
 
             await _conversationRepository.AddAsync(conversa, cancellationToken);

@@ -173,8 +173,9 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
 
         if (!boletos.Any())
         {
-            await _metaMessageSender.EnviarMensagemTextoAsync(contatoTelefone, "Não encontrei um boleto em aberto para o CPF informado. Deseja tentar novamente?");
-            atendimento.AguardarCpf(); // Mantém o estado para nova tentativa
+            await _metaMessageSender.EnviarMensagemTextoAsync(contatoTelefone, "Não encontrei um boleto em aberto para o CPF informado.Obrigado pelo contato!!");
+            atendimento.Resolver(SystemGuids.SystemAgentId);
+            await _botSessionCache.DeleteStateAsync(contatoTelefone);
             return;
         }
 

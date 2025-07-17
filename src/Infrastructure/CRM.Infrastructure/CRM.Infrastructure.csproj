@@ -28,6 +28,8 @@
     <ProjectReference Include="..\..\Modules\Concatcs\Contacts.Domain\Contacts.Domain.csproj" />
     <ProjectReference Include="..\..\Modules\Conversations\Conversations.Application\Conversations.Application.csproj" />
     <ProjectReference Include="..\..\Modules\Conversations\Conversations.Domain\Conversations.Domain.csproj" />
+    <ProjectReference Include="..\..\Modules\Metrics\Metrics.Application\Metrics.Application.csproj" />
+    <ProjectReference Include="..\..\Modules\Metrics\Metrics.Domain\Metrics.Domain.csproj" />
     <ProjectReference Include="..\..\Modules\Templates\Templates.Domain\Templates.Domain.csproj" />
   </ItemGroup>
 

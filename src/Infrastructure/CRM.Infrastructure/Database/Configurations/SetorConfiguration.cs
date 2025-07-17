@@ -20,7 +20,7 @@ public class SetorConfiguration : IEntityTypeConfiguration<Setor>
         builder.HasData(
             new
             {
-                Id = Guid.Parse("f4d4a8e2-8e6a-4b2a-8b8d-9b8e1f0c3b1a"), // ID Fixo para o Financeiro
+                Id = Guid.Parse("00000000-0000-0000-0001-000000000001"), // ID Fixo para o Financeiro
                 Nome = SetorNome.Financeiro.ToDbValue(),
                 Descricao = "Setor responsável por questões financeiras e boletos.",
                 Version = Guid.Parse("f6b3a2a8-8e6a-4b2a-8b8d-9b8e1f0c3b1a"),
@@ -28,7 +28,7 @@ public class SetorConfiguration : IEntityTypeConfiguration<Setor>
             },
             new
             {
-                Id = Guid.Parse("c2a3b4d5-6e7f-8a9b-0c1d-2e3f4a5b6c7d"), // ID Fixo para o Comercial
+                Id = Guid.Parse("00000000-0000-0000-0001-000000000002"), // ID Fixo para o Comercial
                 Nome = SetorNome.Comercial.ToDbValue(),
                 Descricao = "Setor responsável por vendas e novas oportunidades.",
                 Version = Guid.Parse("d4a3b4d5-6e7f-8a9b-0c1d-2e3f4a5b6c7d"),

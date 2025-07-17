@@ -29,6 +29,11 @@ using CRM.Infrastructure.Config.Meta;
 using CRM.Infrastructure.Database.Configurations;
 using CRM.Infrastructure.Services;
 using Infrastructure.ExternalServices.Services;
+using Metrics.Application.abstractions;
+using Metrics.Application.Dtos;
+using Metrics.Application.UseCases.Queries;
+using Metrics.Application.UseCases.Queries.Handlers;
+using Metrics.Infrastructure.services;
 using System.Net;
 using Templates.Application.Abstractions;
 using Templates.Application.Dtos;
@@ -85,6 +90,7 @@ public static class UseCaseConfigurations
         services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
         services.AddScoped<IDistributedLock, RedisDistributedLock>();
         services.AddScoped<IMessageBufferService, RedisMessageBufferService>();
+        services.AddScoped<ITemplateMetricsReadService, DapperTemplateMetricsService>();
 
         return services;
     }
@@ -102,6 +108,7 @@ public static class UseCaseConfigurations
         services.AddScoped<ICommandHandler<ProcessarRespostaDoMenuCommand>, ProcessarRespostaDoMenuCommandHandler>();
         services.AddScoped<ICommandHandler<RegistrarAvaliacaoCommand>, RegistrarAvaliacaoCommandHandler>();
         services.AddScoped<IQueryHandler<GetActiveChatQuery, ActiveChatDto>, GetActiveChatQueryHandler>();
+
 
 
 
@@ -134,6 +141,8 @@ public static class UseCaseConfigurations
         services.AddScoped<ICommandHandler<AtualizarStatusTemplateCommand>, AtualizarStatusTemplateCommandHandler>();
 
 
+        // modulo de metricas
+        services.AddScoped<IQueryHandler<GetTemplatesSentPerAgentQuery, IEnumerable<TemplatesSentPerAgentDto>>, GetTemplatesSentPerAgentQueryHandler>();
 
 
 

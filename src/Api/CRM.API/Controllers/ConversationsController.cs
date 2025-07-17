@@ -6,6 +6,7 @@ using CRM.API.Dtos;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 using CRM.Domain.Exceptions;
+using CRM.Infrastructure.Config.Meta;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,17 +23,18 @@ public class ConversationsController : ControllerBase
     private readonly ICommandHandler<ResolverAtendimentoCommand> _resolverAtendimentoHandler;
     private readonly ICommandHandler<TransferirAtendimentoCommand> _transferirAtendimentoHandler;
     private readonly IQueryHandler<GetAllConversationsQuery, IEnumerable<ConversationSummaryDto>> _getAllConversationsHandler;
-    private readonly IQueryHandler<GetActiveChatQuery, ActiveChatDto> _getActiveChatHandler; 
+    private readonly IQueryHandler<GetActiveChatQuery, ActiveChatDto> _getActiveChatHandler;
+    private readonly ICommandHandler<EnviarTemplateCommand> _enviarTemplateHandler; 
 
-    public ConversationsController(ICommandHandler<AtribuirAgenteCommand> atribuirAgenteHandler, 
-        IQueryHandler<GetConversationByIdQuery, ConversationDetailsDto> getByIdHandler, 
+    public ConversationsController(ICommandHandler<AtribuirAgenteCommand> atribuirAgenteHandler,
+        IQueryHandler<GetConversationByIdQuery, ConversationDetailsDto> getByIdHandler,
         ICommandHandler<IniciarConversaCommand, Guid> iniciarConversaHandler,
         ICommandHandler<AdicionarMensagemCommand, MessageDto> adicionarMensagemHandler,
         ICommandHandler<ResolverAtendimentoCommand> resolverAtendimentoHandler,
         ICommandHandler<TransferirAtendimentoCommand> transferirAtendimentoHandler,
         IQueryHandler<GetAllConversationsQuery, IEnumerable<ConversationSummaryDto>> getAllConversationsHandler,
-        IQueryHandler<GetActiveChatQuery, ActiveChatDto> getActiveChatHandler
-
+        IQueryHandler<GetActiveChatQuery, ActiveChatDto> getActiveChatHandler,
+        ICommandHandler<EnviarTemplateCommand> enviarTemplateHandler
         )
     {
         _atribuirAgenteHandler = atribuirAgenteHandler;
@@ -42,7 +44,8 @@ public class ConversationsController : ControllerBase
         _resolverAtendimentoHandler = resolverAtendimentoHandler;
         _transferirAtendimentoHandler = transferirAtendimentoHandler;
         _getAllConversationsHandler = getAllConversationsHandler;
-        _getActiveChatHandler = getActiveChatHandler; 
+        _getActiveChatHandler = getActiveChatHandler;
+        _enviarTemplateHandler = enviarTemplateHandler;
     }
 
     [HttpGet("{id:guid}", Name = "GetConversationById")]
@@ -94,7 +97,7 @@ public class ConversationsController : ControllerBase
     {
         try
         {
-            var command = new IniciarConversaCommand(request.ContatoId, 
+            var command = new IniciarConversaCommand(request.ContatoId,
                 request.Texto,
                   request.Anexo?.OpenReadStream(),
                   request.Anexo?.FileName,
@@ -116,7 +119,7 @@ public class ConversationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> AdicionarMensagem(
     [FromRoute] Guid id,
-    [FromForm] AdicionarMensagemRequest request) 
+    [FromForm] AdicionarMensagemRequest request)
     {
         if (!Enum.TryParse<RemetenteTipo>(request.RemetenteTipo, true, out var remetenteTipo))
         {
@@ -148,7 +151,7 @@ public class ConversationsController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
-    
+
 
     [HttpPatch("{id:guid}/resolver")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -202,8 +205,6 @@ public class ConversationsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<ConversationSummaryDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll([FromQuery] GetAllConversationsQuery query)
     {
-        // O model binding do ASP.NET Core mapeia automaticamente os parâmetros da query string
-        // para o nosso objeto 'GetAllConversationsQuery'.
         var result = await _getAllConversationsHandler.HandleAsync(query);
         return Ok(result);
     }
@@ -215,4 +216,18 @@ public class ConversationsController : ControllerBase
         var chatData = await _getActiveChatHandler.HandleAsync(query); // Injete o novo handler
         return Ok(chatData);
     }
+
+    [HttpPost("{id:guid}/send-template")]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SendTemplate(Guid id, [FromBody] SendTemplateRequest request)
+    {
+        var command = new EnviarTemplateCommand(id, request.TemplateName, request.BodyParameters);
+        await _enviarTemplateHandler.HandleAsync(command);
+
+        return Accepted();
+    }
+
+
 }

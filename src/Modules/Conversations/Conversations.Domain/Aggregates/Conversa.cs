@@ -20,21 +20,21 @@ public class Conversa : Entity
 
     private Conversa() { }
 
-    public static Conversa Iniciar(Guid contatoId, Guid atendimentoId, Mensagem primeiraMensagem)
+    public static Conversa Iniciar(Guid contatoId)
     {
         if (contatoId == Guid.Empty)
             throw new DomainException("Uma conversa precisa estar associada a um contato.");
 
         var conversa = new Conversa { ContatoId = contatoId };
-        conversa.AdicionarMensagem(primeiraMensagem, atendimentoId);
-        // Disparar evento: ConversaCriadaEvent
         return conversa;
     }
 
     public void AdicionarMensagem(Mensagem novaMensagem, Guid atendimentoId)
     {
         if (novaMensagem.ConversaId != this.Id)
-            throw new DomainException("A mensagem não pertence a esta conversa.");
+        {
+            novaMensagem.SetConversaId(this.Id);
+        }
 
         // Validação para garantir que o atendimentoId é o correto
         if (novaMensagem.AtendimentoId != atendimentoId)

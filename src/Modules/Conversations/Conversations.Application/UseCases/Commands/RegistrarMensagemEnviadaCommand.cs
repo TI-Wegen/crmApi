@@ -6,5 +6,6 @@ public record RegistrarMensagemEnviadaCommand(
     string ContatoTelefone,
     string NomeContato,
     string TextoDaMensagem,
-    string? IdDaMensagemMeta 
+    string? IdDaMensagemMeta,
+    Guid? IdConversa = null 
 ) : ICommand;

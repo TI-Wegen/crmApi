@@ -25,7 +25,6 @@ public class Atendimento : Entity
     {
         var atendimento = new Atendimento
         {
-            // Id = Guid.NewGuid(), // O EF Core irá gerar
             ConversaId = conversaId,
             Status = ConversationStatus.EmAutoAtendimento,
             BotStatus = BotStatus.AguardandoOpcaoMenuPrincipal
@@ -92,14 +91,11 @@ public class Atendimento : Entity
         // Regra de negócio: apenas atendimentos ativos podem expirar.
         if (Status is not ConversationStatus.AguardandoNaFila and not ConversationStatus.EmAtendimento and not ConversationStatus.EmAutoAtendimento)
         {
-            // Não lança exceção, apenas ignora, pois o job pode pegar atendimentos já resolvidos.
             return;
         }
 
         Status = ConversationStatus.SessaoExpirada;
         BotStatus = BotStatus.Nenhum;
-
-        // Dispara o evento de domínio para que outros sistemas possam reagir.
         AddDomainEvent(new AtendimentoExpiradoEvent(this.Id));
     }
 
@@ -110,5 +106,36 @@ public class Atendimento : Entity
         BotStatus = BotStatus.AguardandoCpfParaBoleto;
     }
 
-  
+    public void SetAtendimentoId(Guid atendimentoId)
+    {
+        if (Id != atendimentoId)
+            throw new DomainException("O ID do atendimento não pode ser alterado.");
+        Id = atendimentoId;
+    }
+    public static Atendimento IniciarProativamente(Guid conversaId, Guid agenteId)
+    {
+        var atendimento = new Atendimento
+        {
+            ConversaId = conversaId,
+            AgenteId = agenteId, 
+            Status = ConversationStatus.AguardandoRespostaCliente, 
+            BotStatus = BotStatus.Nenhum 
+        };
+        return atendimento;
+    }
+    public void RegistrarRespostaDoCliente()
+    {
+        if (Status != ConversationStatus.AguardandoRespostaCliente)
+            throw new DomainException("Este atendimento não estava aguardando uma resposta do cliente.");
+
+        Status = ConversationStatus.EmAtendimento;
+        // Disparar evento: ClienteRespondeuTemplateEvent
+    }
+
+    public void MarcarComoSemResposta()
+    {
+        if (Status != ConversationStatus.AguardandoRespostaCliente) return; // Ação idempotente
+
+        Status = ConversationStatus.FechadoSemResposta;
+    }
 }

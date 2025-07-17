@@ -34,7 +34,16 @@ namespace Conversations.Domain.Entities;
         MessageId = messageId;
     }
 
+    public void SetConversaId(Guid conversaId)
+    {
+        ConversaId = conversaId;
 
+    }
+
+    public void SetAtendimentoId(Guid atendimentoId)
+    {
+        AtendimentoId = atendimentoId;
+    }
 
 }
 
