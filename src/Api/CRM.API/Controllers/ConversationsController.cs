@@ -217,7 +217,7 @@ public class ConversationsController : ControllerBase
         return Ok(chatData);
     }
 
-    [HttpPost("{id:guid}/send-template")]
+    [HttpPost("/send-template")]
     [ProducesResponseType(StatusCodes.Status202Accepted)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

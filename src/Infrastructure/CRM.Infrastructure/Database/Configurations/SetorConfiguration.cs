@@ -2,7 +2,7 @@
 
 
 using Agents.Domain.Aggregates;
-using Conversations.Domain.Enuns;
+using Agents.Domain.Enuns;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -34,7 +34,16 @@ public class SetorConfiguration : IEntityTypeConfiguration<Setor>
                 Version = Guid.Parse("d4a3b4d5-6e7f-8a9b-0c1d-2e3f4a5b6c7d"),
                 CreatedAt = DateTime.SpecifyKind(new DateTime(2024, 01, 01, 0, 0, 0), DateTimeKind.Utc)
 
-            }
+            },
+             new
+             {
+                 Id = Guid.Parse("00000000-0000-0000-0001-000000000003"), // ID Fixo para o Admin
+                 Nome = SetorNome.Admin.ToDbValue(),
+                 Descricao = "Setor responsável pela administração geral",
+                 Version = Guid.Parse("d4a3b4d5-6e7f-8a9b-0c1d-2e3f4a5b6c7a"),
+                 CreatedAt = DateTime.SpecifyKind(new DateTime(2024, 01, 01, 0, 0, 0), DateTimeKind.Utc)
+
+             }
         );
     }
 }

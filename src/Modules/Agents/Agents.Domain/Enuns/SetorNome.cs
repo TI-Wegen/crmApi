@@ -2,7 +2,8 @@
 public enum SetorNome
 {
     Financeiro,
-    Comercial
+    Comercial,
+    Admin
 }
 
 public static class SetorNomeExtensions
@@ -13,6 +14,7 @@ public static class SetorNomeExtensions
         {
             SetorNome.Financeiro => "Financeiro",
             SetorNome.Comercial => "Comercial",
+            SetorNome.Admin => "Administração",
             _ => throw new ArgumentOutOfRangeException(nameof(setor), setor, null)
         };
     }
