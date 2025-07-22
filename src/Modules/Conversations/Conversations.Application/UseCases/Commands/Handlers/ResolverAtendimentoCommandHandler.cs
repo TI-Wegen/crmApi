@@ -1,5 +1,6 @@
 ﻿namespace Conversations.Application.UseCases.Commands.Handlers;
 
+using Contacts.Domain.Repository;
 using Conversations.Application.Abstractions;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
@@ -7,17 +8,27 @@ using CRM.Application.Interfaces;
 public class ResolverAtendimentoCommandHandler : ICommandHandler<ResolverAtendimentoCommand>
 {
     private readonly IAtendimentoRepository _atendimentoRepository;
+    private readonly IConversationRepository _conversationRepository;
+    private readonly IContactRepository _contactRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IUserContext _userContext;
+    private readonly IBotSessionCache _botSessionCache;
 
     public ResolverAtendimentoCommandHandler(IAtendimentoRepository atendimentoRepository, 
         IUnitOfWork unitOfWork,
-        IUserContext userContext
+        IUserContext userContext,
+        IBotSessionCache botSessionCache,
+        IContactRepository contactRepository,
+        IConversationRepository conversationRepository
+
         )
     {
         _atendimentoRepository = atendimentoRepository;
         _unitOfWork = unitOfWork;
         _userContext = userContext;
+        _botSessionCache = botSessionCache;
+        _contactRepository = contactRepository;
+        _conversationRepository = conversationRepository;
     }
       public async Task HandleAsync(ResolverAtendimentoCommand command, CancellationToken cancellationToken)
     {
@@ -37,8 +48,13 @@ public class ResolverAtendimentoCommandHandler : ICommandHandler<ResolverAtendim
 
         atendimento.Resolver(agenteIdLogado);
 
-        // 3. Persiste a alteração de estado no banco de dados.
-        // Não é necessário chamar UpdateAsync, pois o Change Tracker já sabe da mudança.
+        var conversa = await _conversationRepository.GetByIdAsync(atendimento.ConversaId, cancellationToken);
+        if (conversa is null) throw new NotFoundException($"Conversa com o Id '{atendimento.ConversaId}' não encontrada.");
+
+        var contato = await _contactRepository.GetByIdAsync(conversa.ContatoId, cancellationToken);
+        if (contato is null) throw new NotFoundException($"Contato com o Id '{conversa.ContatoId}' não encontrado.");
+
+        await _botSessionCache.DeleteStateAsync(contato.Telefone);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

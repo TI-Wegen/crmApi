@@ -8,6 +8,7 @@ public record AdicionarMensagemCommand(
     string Texto,
     string? AnexoUrl,
     RemetenteTipo RemetenteTipo,
+    DateTime? Timestamp,
     Stream? AnexoStream,
     string? AnexoNome,
     string? AnexoContentType

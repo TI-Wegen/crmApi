@@ -7,6 +7,7 @@ using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 using CRM.Domain.Exceptions;
 using CRM.Infrastructure.Config.Meta;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,7 +25,7 @@ public class ConversationsController : ControllerBase
     private readonly ICommandHandler<TransferirAtendimentoCommand> _transferirAtendimentoHandler;
     private readonly IQueryHandler<GetAllConversationsQuery, IEnumerable<ConversationSummaryDto>> _getAllConversationsHandler;
     private readonly IQueryHandler<GetActiveChatQuery, ActiveChatDto> _getActiveChatHandler;
-    private readonly ICommandHandler<EnviarTemplateCommand> _enviarTemplateHandler; 
+    private readonly ICommandHandler<EnviarTemplateCommand> _enviarTemplateHandler;
 
     public ConversationsController(ICommandHandler<AtribuirAgenteCommand> atribuirAgenteHandler,
         IQueryHandler<GetConversationByIdQuery, ConversationDetailsDto> getByIdHandler,
@@ -97,8 +98,13 @@ public class ConversationsController : ControllerBase
     {
         try
         {
+            var timestamp = DateTime.UtcNow;
+
             var command = new IniciarConversaCommand(request.ContatoId,
                 request.Texto,
+                timestamp,
+                null,
+                null,
                   request.Anexo?.OpenReadStream(),
                   request.Anexo?.FileName,
                   request.Anexo?.ContentType);
@@ -121,18 +127,21 @@ public class ConversationsController : ControllerBase
     [FromRoute] Guid id,
     [FromForm] AdicionarMensagemRequest request)
     {
-        if (!Enum.TryParse<RemetenteTipo>(request.RemetenteTipo, true, out var remetenteTipo))
+        if (!System.Enum.TryParse<RemetenteTipo>(request.RemetenteTipo, true, out var remetenteTipo))
         {
             return BadRequest("RemetenteTipo inválido. Use 'Agente' ou 'Cliente'.");
         }
 
         try
         {
+            var timestamp = DateTime.UtcNow;
+
             var command = new AdicionarMensagemCommand(
                 id,
                 request.Texto,
                 request.AnexoUrl,
                 remetenteTipo,
+                timestamp,
                 request.Anexo?.OpenReadStream(),
                 request.Anexo?.FileName,
                 request.Anexo?.ContentType
@@ -217,13 +226,13 @@ public class ConversationsController : ControllerBase
         return Ok(chatData);
     }
 
-    [HttpPost("/send-template")]
+    [HttpPost("{contactId:guid}/senTemplate")]
     [ProducesResponseType(StatusCodes.Status202Accepted)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> SendTemplate(Guid id, [FromBody] SendTemplateRequest request)
+    public async Task<IActionResult> SendTemplate(Guid contactId, [FromBody] SendTemplateRequest request)
     {
-        var command = new EnviarTemplateCommand(id, request.TemplateName, request.BodyParameters);
+        var command = new EnviarTemplateCommand(contactId, request.TemplateName, request.BodyParameters);
         await _enviarTemplateHandler.HandleAsync(command);
 
         return Accepted();

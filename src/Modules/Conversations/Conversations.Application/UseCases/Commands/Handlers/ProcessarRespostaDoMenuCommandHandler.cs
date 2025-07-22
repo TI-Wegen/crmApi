@@ -2,7 +2,9 @@
 using Conversations.Application.Abstractions;
 using Conversations.Application.Dtos;
 using Conversations.Domain.Aggregates;
+using Conversations.Domain.Entities;
 using Conversations.Domain.Enuns;
+using Conversations.Domain.ValueObjects;
 using CRM.Application.Interfaces;
 using CRM.Domain.Common;
 using Microsoft.Extensions.Logging;
@@ -15,12 +17,13 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
     private readonly IConversationRepository _conversationRepository;
     private readonly IBotSessionCache _botSessionCache;
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IMetaMessageSender _metaMessageSender;
     private readonly IBoletoService _boletoService;
     private readonly IFileStorageService _fileStorageService;
     private readonly IAgentRepository _agentRepository;
     private readonly ILogger<ProcessarRespostaDoMenuCommandHandler> _logger;
     private readonly IAtendimentoRepository _atendimentoRepository;
+    private readonly IMensageriaBotService _mensageriaBot; // NOVO
+
 
     public ProcessarRespostaDoMenuCommandHandler(
         IAtendimentoRepository atendimentoRepository,
@@ -31,6 +34,7 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
         IBoletoService boletoService,
         IFileStorageService fileStorageService,
         IAgentRepository agentRepository,
+        IMensageriaBotService mensageriaBot, 
         ILogger<ProcessarRespostaDoMenuCommandHandler> logger
 
         )
@@ -38,16 +42,18 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
         _conversationRepository = conversationRepository;
         _botSessionCache = botSessionCache;
         _unitOfWork = unitOfWork;
-        _metaMessageSender = metaMessageSender;
         _boletoService = boletoService;
         _fileStorageService = fileStorageService;
         _agentRepository = agentRepository;
         _logger = logger;
         _atendimentoRepository = atendimentoRepository;
+        _mensageriaBot = mensageriaBot; 
     }
 
     public async Task HandleAsync(ProcessarRespostaDoMenuCommand command, CancellationToken cancellationToken)
     {
+        var timestamp = command.Timestamp ?? DateTime.UtcNow;
+
         // 1. Busca o estado atual da sessão do bot no Redis usando o telefone.
         var sessionState = await _botSessionCache.GetStateAsync(command.ContatoTelefone);
         if (sessionState is null)
@@ -66,11 +72,15 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
             await _botSessionCache.DeleteStateAsync(command.ContatoTelefone);
 
             // AÇÃO 2: Informa o usuário para que ele não fique confuso
-            await _metaMessageSender.EnviarMensagemTextoAsync(command.ContatoTelefone, "Sua sessão anterior expirou ou não pôde ser encontrada. Por favor, envie sua mensagem novamente para recomeçar.");
+            await _mensageriaBot.EnviarEMensagemTextoAsync(atendimento.Id  ,command.ContatoTelefone, "Sua sessão anterior expirou ou não pôde ser encontrada. Por favor, envie sua mensagem novamente para recomeçar.");
 
             // Interrompe a execução, pois não há um estado válido para processar.
             return;
         }
+
+        var conversa = await _conversationRepository.GetByIdAsync(atendimento.ConversaId, cancellationToken);
+        var mensagemDoCliente = new Mensagem(conversa.Id, atendimento.Id, command.TextoDaResposta, Remetente.Cliente(), command.Timestamp ?? DateTime.UtcNow, null);
+        conversa.AdicionarMensagem(mensagemDoCliente, atendimento.Id);
 
         // 3. Máquina de Estados: decide o que fazer com base no estado ATUAL do bot.
         switch (sessionState.Status)
@@ -85,9 +95,9 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
             case BotStatus.AguardandoEscolhaDeBoleto:
                 if (sessionState.BoletosDisponiveis is null || !sessionState.BoletosDisponiveis.Any())
                 {
-                    await _metaMessageSender.EnviarMensagemTextoAsync(command.ContatoTelefone, "Ocorreu um erro, vamos recomeçar. Por favor, digite seu CPF novamente.");
+                    await _mensageriaBot.EnviarEMensagemTextoAsync(atendimento.Id, command.ContatoTelefone, "Ocorreu um erro, vamos recomeçar. Por favor, digite seu CPF novamente.");
                     atendimento.AguardarCpf();
-                    await _botSessionCache.SetStateAsync(command.ContatoTelefone, new BotSessionState(atendimento.Id, atendimento.BotStatus, null), TimeSpan.FromMinutes(30));
+                    await _botSessionCache.SetStateAsync(command.ContatoTelefone, new BotSessionState(atendimento.Id, atendimento.BotStatus, DateTime.UtcNow,null), TimeSpan.FromMinutes(30));
                 }
                 else
                 {
@@ -101,16 +111,16 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
 
     private async Task ProcessarMenuPrincipal(Atendimento atendimento, string contatoTelefone, string resposta)
     {
-        // Define o setor do Comercial. Em uma aplicação real, isso viria de uma configuração ou do banco.
-        //var setorComercialId = Guid.Parse("SEU-GUID-DO-SETOR-COMERCIAL-AQUI");
+
 
         switch (resposta.Trim())
         {
             case "1": // Segunda via de boleto
                 // Aqui você mudaria o estado do bot e pediria o CPF.
                 atendimento.AguardarCpf(); // Exemplo de um novo método de domínio
-                await _botSessionCache.SetStateAsync(contatoTelefone, new BotSessionState(atendimento.Id, atendimento.BotStatus), TimeSpan.FromMinutes(30));
-                await _metaMessageSender.EnviarMensagemTextoAsync(contatoTelefone, "Por favor, digite seu CPF para gerarmos a segunda via.");
+                await _botSessionCache.SetStateAsync(contatoTelefone, new BotSessionState(atendimento.Id, atendimento.BotStatus, DateTime.UtcNow), TimeSpan.FromMinutes(30));
+                await _mensageriaBot.EnviarEMensagemTextoAsync(atendimento.Id, contatoTelefone, "Por favor, digite seu CPF para gerarmos a segunda via.");
+                await _unitOfWork.SaveChangesAsync();
                 break;
 
             case "2": // Falar com o Comercial
@@ -118,26 +128,27 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
                 atendimento.IniciarTransferenciaParaFila(setorComercial.Id);
                 // Remove a sessão do bot, pois agora um humano vai assumir.
                 await _botSessionCache.DeleteStateAsync(contatoTelefone);
-                await _metaMessageSender.EnviarMensagemTextoAsync(contatoTelefone, "Ok, estou te transferindo para um de nossos especialistas do setor comercial.");
+                await _mensageriaBot.EnviarEMensagemTextoAsync(atendimento.Id, contatoTelefone, "Ok, estou te transferindo para um de nossos especialistas do setor comercial.");
+                await _unitOfWork.SaveChangesAsync();
                 break;
 
             case "3": // Falar com o Financeiro
                 var setorFinanceiro = await _agentRepository.GetSetorByNomeAsync(SetorNome.Financeiro.ToDbValue());
                 atendimento.IniciarTransferenciaParaFila(setorFinanceiro.Id);
-                // Remove a sessão do bot, pois agora um humano vai assumir.
                 await _botSessionCache.DeleteStateAsync(contatoTelefone);
-                await _metaMessageSender.EnviarMensagemTextoAsync(contatoTelefone, "Ok, estou te transferindo para um de nossos especialistas do setor Financeiro.");
+                await _mensageriaBot.EnviarEMensagemTextoAsync(atendimento.Id, contatoTelefone, "Ok, estou te transferindo para um de nossos especialistas do setor Financeiro.");
+                await _unitOfWork.SaveChangesAsync();
                 break;
 
-            case "4": // Encerrar atendimento
+            case "4": 
                 atendimento.Resolver(SystemGuids.SystemAgentId);
-                // Remove a sessão do bot.
                 await _botSessionCache.DeleteStateAsync(contatoTelefone);
-                await _metaMessageSender.EnviarMensagemTextoAsync(contatoTelefone, "Seu atendimento foi encerrado. Obrigado pelo contato!");
+                await _mensageriaBot.EnviarEMensagemTextoAsync(atendimento.Id, contatoTelefone, "Seu atendimento foi encerrado. Obrigado pelo contato!");
+                await _unitOfWork.SaveChangesAsync();
                 break;
 
-            default: // Opção inválida
-                await _metaMessageSender.EnviarMensagemTextoAsync(contatoTelefone, "Opção inválida. Por favor, digite um dos números do menu.");
+            default: 
+                await _mensageriaBot.EnviarEMensagemTextoAsync(atendimento.Id, contatoTelefone, "Opção inválida. Por favor, digite um dos números do menu.");
                 break;
         }
     }
@@ -164,16 +175,16 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
             }
 
             // Salva a lista de boletos VENCIDOS na sessão para o próximo passo
-            var newSessionState = new BotSessionState(atendimento.Id, atendimento.BotStatus, boletosVencidos);
+            var newSessionState = new BotSessionState(atendimento.Id, atendimento.BotStatus, DateTime.UtcNow, boletosVencidos);
             await _botSessionCache.SetStateAsync(contatoTelefone, newSessionState, TimeSpan.FromMinutes(30));
 
-            await _metaMessageSender.EnviarMensagemTextoAsync(contatoTelefone, sb.ToString());
+            await _mensageriaBot.EnviarEMensagemTextoAsync(atendimento.Id,contatoTelefone, sb.ToString());
             return; // Encerra o método aqui
         }
 
         if (!boletos.Any())
         {
-            await _metaMessageSender.EnviarMensagemTextoAsync(contatoTelefone, "Não encontrei um boleto em aberto para o CPF informado.Obrigado pelo contato!!");
+            await _mensageriaBot.EnviarEMensagemTextoAsync(atendimento.Id, contatoTelefone, "Não encontrei um boleto em aberto para o CPF informado.Obrigado pelo contato!!");
             atendimento.Resolver(SystemGuids.SystemAgentId);
             await _botSessionCache.DeleteStateAsync(contatoTelefone);
             return;
@@ -188,7 +199,7 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
             var boletoParaEnviar = boletos.First();
 
             var boletoCompleto = await _boletoService.GetBoletoAsync(boletoParaEnviar.IdFatura);
-            if (boletoCompleto is not null) await EnviarBoleto(contatoTelefone, boletoCompleto);
+            if (boletoCompleto is not null) await EnviarBoleto(atendimento.Id,contatoTelefone, boletoCompleto);
 
             atendimento.Resolver(SystemGuids.SystemAgentId);
             await _botSessionCache.DeleteStateAsync(contatoTelefone);
@@ -208,10 +219,10 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
             }
 
             // Armazena a lista de boletos na sessão do Redis para o próximo passo.
-            var newSessionState = new BotSessionState(atendimento.Id, atendimento.BotStatus, boletos);
+            var newSessionState = new BotSessionState(atendimento.Id, atendimento.BotStatus, DateTime.UtcNow, boletos);
             await _botSessionCache.SetStateAsync(contatoTelefone, newSessionState, TimeSpan.FromMinutes(30));
 
-            await _metaMessageSender.EnviarMensagemTextoAsync(contatoTelefone, sb.ToString());
+            await _mensageriaBot.EnviarEMensagemTextoAsync(atendimento.Id, contatoTelefone, sb.ToString());
         }
     }
 
@@ -219,7 +230,7 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
     {
         if (escolha.Trim() == "0")
         {
-            await EnviarMultiplosBoletosAsync(contatoTelefone, boletosDisponiveis);
+            await EnviarMultiplosBoletosAsync(atendimento.Id, contatoTelefone, boletosDisponiveis);
             atendimento.Resolver(SystemGuids.SystemAgentId);
             await _botSessionCache.DeleteStateAsync(contatoTelefone);
             return;
@@ -227,7 +238,7 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
 
         if (!int.TryParse(escolha, out var indice) || indice < 1 || indice > boletosDisponiveis.Count)
         {
-            await _metaMessageSender.EnviarMensagemTextoAsync(contatoTelefone, "Opção inválida. Por favor, digite um dos números da lista.");
+            await _mensageriaBot.EnviarEMensagemTextoAsync(atendimento.Id, contatoTelefone, "Opção inválida. Por favor, digite um dos números da lista.");
             return;
         }
 
@@ -239,45 +250,49 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
 
         if (boletoCompleto is null)
         {
-            await _metaMessageSender.EnviarMensagemTextoAsync(contatoTelefone, "Ocorreu um erro ao buscar os detalhes do boleto selecionado. Por favor, tente novamente.");
+            await _mensageriaBot.EnviarEMensagemTextoAsync(atendimento.Id, contatoTelefone, "Ocorreu um erro ao buscar os detalhes do boleto selecionado. Por favor, tente novamente.");
             return;
         }
 
         // 3. Envia o boleto completo.
-        await EnviarBoleto(contatoTelefone, boletoCompleto);
+        await EnviarBoleto(atendimento.Id, contatoTelefone, boletoCompleto);
 
         // 4. Resolve a atendimento e limpa a sessão.
         atendimento.Resolver(SystemGuids.SystemAgentId);
         await _botSessionCache.DeleteStateAsync(contatoTelefone);
     }
 
-    private async Task EnviarBoleto(string contatoTelefone, BoletoDto boleto)
+    private async Task EnviarBoleto(Guid atendimentoId, string contatoTelefone, BoletoDto boleto)
     {
         var boletoEmBytes = Convert.FromBase64String(boleto.PdfBoleto);
         var memoryStream = new MemoryStream(boletoEmBytes);
         var nomeArquivo = $"boleto-{contatoTelefone}-{DateTime.UtcNow:yyyyMMdd}.pdf";
-        var legenda = $"Pronto! Segue seu boleto referente a conta '{boleto.IdFatura}' com vencimento em {boleto.DataVencimento:dd/MM/yyyy}.O Atendimento foi encerrado";
         var urlDoBoleto = await _fileStorageService.UploadAsync(memoryStream, nomeArquivo, "application/pdf");
-        await _metaMessageSender.EnviarDocumentoAsync(contatoTelefone, urlDoBoleto, nomeArquivo, legenda);
+
+        var legenda = $"Pronto! Segue seu boleto referente a conta '{boleto.IdFatura}' com vencimento em {boleto.DataVencimento:dd/MM/yyyy}.";
+
+        // ANTES: await _metaMessageSender.EnviarDocumentoAsync(...)
+        // AGORA: Usamos o novo serviço que também salva no banco.
+        await _mensageriaBot.EnviarEDocumentoAsync(atendimentoId, contatoTelefone, urlDoBoleto, nomeArquivo, legenda);
     }
 
-    private async Task EnviarMultiplosBoletosAsync(string contatoTelefone, List<BoletoDto> boletosResumo)
+    private async Task EnviarMultiplosBoletosAsync(Guid atendimentoId, string contatoTelefone, List<BoletoDto> boletosResumo)
     {
-        await _metaMessageSender.EnviarMensagemTextoAsync(contatoTelefone, "Certo! Preparando o envio de todos os boletos. Isso pode levar um instante...");
+        // Usamos o novo serviço para registrar a mensagem inicial.
+        await _mensageriaBot.EnviarEMensagemTextoAsync(atendimentoId, contatoTelefone, "Certo! Preparando o envio de todos os boletos. Isso pode levar um instante...");
 
         foreach (var resumo in boletosResumo)
         {
             var boletoCompleto = await _boletoService.GetBoletoAsync(resumo.IdFatura);
             if (boletoCompleto is not null)
             {
-                // Enviamos um por um.
-                await EnviarBoleto(contatoTelefone, boletoCompleto);
-                // Uma pequena pausa para não sobrecarregar a API da Meta.
+                // Enviamos um por um, passando o atendimentoId
+                await EnviarBoleto(atendimentoId, contatoTelefone, boletoCompleto);
                 await Task.Delay(500);
             }
         }
 
-        await _metaMessageSender.EnviarMensagemTextoAsync(contatoTelefone, "Pronto! Enviei todos os boletos solicitados. O atendimento foi encerrado.");
+        // Usamos o novo serviço para registrar a mensagem final.
+        await _mensageriaBot.EnviarEMensagemTextoAsync(atendimentoId, contatoTelefone, "Pronto! Enviei todos os boletos solicitados. O atendimento foi encerrado.");
     }
-
 }

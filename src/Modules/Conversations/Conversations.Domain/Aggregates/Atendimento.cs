@@ -34,6 +34,19 @@ public class Atendimento : Entity
         return atendimento;
     }
 
+    public static Atendimento IniciarEmFila(Guid conversaId, Guid setorId)
+    {
+        var atendimento = new Atendimento
+        {
+            ConversaId = conversaId,
+            Status = ConversationStatus.AguardandoNaFila,
+            BotStatus = BotStatus.Nenhum, 
+            SetorId = setorId
+        };
+        atendimento.AddDomainEvent(new AtendimentoIniciadoEvent(atendimento.Id, conversaId));
+        return atendimento;
+    }
+
     public void IniciarTransferenciaParaFila(Guid setorId)
     {
         if (Status != ConversationStatus.EmAutoAtendimento)
@@ -46,7 +59,7 @@ public class Atendimento : Entity
 
     public void AtribuirAgente(Guid? agenteId)
     {
-        if (Status != ConversationStatus.AguardandoNaFila)
+        if (Status != ConversationStatus.AguardandoNaFila || Status != ConversationStatus.SessaoExpirada)
             throw new DomainException("Apenas atendimentos na fila podem ser atribuídos.");
 
         Status = ConversationStatus.EmAtendimento;

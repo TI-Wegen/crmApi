@@ -50,6 +50,8 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
 
     public async Task<MessageDto> HandleAsync(AdicionarMensagemCommand command, CancellationToken cancellationToken)
     {
+        var timestamp = command.Timestamp ?? DateTime.UtcNow;
+
         var conversa = await _conversationRepository.GetByIdAsync(command.ConversaId, cancellationToken);
         if (conversa is null)
             throw new NotFoundException($"Conversa com o Id '{command.ConversaId}' não encontrada.");
@@ -82,7 +84,7 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
                     ? Remetente.Agente(agenteId.Value)
                     : Remetente.Cliente();
 
-        var novaMensagem = new Mensagem(conversa.Id,atendimento.Id ,command.Texto, remetente, anexoUrl);
+        var novaMensagem = new Mensagem(conversa.Id,atendimento.Id ,command.Texto, remetente, timestamp: timestamp, anexoUrl);
 
         conversa.AdicionarMensagem(novaMensagem, atendimento.Id);
 

@@ -10,10 +10,10 @@ public static class WebhookMessageParser
         return message.Type.ToLower() switch
         {
             "text" => message.Text?.Body ?? string.Empty,
-            "image" => "[Imagem recebida]",
+            "image" => message.Image?.Caption ?? "[Imagem recebida]",
             "audio" => "[Áudio recebido]",
             "video" => "[Vídeo recebido]",
-            "document" => "[Documento recebido]",
+            "document" => message.Document?.Caption ?? message.Document?.Filename ?? "[Documento recebido]",
             "sticker" => "[Sticker recebido]",
             "location" => "[Localização recebida]",
             _ => $"[Tipo de mensagem '{message.Type}' não suportado]"

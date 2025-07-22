@@ -10,16 +10,19 @@ using Contacts.Application.UseCases.Commands;
 using Contacts.Application.UseCases.Commands.Handlers;
 using Contacts.Application.UseCases.Commands.Queries;
 using Contacts.Application.UseCases.Commands.Queries.Handlers;
+using Contacts.Application.UseCases.Queries.Handlers;
 using Contacts.Domain.Repository;
 using Contacts.Infrastructure.Repositories;
 using Conversations.Application.Abstractions;
 using Conversations.Application.Dtos;
 using Conversations.Application.Jobs;
+using Conversations.Application.Services;
 using Conversations.Application.UseCases.Commands;
 using Conversations.Application.UseCases.Commands.Handlers;
 using Conversations.Application.UseCases.Events;
 using Conversations.Application.UseCases.Queries;
 using Conversations.Application.UseCases.Queries.Handlers;
+using Conversations.Infrastructure.Jobs;
 using Conversations.Infrastructure.Repositories;
 using Conversations.Infrastructure.Services;
 using CRM.API.Services;
@@ -81,7 +84,6 @@ public static class UseCaseConfigurations
 
         services.AddHttpContextAccessor();
         services.AddScoped<IConversationReadService, DapperConversationReadService>();
-        services.AddScoped<ExpirarSessoesJob>();
         services.AddScoped<IUserContext, UserContext>();
         services.AddScoped<IBoletoService, BoletoService>();
         services.AddScoped<IMetaTemplateManager, MetaTemplateManager>();
@@ -91,7 +93,11 @@ public static class UseCaseConfigurations
         services.AddScoped<IDistributedLock, RedisDistributedLock>();
         services.AddScoped<IMessageBufferService, RedisMessageBufferService>();
         services.AddScoped<ITemplateMetricsReadService, DapperTemplateMetricsService>();
+        services.AddScoped<IMensageriaBotService, MensageriaBotService>();
+        services.AddScoped<IMetaMediaService, MetaMediaService>();
 
+        services.AddScoped<ExpirarSessoesJob>();
+        services.AddScoped<CleanExpiredBotSessionsJob>();
         return services;
     }
 

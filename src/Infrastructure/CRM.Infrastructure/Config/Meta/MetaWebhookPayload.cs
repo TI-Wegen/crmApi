@@ -105,6 +105,12 @@ public record MessageObject
     [JsonPropertyName("image")]
     public MediaObject? Image { get; set; }
 
+    [JsonPropertyName("document")]
+    public DocumentObject? Document { get; set; }
+
+    [JsonPropertyName("audio")]
+    public MediaObject? Audio { get; set; }
+
     [JsonPropertyName("interactive")]
     public InteractiveReplyPayload? Interactive { get; set; }
     // Adicione outros tipos de mídia aqui se necessário (audio, video, etc.)
@@ -123,6 +129,9 @@ public record MediaObject
 
     [JsonPropertyName("mime_type")]
     public string MimeType { get; set; }
+
+    [JsonPropertyName("caption")]
+    public string? Caption { get; init; }
 }
 
 public record StatusObject
@@ -151,4 +160,19 @@ public record InteractiveReplyPayload
 
     [JsonPropertyName("button_reply")]
     public ButtonReplyPayload ButtonReply { get; init; }
+}
+
+public record DocumentObject
+{
+    [JsonPropertyName("id")]
+    public string Id { get; init; }
+
+    [JsonPropertyName("mime_type")]
+    public string MimeType { get; init; }
+
+    [JsonPropertyName("caption")]
+    public string? Caption { get; init; }
+
+    [JsonPropertyName("filename")]
+    public string? Filename { get; init; }
 }

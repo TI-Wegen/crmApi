@@ -1,4 +1,4 @@
-﻿namespace Contacts.Application.UseCases.Commands.Handlers;
+﻿namespace Contacts.Application.UseCases.Queries.Handlers;
 
 
 // Em Modules/Contacts/Application/UseCases/Queries/Handlers/

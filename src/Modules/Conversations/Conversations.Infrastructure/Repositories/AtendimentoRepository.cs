@@ -62,4 +62,16 @@ public class AtendimentoRepository : IAtendimentoRepository
 
         return await query.ToListAsync(cancellationToken);
     }
+    public async Task<IEnumerable<Atendimento>> GetAtendimentosEmAutoAtendimentoAsync(CancellationToken cancellationToken = default)
+    {
+        // Define quais status são considerados de autoatendimento
+        var botStatuses = new[]
+        {
+        ConversationStatus.EmAutoAtendimento
+    };
+
+        return await _context.Atendimentos
+            .Where(a => botStatuses.Contains(a.Status))
+            .ToListAsync(cancellationToken);
+    }
 }

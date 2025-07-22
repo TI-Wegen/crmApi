@@ -45,8 +45,9 @@ public class S3FileStorageService : IFileStorageService
 
             await fileTransferUtility.UploadAsync(uploadRequest);
 
+            string bucketUrl = $"https://{_settings.BucketName}.s3.{_settings.Region}.amazonaws.com/{fileName}";
             // 7. URL gerada dinamicamente a partir das configurações
-            return $"https://{_settings.BucketName}.s3.{_settings.Region}.amazonaws.com/{fileName}";
+            return bucketUrl;
         }
         catch (Exception e)
         {

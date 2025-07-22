@@ -1,3 +1,5 @@
+using Conversations.Application.Jobs;
+using Conversations.Infrastructure.Jobs;
 using CRM.API.Configurations;
 using CRM.API.Hubs;
 using CRM.Infrastructure.Config.Meta;
@@ -53,7 +55,16 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapHub<ConversationHub>("/conversationHub"); 
+app.MapHub<ConversationHub>("/conversationHub");
 
+RecurringJob.AddOrUpdate<ExpirarSessoesJob>(
+    recurringJobId: "expirar-atendimentos-24h",
+    methodCall: job => job.Executar(),
+    cronExpression: "0 * * * *"); // A cada hora
+
+RecurringJob.AddOrUpdate<CleanExpiredBotSessionsJob>(
+    recurringJobId: "clean-expired-bot-sessions",
+    methodCall: job => job.Executar(),
+    cronExpression: "*/5 * * * *"); // A cada 5 minutos
 
 app.Run();

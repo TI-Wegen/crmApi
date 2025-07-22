@@ -37,6 +37,7 @@ public class RegistrarMensagemEnviadaCommandHandler : ICommandHandler<RegistrarM
 
     public async Task HandleAsync(RegistrarMensagemEnviadaCommand command, CancellationToken cancellationToken)
     {
+        var timestamp =  DateTime.UtcNow;
         // 1. Encontra ou cria o Contato.
         var contato = await _contactRepository.GetByTelefoneAsync(command.ContatoTelefone, cancellationToken);
         if (contato is null)
@@ -65,7 +66,7 @@ public class RegistrarMensagemEnviadaCommandHandler : ICommandHandler<RegistrarM
 
         if (conversa is null)
         {
-            var mensagemParaNovaConversa = new Mensagem(Guid.NewGuid(), novoAtendimento.Id, command.TextoDaMensagem, remetente, null);
+            var mensagemParaNovaConversa = new Mensagem(Guid.NewGuid(), novoAtendimento.Id, command.TextoDaMensagem, remetente, timestamp: timestamp, null);
             conversa = Conversa.Iniciar(contato.Id);
             conversa.SetConversaId( mensagemParaNovaConversa.ConversaId); // Garante a consistência do ID
 
@@ -74,7 +75,7 @@ public class RegistrarMensagemEnviadaCommandHandler : ICommandHandler<RegistrarM
         else
         {
             // 5b. Se a Conversa já existia, apenas adicionamos a nova mensagem.
-            var novaMensagem = new Mensagem(conversa.Id, novoAtendimento.Id, command.TextoDaMensagem, remetente, null);
+            var novaMensagem = new Mensagem(conversa.Id, novoAtendimento.Id, command.TextoDaMensagem, remetente, timestamp: timestamp, null);
             conversa.AdicionarMensagem(novaMensagem, novoAtendimento.Id);
         }
 
