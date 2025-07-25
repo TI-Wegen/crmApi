@@ -1,7 +1,6 @@
 ﻿using Contacts.Domain.Aggregates;
 using Contacts.Domain.Repository;
 using Conversations.Application.Abstractions;
-using Conversations.Application.Dtos;
 using Conversations.Application.Mappers;
 using Conversations.Domain.Aggregates;
 using Conversations.Domain.Entities;
@@ -42,9 +41,8 @@ public class RegistrarMensagemEnviadaCommandHandler : ICommandHandler<RegistrarM
         var contato = await _contactRepository.GetByTelefoneAsync(command.ContatoTelefone, cancellationToken);
         if (contato is null)
         {
-            contato = Contato.Criar(command.NomeContato, command.ContatoTelefone);
+            contato = Contato.Criar(command.NomeContato, command.ContatoTelefone,"");
             await _contactRepository.AddAsync(contato);
-            // Nota: Precisamos salvar aqui para que o contato.Id seja gerado pelo banco.
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
@@ -52,13 +50,11 @@ public class RegistrarMensagemEnviadaCommandHandler : ICommandHandler<RegistrarM
         var conversa = await _conversationRepository.FindActiveByContactIdAsync(contato.Id, cancellationToken);
 
         // 3. Cria um novo Atendimento para esta mensagem de template.
-        // Como é uma notificação proativa, ele já nasce "Resolvido".
-        var novoAtendimento = Atendimento.Iniciar(conversa?.Id ?? Guid.Empty); // Passa o ID se existir
+        var novoAtendimento = Atendimento.Iniciar(conversa?.Id ?? Guid.Empty);
         novoAtendimento.AtribuirAgente(SystemGuids.SystemAgentId);
         novoAtendimento.Resolver(SystemGuids.SystemAgentId);
 
         await _atendimentoRepository.AddAsync(novoAtendimento, cancellationToken);
-        // Salva para que o novoAtendimento.Id seja gerado.
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         // 4. Cria a Mensagem, agora que temos todos os IDs necessários.
@@ -68,13 +64,12 @@ public class RegistrarMensagemEnviadaCommandHandler : ICommandHandler<RegistrarM
         {
             var mensagemParaNovaConversa = new Mensagem(Guid.NewGuid(), novoAtendimento.Id, command.TextoDaMensagem, remetente, timestamp: timestamp, null);
             conversa = Conversa.Iniciar(contato.Id);
-            conversa.SetConversaId( mensagemParaNovaConversa.ConversaId); // Garante a consistência do ID
+            conversa.SetConversaId( mensagemParaNovaConversa.ConversaId); 
 
             await _conversationRepository.AddAsync(conversa, cancellationToken);
         }
         else
         {
-            // 5b. Se a Conversa já existia, apenas adicionamos a nova mensagem.
             var novaMensagem = new Mensagem(conversa.Id, novoAtendimento.Id, command.TextoDaMensagem, remetente, timestamp: timestamp, null);
             conversa.AdicionarMensagem(novaMensagem, novoAtendimento.Id);
         }

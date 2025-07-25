@@ -10,6 +10,7 @@ using Conversations.Domain.Enuns;
 using Conversations.Domain.ValueObjects;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
+using CRM.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagemCommand, MessageDto>
@@ -56,9 +57,24 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         if (conversa is null)
             throw new NotFoundException($"Conversa com o Id '{command.ConversaId}' não encontrada.");
         var atendimento = await _atendimentoRepository.FindActiveByConversaIdAsync(conversa.Id, cancellationToken);
-        if (atendimento is null)
-            throw new InvalidOperationException("Não há um atendimento ativo para adicionar esta mensagem.");
+        if (atendimento is null) // Se não houver atendimento ativo, cria um novo
+        {
+            atendimento = Atendimento.Iniciar(conversa.Id);
+            await _atendimentoRepository.AddAsync(atendimento, cancellationToken);
+        }
+        else if (atendimento.Status == ConversationStatus.Resolvida)
+        {
+            throw new DomainException("Não é possível adicionar mensagens a um atendimento já resolvido.");
+        }
+
         string? anexoUrl = null;
+        if (command.RemetenteTipo == RemetenteTipo.Agente)
+        {
+            if (conversa.SessaoAtiva is null || !conversa.SessaoAtiva.EstaAtiva(DateTime.UtcNow))
+            {
+                throw new DomainException("A janela de 24 horas para respostas livres está fechada. Use um Template de Mensagem para iniciar uma nova conversa.");
+            }
+        }
         if (command.AnexoStream is not null)
         {
             var nomeUnicoAnexo = $"{Guid.NewGuid()}-{command.AnexoNome}";
@@ -93,7 +109,15 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
             var contato = await _contactRepository.GetByIdAsync(conversa.ContatoId, cancellationToken);
             if (contato is not null)
             {
-                await _metaSender.EnviarMensagemTextoAsync(contato.Telefone, command.Texto);
+                if(novaMensagem.AnexoUrl is not null)
+                {
+                   await _metaSender.EnviarDocumentoAsync(contato.Telefone, anexoUrl, command.AnexoNome, novaMensagem.Texto);
+                }
+                else
+                {
+                    await _metaSender.EnviarMensagemTextoAsync(contato.Telefone, command.Texto);
+
+                }
             }
         }
 

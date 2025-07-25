@@ -54,14 +54,13 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
     {
         var timestamp = command.Timestamp ?? DateTime.UtcNow;
 
-        // 1. Encontra a Conversa (o histórico) ou a prepara para criação.
         var conversa = await _conversationRepository.FindActiveByContactIdAsync(command.ContatoId, cancellationToken);
         if (conversa is not null)
         {
             var atendimentoAtivo = await _atendimentoRepository.FindActiveByConversaIdAsync(conversa.Id, cancellationToken);
             if (atendimentoAtivo is not null)
             {
-
+                conversa.IniciarOuRenovarSessao(timestamp);
                 var mensagemEmAndamento = new Mensagem(conversa.Id, atendimentoAtivo.Id, command.TextoDaMensagem, Remetente.Cliente(), timestamp, command.AnexoUrl);
                 conversa.AdicionarMensagem(mensagemEmAndamento, atendimentoAtivo.Id);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -74,6 +73,7 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
             conversa = Conversa.Iniciar(command.ContatoId);
             await _conversationRepository.AddAsync(conversa, cancellationToken);
         }
+        conversa.IniciarOuRenovarSessao(timestamp);
 
         // 3. Cria o novo Atendimento para esta interação.
         var novoAtendimento = Atendimento.Iniciar(conversa.Id);
@@ -110,44 +110,25 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
             }
             else
             {
-                // **CENÁRIO B: Mensagem de um dia anterior OU o fluxo não permite bot -> Pula o Bot, vai para a fila humana**
                 if (dataAtualLocal != dataMensagemLocal)
                 {
                     _logger.LogWarning("Mensagem com timestamp antigo ({Timestamp}) recebida. Pulando o bot e enviando para a fila humana.", timestamp);
                 }
 
-                var setorGeralId = Guid.Parse("SEU-GUID-DO-SETOR-GERAL-AQUI"); // Use um ID de setor padrão
-                novoAtendimento = Atendimento.IniciarEmFila(conversa.Id, setorGeralId);
+                var setorAdmin = await _agentRepository.GetSetorByNomeAsync(SetorNomeExtensions.ToDbValue(SetorNome.Admin));
+                novoAtendimento = Atendimento.IniciarEmFila(conversa.Id, setorAdmin.Id);
                 primeiraMensagem.SetAtendimentoId(novoAtendimento.Id);
                 conversa.AdicionarMensagem(primeiraMensagem, novoAtendimento.Id);
                 await _atendimentoRepository.AddAsync(novoAtendimento, cancellationToken);
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                // Notifica o frontend que um item chegou na fila humana
                 var summaryDto = await _notifier.GetSummaryByIdAsync(novoAtendimento.Id);
                 if (summaryDto is not null)
                 {
                     await _readService.NotificarNovaConversaNaFilaAsync(summaryDto);
                 }
             }
-
-
-            //novoAtendimento = Atendimento.Iniciar(conversa.Id);
-            //primeiraMensagem.SetAtendimentoId(novoAtendimento.Id);
-            //conversa.AdicionarMensagem(primeiraMensagem, novoAtendimento.Id);
-            //await _atendimentoRepository.AddAsync(novoAtendimento, cancellationToken);
-
-            //await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            //if (dataAtualLocal == dataMensagemLocal)
-            //{
-            //    var contato = await _contactRepository.GetByIdAsync(conversa.ContatoId, cancellationToken);
-            //    var sessionState = new BotSessionState(novoAtendimento.Id, novoAtendimento.BotStatus, DateTime.UtcNow);
-            //    await _botSessionCache.SetStateAsync(contato!.Telefone, sessionState, TimeSpan.FromHours(2));
-            //    var menuText = "Olá! Bem-vindo ao nosso atendimento. Digite o número da opção desejada:\n1- Segunda via de boleto\n2- Falar com o Comercial\n3- Falar com o Financeiro\n4- Encerrar atendimento";
-            //    await _mensageriaBotService.EnviarEMensagemTextoAsync(novoAtendimento.Id, contato.Telefone, menuText);
-            //}
         }
         else
         {

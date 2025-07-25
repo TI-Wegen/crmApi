@@ -13,6 +13,8 @@ public record ConversationDetailsDto
     public Guid? SetorId { get; init; }
     public string Status { get; init; }
     public string BotStatus { get; init; }
+    public bool SessaoWhatsappAtiva { get; init; }
+    public DateTime? SessaoWhatsappExpiraEm { get; init; }
 }
 
 // DTO aninhado para as mensagens

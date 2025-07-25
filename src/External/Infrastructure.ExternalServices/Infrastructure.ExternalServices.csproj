@@ -13,6 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Infrastructure\CRM.Infrastructure\CRM.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Modules\Concatcs\Contacts.Application\Contacts.Application.csproj" />
     <ProjectReference Include="..\..\Modules\Conversations\Conversations.Application\Conversations.Application.csproj" />
   </ItemGroup>
 

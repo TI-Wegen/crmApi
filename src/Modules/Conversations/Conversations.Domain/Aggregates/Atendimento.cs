@@ -59,7 +59,7 @@ public class Atendimento : Entity
 
     public void AtribuirAgente(Guid? agenteId)
     {
-        if (Status != ConversationStatus.AguardandoNaFila || Status != ConversationStatus.SessaoExpirada)
+        if (Status != ConversationStatus.AguardandoNaFila )
             throw new DomainException("Apenas atendimentos na fila podem ser atribuídos.");
 
         Status = ConversationStatus.EmAtendimento;
@@ -69,7 +69,7 @@ public class Atendimento : Entity
 
     public void Resolver(Guid? agenteIdResolvedor)
     {
-        if (Status is ConversationStatus.Resolvida or ConversationStatus.SessaoExpirada)
+        if (Status is ConversationStatus.Resolvida)
             throw new DomainException("Este atendimento já foi finalizado.");
 
         Status = ConversationStatus.Resolvida;
@@ -99,18 +99,7 @@ public class Atendimento : Entity
             throw new DomainException("Não é possível aguardar a escolha de um boleto neste estado.");
         BotStatus = BotStatus.AguardandoEscolhaDeBoleto;
     }
-    public void MarcarComoExpirada()
-    {
-        // Regra de negócio: apenas atendimentos ativos podem expirar.
-        if (Status is not ConversationStatus.AguardandoNaFila and not ConversationStatus.EmAtendimento and not ConversationStatus.EmAutoAtendimento)
-        {
-            return;
-        }
 
-        Status = ConversationStatus.SessaoExpirada;
-        BotStatus = BotStatus.Nenhum;
-        AddDomainEvent(new AtendimentoExpiradoEvent(this.Id));
-    }
 
     public void AguardarCpf()
     {

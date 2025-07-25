@@ -6,6 +6,7 @@ services:
       dockerfile: src/Api/CRM.API/Dockerfile
     depends_on:
       - crm.db
+      - crm.redis
 
   crm.db:
     image: postgres:16-alpine

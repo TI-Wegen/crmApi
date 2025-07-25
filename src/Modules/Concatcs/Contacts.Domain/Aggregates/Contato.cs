@@ -18,27 +18,33 @@ public class Contato : Entity
 
     private readonly List<HistoricoStatus> _historicoStatus = new();
     public IReadOnlyCollection<HistoricoStatus> HistoricoStatus => _historicoStatus.AsReadOnly();
+    public string WaId { get; private set; }
+    public string? AvatarUrl { get; private set; }
+
 
     private Contato() { }
 
-    public static Contato Criar(string nome, string telefone)
+    public static Contato Criar(string nome, string telefone, string waId)
     {
         if (string.IsNullOrWhiteSpace(nome)) throw new DomainException("O nome do contato é obrigatório.");
         if (string.IsNullOrWhiteSpace(telefone)) throw new DomainException("O telefone do contato é obrigatório.");
 
         var contato = new Contato
         {
-            Id = Guid.NewGuid(),
             Nome = nome,
             Telefone = telefone,
-            Status = ContatoStatus.Novo, 
+            Status = ContatoStatus.Novo,
+            WaId = waId,
         };
 
         // Adiciona o primeiro status ao histórico
         contato.AdicionarEntradaNoHistorico(ContatoStatus.Novo);
         return contato;
     }
-
+    public void DefinirAvatarUrl(string url)
+    {
+        AvatarUrl = url;
+    }
     public void AlterarStatus(ContatoStatus novoStatus)
     {
         if (Status == novoStatus) return; // Nenhuma alteração necessária

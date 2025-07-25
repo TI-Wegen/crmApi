@@ -17,6 +17,10 @@ public class ContatoConfiguration : IEntityTypeConfiguration<Contato>
 
         builder.Property(c => c.Status).HasConversion<string>().HasMaxLength(50);
 
+        builder.Property(c => c.WaId).IsRequired().HasMaxLength(50);
+        builder.HasIndex(c => c.WaId).IsUnique(); // Garante que não haja contatos duplicados do WhatsApp
+        builder.Property(c => c.AvatarUrl).HasMaxLength(1024);
+
         // Configura a coleção de Value Objects 'Tag'
         // O EF Core criará uma tabela 'ContatoTags' para armazenar esta coleção.
         builder.OwnsMany(c => c.Tags, tagsBuilder =>

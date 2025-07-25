@@ -21,5 +21,10 @@ public class ConversaConfiguration : IEntityTypeConfiguration<Conversa>
         // Ignora a propriedade de eventos de domínio, para não ser persistida
         builder.Ignore(c => c.DomainEvents);
 
+        builder.OwnsOne(c => c.SessaoAtiva, sessaoBuilder =>
+        {
+            sessaoBuilder.Property(s => s.DataInicio).HasColumnName("SessaoInicio");
+            sessaoBuilder.Property(s => s.DataFim).HasColumnName("SessaoFim");
+        });
     }
 }

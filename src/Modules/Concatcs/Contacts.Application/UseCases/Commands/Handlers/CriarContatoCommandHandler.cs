@@ -28,7 +28,7 @@ public class CriarContatoCommandHandler : ICommandHandler<CriarContatoCommand, C
         }
 
         // 2. Usar o método de fábrica do domínio
-        var contato = Contato.Criar(command.Nome, command.Telefone);
+        var contato = Contato.Criar(command.Nome, command.Telefone, command.WaId);
 
         // 3. Adicionar ao repositório
         await _contactRepository.AddAsync(contato, cancellationToken);

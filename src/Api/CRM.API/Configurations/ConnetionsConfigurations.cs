@@ -60,7 +60,8 @@ public static class ConnectionsConfigurations
     .UseRecommendedSerializerSettings()
     .UsePostgreSqlStorage(c => c.UseNpgsqlConnection(connectionString)));
 
-   
+        services.AddHangfireServer();
+
 
         return services;
     }

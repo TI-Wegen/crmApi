@@ -23,7 +23,7 @@ public class AtendimentoRepository : IAtendimentoRepository
 
     public async Task<Atendimento?> FindActiveByConversaIdAsync(Guid conversaId, CancellationToken cancellationToken = default)
     {
-        var inactiveStatuses = new[] { ConversationStatus.Resolvida, ConversationStatus.SessaoExpirada };
+        var inactiveStatuses = new[] { ConversationStatus.Resolvida };
 
         return await _context.Atendimentos
             .FirstOrDefaultAsync(a =>
@@ -47,6 +47,8 @@ public class AtendimentoRepository : IAtendimentoRepository
         ConversationStatus.EmAtendimento
     };
 
+
+      
         // Busca todos os atendimentos que estão em um status ativo E foram criados antes da data limite.
         return await _context.Atendimentos
             .Where(a => activeStatuses.Contains(a.Status) && a.CreatedAt < dataLimite) // Supondo que você tenha uma propriedade CreatedAt

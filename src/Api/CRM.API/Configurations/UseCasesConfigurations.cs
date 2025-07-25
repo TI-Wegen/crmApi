@@ -15,7 +15,6 @@ using Contacts.Domain.Repository;
 using Contacts.Infrastructure.Repositories;
 using Conversations.Application.Abstractions;
 using Conversations.Application.Dtos;
-using Conversations.Application.Jobs;
 using Conversations.Application.Services;
 using Conversations.Application.UseCases.Commands;
 using Conversations.Application.UseCases.Commands.Handlers;

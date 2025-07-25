@@ -1,10 +1,8 @@
-using Conversations.Application.Jobs;
 using Conversations.Infrastructure.Jobs;
 using CRM.API.Configurations;
 using CRM.API.Hubs;
 using CRM.Infrastructure.Config.Meta;
 using Hangfire;
-using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,10 +55,7 @@ app.MapControllers();
 
 app.MapHub<ConversationHub>("/conversationHub");
 
-RecurringJob.AddOrUpdate<ExpirarSessoesJob>(
-    recurringJobId: "expirar-atendimentos-24h",
-    methodCall: job => job.Executar(),
-    cronExpression: "0 * * * *"); // A cada hora
+
 
 RecurringJob.AddOrUpdate<CleanExpiredBotSessionsJob>(
     recurringJobId: "clean-expired-bot-sessions",

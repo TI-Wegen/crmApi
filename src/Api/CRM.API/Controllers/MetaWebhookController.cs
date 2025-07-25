@@ -163,119 +163,6 @@ namespace CRM.API.Controllers
             }
         }
 
-        private async Task HandleMessageEvent_old(ValueObject value)
-        {
-            // Ignora notificações de status de mensagem (ex: "sent", "delivered", "read") por enquanto.
-            if (value?.Statuses is not null && value.Statuses.Any())
-            {
-                Console.WriteLine("--> Notificação de status de mensagem recebida e ignorada.");
-                return;
-            }
-
-
-            var message = value?.Messages?.FirstOrDefault();
-            var contactPayload = value?.Contacts?.FirstOrDefault();
-            if (message is null || contactPayload is null) return;
-
-            var telefoneDoContato = message.From;
-
-            if (string.IsNullOrEmpty(telefoneDoContato))
-            {
-                Console.WriteLine("--> Mensagem recebida sem número de telefone do contato. Ignorando.");
-                return;
-            }
-            var lockKey = $"lock:contato:{telefoneDoContato}";
-
-            if (!await _distributedLock.AcquireLockAsync(lockKey, TimeSpan.FromSeconds(30)))
-            {
-                Console.WriteLine($"--> Trava não adquirida para {telefoneDoContato}. Requisição concorrente ignorada.");
-                return;
-            }
-
-            try
-            {
-
-                if (message.Type == "interactive" && message.Interactive?.Type == "button_reply")
-                {
-                    var buttonReplyId = message.Interactive.ButtonReply.Id;
-
-                    // Extrai os dados do ID do botão
-                    var parts = buttonReplyId.Split('_');
-                    if (parts.Length == 3 && parts[0] == "rating" && Guid.TryParse(parts[1], out var conversaId) && int.TryParse(parts[2], out var nota))
-                    {
-                        // Despacha o comando para registrar a avaliação
-                        var command = new RegistrarAvaliacaoCommand(conversaId, nota);
-                        await _registrarAvaliacaoHandler.HandleAsync(command); // Injete este novo handler
-                    }
-                }
-                else if (message.Type == "image" && message.Image is not null)
-                {
-
-                }
-                else if (message.Type == "text")
-                {
-                    // 2. Adiciona a mensagem atual ao buffer do Redis.
-                    await _messageBuffer.AddToBufferAsync(telefoneDoContato, message);
-
-                    // 3. Tenta se registrar como o "processador". Se falhar, outro processo já está cuidando disso.
-                    if (!await _messageBuffer.IsFirstProcessor(telefoneDoContato))
-                    {
-                        Console.WriteLine($"--> Mensagem para {telefoneDoContato} adicionada ao buffer. Outro processo irá tratar.");
-                        return;
-                    }
-
-                    // 4. Se chegamos aqui, somos os primeiros. Esperamos para agrupar mais mensagens.
-                    await Task.Delay(TimeSpan.FromSeconds(3)); // A janela de 3 segundos do seu ADR.
-
-                    // 5. Consome o buffer completo.
-                    var mensagensAgrupadas = (await _messageBuffer.ConsumeBufferAsync(telefoneDoContato)).ToList();
-                    if (!mensagensAgrupadas.Any()) return;
-
-                    var isDeveloper = _metaSettings.DeveloperPhoneNumbers.Any() &&
-                         _metaSettings.DeveloperPhoneNumbers.Contains(telefoneDoContato);
-
-                    // 6. Concatena o texto de todas as mensagens para obter o contexto completo.
-                    var textoDaMensagem = string.Join(" ", mensagensAgrupadas
-                        .Select(m => WebhookMessageParser.ParseMessage(m)) // Usa nosso parser para lidar com diferentes tipos
-                        .Where(b => !string.IsNullOrEmpty(b)));
-
-
-                    var nomeDoContato = contactPayload.Profile.Name;
-                    var primeiroTimestampUnix = long.Parse(mensagensAgrupadas.First().Timestamp);
-                    var timestampMensagemUtc = DateTime.UnixEpoch.AddSeconds(primeiroTimestampUnix).ToUniversalTime();
-
-
-                    // Roteia para o handler correto baseado na sessão do bot
-                    var botSession = isDeveloper ? await _botSessionCache.GetStateAsync(telefoneDoContato) : null;
-                    bool isSessionValidAndFromToday = botSession is not null;
-
-                    if (botSession is not null)
-                    {
-                        var processarRespostaCommand = new ProcessarRespostaDoMenuCommand(telefoneDoContato, textoDaMensagem, timestampMensagemUtc);
-                        await _processarRespostaHandler.HandleAsync(processarRespostaCommand);
-                    }
-                    else
-                    {
-                        await IniciarNovoFluxoDeAtendimento(telefoneDoContato, nomeDoContato, textoDaMensagem, timestampMensagemUtc,
-                            anexoUrl: null, isDeveloper: isDeveloper);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"--> Erro ao adquirir a trava para {telefoneDoContato}: {ex.Message}");
-                return;
-            }
-            finally
-            {
-                // Garante que a trava será liberada mesmo se ocorrer um erro
-                await _distributedLock.ReleaseLockAsync(lockKey);
-            }
-
-
-        }
-
-
         private async Task HandleTextMessageAsync(MessageObject message, ContactObject contactPayload)
         {
             var telefoneDoContato = message.From;
@@ -292,6 +179,7 @@ namespace CRM.API.Controllers
 
             var textoDaMensagem = string.Join(" ", mensagensAgrupadas.Select(m => WebhookMessageParser.ParseMessage(m)).Where(b => !string.IsNullOrEmpty(b)));
             var nomeDoContato = contactPayload.Profile.Name;
+            var waIdDoContato = contactPayload.WaId;
             var primeiroTimestampUnix = long.Parse(mensagensAgrupadas.First().Timestamp);
             var timestampMensagem = DateTime.UnixEpoch.AddSeconds(primeiroTimestampUnix).ToUniversalTime();
 
@@ -312,7 +200,7 @@ namespace CRM.API.Controllers
                 var contatoDto = await _getContactByTelefoneHandler.HandleAsync(getContactQuery);
                 if (contatoDto is null)
                 {
-                    var createContactCommand = new CriarContatoCommand(nomeDoContato, telefoneDoContato);
+                    var createContactCommand = new CriarContatoCommand(nomeDoContato, telefoneDoContato, waIdDoContato);
                     var novoContatoDto = await _criarContatoHandler.HandleAsync(createContactCommand);
                     contatoId = novoContatoDto.Id;
                 }
@@ -348,13 +236,21 @@ namespace CRM.API.Controllers
             // 3. Extrai as outras informações necessárias.
             var telefoneDoContato = message.From;
             var nomeDoContato = contactPayload.Profile.Name;
+            var waIdDoContato = contactPayload.WaId;
             var timestampUnix = long.Parse(message.Timestamp);
             var timestampMensagem = DateTime.UnixEpoch.AddSeconds(timestampUnix).ToUniversalTime();
 
             var isDeveloper = _metaSettings.DeveloperPhoneNumbers.Any() && _metaSettings.DeveloperPhoneNumbers.Contains(telefoneDoContato);
 
             // 4. REUTILIZA nosso fluxo de iniciar um novo atendimento, agora passando a URL do anexo.
-            await IniciarNovoFluxoDeAtendimento(telefoneDoContato, nomeDoContato, textoParaProcessar, timestampMensagem, anexoUrl, isDeveloper);
+            await IniciarNovoFluxoDeAtendimento(telefoneDoContato, 
+                nomeDoContato, 
+                textoParaProcessar, 
+                timestampMensagem, 
+                anexoUrl, 
+                isDeveloper,
+                waIdDoContato
+                );
         }
         private async Task HandleInteractiveMessageAsync(MessageObject message, ContactObject contactPayload)
         {
@@ -389,6 +285,7 @@ namespace CRM.API.Controllers
             var textoParaProcessar = message.Image.Caption ?? "[Imagem Recebida]";
             var telefoneDoContato = message.From;
             var nomeDoContato = contactPayload.Profile.Name;
+            var waIdDoContato = contactPayload.WaId;
             var timestampUnix = long.Parse(message.Timestamp);
             var timestampMensagem = DateTime.UnixEpoch.AddSeconds(timestampUnix).ToUniversalTime();
 
@@ -408,16 +305,15 @@ namespace CRM.API.Controllers
                     await _botSessionCache.DeleteStateAsync(telefoneDoContato);
                 }
             }
-
-            if (isSessionValidAndFromToday && isDeveloper)
-            {
-         
-                _logger.LogInformation("Imagem recebida durante uma sessão de bot ativa. Tratando como nova interação para evitar quebrar o fluxo do menu.");
-                await IniciarNovoFluxoDeAtendimento(telefoneDoContato, nomeDoContato, textoParaProcessar, timestampMensagem, anexoUrl, isDeveloper);
-            }
             else
             {
-                await IniciarNovoFluxoDeAtendimento(telefoneDoContato, nomeDoContato, textoParaProcessar, timestampMensagem, anexoUrl, isDeveloper);
+                await IniciarNovoFluxoDeAtendimento(telefoneDoContato, 
+                    nomeDoContato, 
+                    textoParaProcessar, 
+                    timestampMensagem, 
+                    anexoUrl, 
+                    isDeveloper, 
+                    waIdDoContato);
             }
         }
 
@@ -446,22 +342,23 @@ namespace CRM.API.Controllers
             // 3. Extrai as outras informações necessárias.
             var telefoneDoContato = message.From;
             var nomeDoContato = contactPayload.Profile.Name;
+            var waIdDoContato = contactPayload.WaId;
             var timestampUnix = long.Parse(message.Timestamp);
             var timestampMensagem = DateTime.UnixEpoch.AddSeconds(timestampUnix).ToUniversalTime();
 
             var isDeveloper = _metaSettings.DeveloperPhoneNumbers.Any() && _metaSettings.DeveloperPhoneNumbers.Contains(telefoneDoContato);
 
             // 4. REUTILIZA nosso fluxo de iniciar um novo atendimento, agora passando a URL do anexo.
-            await IniciarNovoFluxoDeAtendimento(telefoneDoContato, nomeDoContato, textoParaProcessar, timestampMensagem, anexoUrl, isDeveloper);
+            await IniciarNovoFluxoDeAtendimento(telefoneDoContato, nomeDoContato, textoParaProcessar, timestampMensagem, anexoUrl, isDeveloper, waIdDoContato);
         }
-        private async Task IniciarNovoFluxoDeAtendimento(string telefoneDoContato, string nomeDoContato, string textoDaMensagem, DateTime timestamp, string? anexoUrl, bool isDeveloper)
+        private async Task IniciarNovoFluxoDeAtendimento(string telefoneDoContato, string nomeDoContato, string textoDaMensagem, DateTime timestamp, string? anexoUrl, bool isDeveloper, string waId)
         {
             Guid contatoId;
             var getContactQuery = new GetContactByTelefoneQuery(telefoneDoContato);
             var contatoDto = await _getContactByTelefoneHandler.HandleAsync(getContactQuery);
             if (contatoDto is null)
             {
-                var createContactCommand = new CriarContatoCommand(nomeDoContato, telefoneDoContato);
+                var createContactCommand = new CriarContatoCommand(nomeDoContato, telefoneDoContato,  waId);
                 var novoContatoDto = await _criarContatoHandler.HandleAsync(createContactCommand);
                 contatoId = novoContatoDto.Id;
             }

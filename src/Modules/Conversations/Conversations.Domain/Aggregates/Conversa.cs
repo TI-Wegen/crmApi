@@ -1,6 +1,6 @@
 ﻿using Conversations.Domain.Entities;
 using Conversations.Domain.Enuns;
-
+using Conversations.Domain.ValueObjects;
 using CRM.Domain.DomainEvents;
 using CRM.Domain.Exceptions;
 
@@ -14,10 +14,10 @@ public class Conversa : Entity
     private readonly List<Mensagem> _mensagens = new();
     public IReadOnlyCollection<Mensagem> Mensagens => _mensagens.AsReadOnly();
 
-    // As Tags podem pertencer à Conversa, pois são sobre o histórico geral do contato.
     private readonly List<ConversaTag> _tags = new();
     public IReadOnlyCollection<ConversaTag> Tags => _tags.AsReadOnly();
-
+    public SessaoWhatsapp? SessaoAtiva { get; private set; }
+    public int TotalSessoesIniciadas { get; private set; }
     private Conversa() { }
 
     public static Conversa Iniciar(Guid contatoId)
@@ -64,5 +64,15 @@ public class Conversa : Entity
         if (conversaId == Guid.Empty)
             throw new DomainException("O ID da conversa não pode ser vazio.");
         this.Id = conversaId;
+    }
+
+    public void IniciarOuRenovarSessao(DateTime dataMensagem)
+    {
+        if (SessaoAtiva is null || !SessaoAtiva.EstaAtiva(dataMensagem))
+        {
+            SessaoAtiva = SessaoWhatsapp.Iniciar(dataMensagem);
+            TotalSessoesIniciadas++;
+            // Disparar evento: NovaSessaoWhatsappIniciadaEvent
+        }
     }
 }

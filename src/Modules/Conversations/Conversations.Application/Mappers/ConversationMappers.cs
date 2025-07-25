@@ -21,7 +21,9 @@ public static class ConversationMappers
             AgenteId = atendimentoAtivo?.AgenteId,
             SetorId = atendimentoAtivo?.SetorId,
             Status = atendimentoAtivo?.Status.ToString() ?? "N/A", // Se não houver atendimento ativo
-            BotStatus = atendimentoAtivo?.BotStatus.ToString() ?? "N/A"
+            BotStatus = atendimentoAtivo?.BotStatus.ToString() ?? "N/A",
+            SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva(DateTime.UtcNow) ?? false,
+            SessaoWhatsappExpiraEm = conversa.SessaoAtiva?.DataFim
         };
     }
 

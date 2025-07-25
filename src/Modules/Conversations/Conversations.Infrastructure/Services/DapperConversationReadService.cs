@@ -31,6 +31,11 @@ public class DapperConversationReadService : IConversationReadService
                     co.""Telefone"" AS ContatoTelefone,
                     ag.""Nome"" AS AgenteNome,
                     a.""Status"",
+                CASE 
+                WHEN c.""SessaoFim"" > NOW() AT TIME ZONE 'UTC' THEN true 
+                ELSE false 
+                END AS SessaoWhatsappAtiva,
+                c.""SessaoFim"" AS SessaoWhatsappExpiraEm,
                     -- Lógica da última mensagem permanece a mesma
                     (SELECT m.""Timestamp"" FROM ""Mensagens"" m WHERE m.""ConversaId"" = c.""Id"" ORDER BY m.""Timestamp"" DESC LIMIT 1) AS UltimaMensagemTimestamp,
                     (SELECT m.""Texto"" FROM ""Mensagens"" m WHERE m.""ConversaId"" = c.""Id"" ORDER BY m.""Timestamp"" DESC LIMIT 1) AS UltimaMensagemPreview
@@ -43,7 +48,7 @@ public class DapperConversationReadService : IConversationReadService
         var parameters = new DynamicParameters();
         var whereClauses = new List<string>();
 
-        var activeStatuses = new[] { "EmAutoAtendimento", "AguardandoNaFila", "EmAtendimento" };
+        var activeStatuses = new[] { "EmAutoAtendimento", "AguardandoNaFila", "EmAtendimento", "Resolvida", "FechadoSemResposta" , "AguardandoRespostaCliente" };
 
         whereClauses.Add(@"a.""Status"" = ANY(@ActiveStatuses)");
         parameters.Add("ActiveStatuses", activeStatuses);
