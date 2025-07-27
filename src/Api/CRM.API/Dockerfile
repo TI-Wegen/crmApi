@@ -42,5 +42,11 @@ RUN dotnet publish "./CRM.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p
 # Esta fase é usada na produção ou quando executada no VS no modo normal (padrão quando não está usando a configuração de Depuração)
 FROM base AS final
 WORKDIR /app
+USER root
+# Atualiza a lista de pacotes e instala/atualiza os certificados de autoridade confiáveis
+RUN apt-get update && apt-get install -y ca-certificates \
+    # Limpa o cache para manter a imagem final pequena (boa prática)
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "CRM.API.dll"]

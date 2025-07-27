@@ -87,7 +87,7 @@ public static class ConnectionsConfigurations
         services.AddScoped<IRealtimeNotifier, SignalRNotifier>();
         return services;
     }
-    public static IServiceCollection AddDapperConnection (
+    public static IServiceCollection AddDapperConnection(
         this IServiceCollection services,
         IConfiguration config)
     {
@@ -96,30 +96,27 @@ public static class ConnectionsConfigurations
         return services;
     }
     private static IServiceCollection AddRedisConnection(
-    this IServiceCollection services,
-    IConfiguration config)
+      this IServiceCollection services,
+      IConfiguration config)
     {
-        // 1. Lê a connection string completa do seu appsettings.json
         var redisConnectionString = config["RedisConnectionString"];
         if (string.IsNullOrEmpty(redisConnectionString))
         {
             throw new InvalidOperationException("A connection string 'RedisConnectionString' não foi encontrada.");
         }
 
-        // 2. Transforma a string em um objeto de configuração
         var redisConfig = ConfigurationOptions.Parse(redisConnectionString);
-
-        // 3. Garante que o SSL está habilitado, como exigido pelo "rediss://"
-        redisConfig.Ssl = true;
-
-        // 4. Garante que a aplicação não falhe ao iniciar se a conexão com o Redis demorar
         redisConfig.AbortOnConnectFail = false;
+        redisConfig.ConnectTimeout = 10000;
 
-        // 5. Registra o cliente do Redis como um singleton para ser reutilizado
+        // Ação: Adicione esta linha para forçar o uso de protocolos seguros.
+        redisConfig.SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13;
+
         services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConfig));
 
         return services;
     }
+
 
 
     private static IServiceCollection AddHealtChecks(
@@ -141,12 +138,12 @@ public static class ConnectionsConfigurations
              failureStatus: HealthStatus.Degraded, // Um status menos crítico, talvez
              tags: new[] { "database", "external" })
 
-         // 3. Verifica a conexão com o Redis
-         .AddRedis(
-             redisConnectionString: config["RedisConnectionString"],
-             name: "Redis Cache",
-             failureStatus: HealthStatus.Unhealthy,
-             tags: new[] { "cache", "critical" })
+        // 3. Verifica a conexão com o Redis
+        .AddRedis(
+            sp => sp.GetRequiredService<IConnectionMultiplexer>(),
+            name: "Redis Cache",
+            failureStatus: HealthStatus.Unhealthy,
+            tags: new[] { "cache", "critical" })
 
         // 4. Verifica se consegue se conectar e listar os buckets no S3
         .AddS3(options =>
