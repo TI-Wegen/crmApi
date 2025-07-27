@@ -86,8 +86,6 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
 
         if (conversa is null)
         {
-            var contato = await _contactRepository.GetByIdAsync(conversa.ContatoId, cancellationToken);
-
             conversa = Conversa.Iniciar(command.ContatoId, command.ContatoNome);
             await _conversationRepository.AddAsync(conversa, cancellationToken);
         }
