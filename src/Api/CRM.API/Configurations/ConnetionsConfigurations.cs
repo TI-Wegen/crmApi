@@ -105,13 +105,22 @@ public static class ConnectionsConfigurations
             throw new InvalidOperationException("A connection string 'RedisConnectionString' não foi encontrada.");
         }
 
-        var redisConfig = ConfigurationOptions.Parse(redisConnectionString);
-        redisConfig.AbortOnConnectFail = false;
-        redisConfig.ConnectTimeout = 10000;
+        // 🔧 Usa Uri para fazer parsing correto de todos os campos (host, porta, user, senha)
+        var uri = new Uri(redisConnectionString);
 
-        // Ação: Adicione esta linha para forçar o uso de protocolos seguros.
-        redisConfig.SslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13;
+        var redisConfig = new ConfigurationOptions
+        {
+            EndPoints = { { uri.Host, uri.Port } },
+            Ssl = uri.Scheme == "rediss", // só ativa SSL se for rediss://
+            User = uri.UserInfo.Split(':')[0],
+            Password = uri.UserInfo.Split(':')[1],
+            AbortOnConnectFail = false,
+            ConnectTimeout = 10000,
+            SslProtocols = System.Security.Authentication.SslProtocols.Tls12 |
+                           System.Security.Authentication.SslProtocols.Tls13
+        };
 
+        // 👇 Injeta como singleton no DI
         services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConfig));
 
         return services;
