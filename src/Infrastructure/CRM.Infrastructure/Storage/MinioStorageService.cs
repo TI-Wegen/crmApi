@@ -4,6 +4,7 @@
 using Amazon.S3;
 using Amazon.S3.Model;
 using Conversations.Application.Abstractions;
+using CRM.Application.Interfaces;
 using Microsoft.Extensions.Options;
 
 public class MinioStorageService : IFileStorageService

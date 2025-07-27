@@ -1,4 +1,6 @@
 ﻿using Agents.Infrastructure.Services;
+using Amazon;
+using Amazon.S3;
 using Conversations.Application.Abstractions;
 using Conversations.Infrastructure.Services;
 using CRM.API.Services;
@@ -10,6 +12,7 @@ using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using StackExchange.Redis;
@@ -32,6 +35,7 @@ public static class ConnectionsConfigurations
         services.AddMetaConnection(config);
         services.AddJwtBearer(config);
         services.AddRedisConnection(config);
+        services.AddHealtChecks(config);
         return services;
     }
 
@@ -91,15 +95,90 @@ public static class ConnectionsConfigurations
         services.AddScoped<IDbConnection>(sp => new NpgsqlConnection(connectionString));
         return services;
     }
-    public static IServiceCollection AddRedisConnection(
+    private static IServiceCollection AddRedisConnection(
     this IServiceCollection services,
     IConfiguration config)
     {
-       services.AddSingleton<IConnectionMultiplexer>(
-         ConnectionMultiplexer.Connect(config["RedisConnectionString"]));
+        // 1. Lê a connection string completa do seu appsettings.json
+        var redisConnectionString = config["RedisConnectionString"];
+        if (string.IsNullOrEmpty(redisConnectionString))
+        {
+            throw new InvalidOperationException("A connection string 'RedisConnectionString' não foi encontrada.");
+        }
 
-        // Registra nosso serviço de cache
-       services.AddScoped<IBotSessionCache, RedisBotSessionCache>();
+        // 2. Transforma a string em um objeto de configuração
+        var redisConfig = ConfigurationOptions.Parse(redisConnectionString);
+
+        // 3. Garante que o SSL está habilitado, como exigido pelo "rediss://"
+        redisConfig.Ssl = true;
+
+        // 4. Garante que a aplicação não falhe ao iniciar se a conexão com o Redis demorar
+        redisConfig.AbortOnConnectFail = false;
+
+        // 5. Registra o cliente do Redis como um singleton para ser reutilizado
+        services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConfig));
+
+        return services;
+    }
+
+
+    private static IServiceCollection AddHealtChecks(
+     this IServiceCollection services,
+     IConfiguration config)
+    {
+        services.AddHealthChecks()
+         // 1. Verifica a conexão com o banco de dados principal (PostgreSQL)
+         .AddNpgSql(
+             connectionString: config.GetConnectionString("DefaultConnection"),
+             name: "PostgreSQL Principal",
+             failureStatus: HealthStatus.Unhealthy, // Define o status em caso de falha
+             tags: new[] { "database", "critical" })
+
+         // 2. Verifica a conexão com o banco de dados externo de boletos (MySQL)
+         .AddMySql(
+             connectionString: config.GetConnectionString("ExternalConnection"),
+             name: "MySQL Externo (Boletos)",
+             failureStatus: HealthStatus.Degraded, // Um status menos crítico, talvez
+             tags: new[] { "database", "external" })
+
+         // 3. Verifica a conexão com o Redis
+         .AddRedis(
+             redisConnectionString: config["RedisConnectionString"],
+             name: "Redis Cache",
+             failureStatus: HealthStatus.Unhealthy,
+             tags: new[] { "cache", "critical" })
+
+        // 4. Verifica se consegue se conectar e listar os buckets no S3
+        .AddS3(options =>
+        {
+            // Pega a seção de configuração do S3
+            var s3Config = config.GetSection("S3Config");
+
+            // Atribui cada valor diretamente, lendo da configuração
+            options.AccessKey = s3Config["AccessKey"];
+            options.SecretKey = s3Config["SecretKey"];
+            options.BucketName = s3Config["BucketName"];
+
+            options.S3Config = new AmazonS3Config
+            {
+                RegionEndpoint = RegionEndpoint.GetBySystemName(s3Config["Region"])
+            };
+        },
+         name: "AWS S3 Storage",
+         failureStatus: HealthStatus.Unhealthy,
+         tags: new[] { "storage", "critical" });
+
+
+        services
+    .AddHealthChecksUI(options =>
+    {
+        options.SetEvaluationTimeInSeconds(60); // Frequência de checagem
+        options.MaximumHistoryEntriesPerEndpoint(50);
+        options.AddHealthCheckEndpoint("API Wegen CRM", "/health"); // Nome e URL do health check
+    })
+    .AddInMemoryStorage();
+
+
         return services;
     }
 

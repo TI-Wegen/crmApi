@@ -2,6 +2,8 @@
 using Agents.Domain.Repository;
 using Contacts.Domain.Repository;
 using Conversations.Application.Abstractions;
+using Conversations.Application.Dtos;
+using Conversations.Application.Mappers;
 using Conversations.Domain.Aggregates;
 using Conversations.Domain.Entities;
 using Conversations.Domain.ValueObjects;
@@ -22,6 +24,7 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
     private readonly IRealtimeNotifier _readService;
     private readonly IAgentRepository _agentRepository;
     private readonly IMensageriaBotService _mensageriaBotService;
+
     private readonly ILogger<IniciarConversaCommandHandler> _logger;
 
     public IniciarConversaCommandHandler(
@@ -61,9 +64,22 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
             if (atendimentoAtivo is not null)
             {
                 conversa.IniciarOuRenovarSessao(timestamp);
+
+                if(atendimentoAtivo.Status == Domain.Enuns.ConversationStatus.AguardandoRespostaCliente)
+                {
+                    atendimentoAtivo.RegistrarRespostaDoCliente();
+                    _logger.LogInformation("Cliente respondeu ao template. Atendimento {AtendimentoId} movido para EmAtendimento.", atendimentoAtivo.Id);
+
+                }
+
                 var mensagemEmAndamento = new Mensagem(conversa.Id, atendimentoAtivo.Id, command.TextoDaMensagem, Remetente.Cliente(), timestamp, command.AnexoUrl);
                 conversa.AdicionarMensagem(mensagemEmAndamento, atendimentoAtivo.Id);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+
+                var messageDto = mensagemEmAndamento.ToDto();
+                await _readService.NotificarNovaMensagemAsync(conversa.Id.ToString(), messageDto);
+
                 return conversa.Id;
             }
         }
@@ -107,6 +123,12 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
                 await _botSessionCache.SetStateAsync(contato!.Telefone, sessionState, TimeSpan.FromHours(2));
                 var menuText = "Olá! Bem-vindo ao nosso atendimento. Digite o número da opção desejada:\n1- Segunda via de boleto\n2- Falar com o Comercial\n3- Falar com o Financeiro\n4- Encerrar atendimento";
                 await _mensageriaBotService.EnviarEMensagemTextoAsync(novoAtendimento.Id, contato.Telefone, menuText);
+
+                var summaryDto = await _notifier.GetSummaryByIdAsync(novoAtendimento.Id);
+                if (summaryDto is not null)
+                {
+                    await _readService.NotificarNovaConversaNaFilaAsync(summaryDto);
+                }
             }
             else
             {

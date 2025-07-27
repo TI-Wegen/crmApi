@@ -29,6 +29,7 @@ namespace CRM.API.Controllers
         private readonly ICommandHandler<ProcessarRespostaDoMenuCommand> _processarRespostaHandler;
         private readonly ICommandHandler<AtualizarStatusTemplateCommand> _atualizarStatusHandler;
         private readonly ICommandHandler<RegistrarAvaliacaoCommand> _registrarAvaliacaoHandler;
+        private readonly ICommandHandler<AtualizarAvatarContatoCommand> _atualizarAvatarHandler; 
         private readonly IDistributedLock _distributedLock;
         private readonly IMessageBufferService _messageBuffer;
         private readonly IMetaMediaService _metaMediaService;
@@ -100,6 +101,9 @@ namespace CRM.API.Controllers
                         case "message_template_status_update":
                             await HandleTemplateStatusUpdate(change.Value);
                             break;
+                        case "profile":
+                            await HandleProfileUpdate(change.Value);
+                            break;
                         default:
                             Console.WriteLine($"--> Evento de webhook do tipo '{change.Field}' recebido e ignorado.");
                             break;
@@ -151,6 +155,7 @@ namespace CRM.API.Controllers
                     case "audio":
                         await HandleAudioMessageAsync(message, contactPayload);
                         break;
+            
 
                     default:
                         _logger.LogInformation("Tipo de mensagem '{MessageType}' recebido para {Telefone} e ignorado.", message.Type, telefoneDoContato);
@@ -194,7 +199,6 @@ namespace CRM.API.Controllers
             }
             else
             {
-                // Inicia um novo fluxo de bot
                 Guid contatoId;
                 var getContactQuery = new GetContactByTelefoneQuery(telefoneDoContato);
                 var contatoDto = await _getContactByTelefoneHandler.HandleAsync(getContactQuery);
@@ -386,6 +390,15 @@ namespace CRM.API.Controllers
                 );
                 await _atualizarStatusHandler.HandleAsync(command);
             }
+        }
+        private async Task HandleProfileUpdate(ValueObject value)
+        {
+            var contactPayload = value?.Contacts?.FirstOrDefault();
+            if (contactPayload is null) return;
+
+            // Despacha o comando para o caso de uso que fará o trabalho pesado.
+            var command = new AtualizarAvatarContatoCommand(contactPayload.WaId);
+            await _atualizarAvatarHandler.HandleAsync(command); // Injete o novo handler
         }
 
         private TemplateStatus? ParseTemplateStatus(string? eventName)

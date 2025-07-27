@@ -10,6 +10,7 @@ namespace Conversations.Domain.Aggregates;
 public class Conversa : Entity
 {
     public Guid ContatoId { get; private set; }
+    public string ContatoNome { get; private set; }
 
     private readonly List<Mensagem> _mensagens = new();
     public IReadOnlyCollection<Mensagem> Mensagens => _mensagens.AsReadOnly();

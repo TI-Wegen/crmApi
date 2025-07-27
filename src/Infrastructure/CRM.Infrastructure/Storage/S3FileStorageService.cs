@@ -4,6 +4,7 @@ using Amazon;
 using Amazon.S3;
 using Amazon.S3.Transfer;
 using Conversations.Application.Abstractions;
+using CRM.Application.Interfaces;
 using Microsoft.Extensions.Options; // Para IOptions
 using System.IO;
 using System.Threading.Tasks;

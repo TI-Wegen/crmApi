@@ -13,6 +13,7 @@ public class EnviarTemplateCommandHandler : ICommandHandler<EnviarTemplateComman
     private readonly IContactRepository _contactRepository;
     private readonly IConversationRepository _conversationRepository;
     private readonly IMetaMessageSender _metaSender;
+    private readonly IMensageriaBotService _mensageriaBotService;
     private readonly ICommandHandler<RegistrarMensagemEnviadaCommand> _registrarMensagemHandler;
     private readonly IAtendimentoRepository _atendimentoRepository;
     private readonly IUnitOfWork _unitOfWork;
@@ -23,6 +24,7 @@ public class EnviarTemplateCommandHandler : ICommandHandler<EnviarTemplateComman
         IMetaMessageSender metaSender,
         ICommandHandler<RegistrarMensagemEnviadaCommand> registrarMensagemHandler,
         IAtendimentoRepository atendimentoRepository,
+        IMensageriaBotService mensageriaBotService,
         IUnitOfWork unitOfWork,
         IUserContext userContext,
         IConversationRepository conversationRepository
@@ -30,23 +32,20 @@ public class EnviarTemplateCommandHandler : ICommandHandler<EnviarTemplateComman
     {
         _contactRepository = contactRepository;
         _metaSender = metaSender;
+        _mensageriaBotService = mensageriaBotService;
         _registrarMensagemHandler = registrarMensagemHandler;
         _atendimentoRepository = atendimentoRepository;
         _unitOfWork = unitOfWork;
         _userContext = userContext;
         _conversationRepository = conversationRepository;
     }
-
     public async Task HandleAsync(EnviarTemplateCommand command, CancellationToken cancellationToken)
     {
-        var agenteId = _userContext.GetCurrentUserId();
-        if (agenteId is null)
-            throw new UnauthorizedAccessException("Não foi possível identificar o agente autenticado para enviar o template.");
+        var agenteId = _userContext.GetCurrentUserId() ??
+            throw new UnauthorizedAccessException("Agente não autenticado.");
 
-
-        var contato = await _contactRepository.GetByIdAsync(command.ContatoId);
-        if (contato is null)
-            throw new NotFoundException("Contato não encontrado.");
+        var contato = await _contactRepository.GetByIdAsync(command.ContatoId, cancellationToken) ??
+            throw new NotFoundException($"Contato com o ID {command.ContatoId} não encontrado.");
 
         var conversa = await _conversationRepository.FindActiveByContactIdAsync(contato.Id, cancellationToken);
         if (conversa is null)
@@ -55,32 +54,24 @@ public class EnviarTemplateCommandHandler : ICommandHandler<EnviarTemplateComman
             await _conversationRepository.AddAsync(conversa);
         }
 
-        var novoAtendimento = Atendimento.IniciarProativamente(conversa.Id, agenteId.Value);
+        var novoAtendimento = Atendimento.IniciarProativamente(conversa.Id, agenteId);
         await _atendimentoRepository.AddAsync(novoAtendimento, cancellationToken);
 
-        var wamid = await _metaSender.EnviarTemplateAsync(contato.Telefone, command.TemplateName, command.BodyParameters);
-
-        if (string.IsNullOrEmpty(wamid))
-            throw new Exception("Não foi possível obter o ID da mensagem da Meta após o envio do template.");
-
-
+        // Salva a criação do novo atendimento no banco PRIMEIRO.
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
+        // Chama o nosso novo serviço centralizado que faz tudo: envia, registra e notifica.
+        await _mensageriaBotService.EnviarETemplateAsync(
+            novoAtendimento.Id,
+            contato.Telefone,
+            command.TemplateName,
+            command.BodyParameters);
+
+        // O evento de domínio pode ser disparado aqui se ainda for necessário para outras métricas.
         novoAtendimento.AddDomainEvent(new TemplateEnviadoEvent(
-         novoAtendimento.Id,
-         agenteId.Value,
-         command.TemplateName,
-         DateTime.UtcNow));
+            novoAtendimento.Id, agenteId, command.TemplateName, DateTime.UtcNow));
 
-
-        var textoRegistrado = $"Template '{command.TemplateName}' enviado.";
-        var registrarCommand = new RegistrarMensagemEnviadaCommand(
-            contato.Telefone, 
-            contato.Nome, 
-            textoRegistrado, 
-            wamid,
-             novoAtendimento.Id);
-
-        await _registrarMensagemHandler.HandleAsync(registrarCommand, cancellationToken);
+        // Salva o evento de domínio.
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

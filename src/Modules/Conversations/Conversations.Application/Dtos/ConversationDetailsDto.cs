@@ -1,20 +1,22 @@
 ﻿namespace Conversations.Application.Dtos;
 
-public record ConversationDetailsDto
+public class ConversationDetailsDto
 {
     // Informações da Conversa (Histórico)
-    public Guid Id { get; init; }
-    public Guid ContatoId { get; init; }
-    public IReadOnlyCollection<MessageDto> Mensagens { get; init; } = new List<MessageDto>();
+    public Guid Id { get; set; }
+    public Guid ContatoId { get; set; }
+    public string ContatoNome { get; set; } // NOVO: Adicionado para o frontend
+    public IReadOnlyCollection<MessageDto> Mensagens { get; set; } = new List<MessageDto>();
 
     // Informações do Atendimento Atual
-    public Guid? AtendimentoId { get; init; }
-    public Guid? AgenteId { get; init; }
-    public Guid? SetorId { get; init; }
-    public string Status { get; init; }
-    public string BotStatus { get; init; }
-    public bool SessaoWhatsappAtiva { get; init; }
-    public DateTime? SessaoWhatsappExpiraEm { get; init; }
+    public Guid? AtendimentoId { get; set; }
+    public Guid? AgenteId { get; set; }
+    public Guid? SetorId { get; set; }
+    public string Status { get; set; }
+    public string BotStatus { get; set; }
+
+    public bool SessaoWhatsappAtiva { get; set; }
+    public DateTime? SessaoWhatsappExpiraEm { get; set; } // Data de expiração da sessão ativa, se houver
 }
 
 // DTO aninhado para as mensagens

@@ -5,6 +5,7 @@ using Agents.Application.UseCases.Queries;
 using Agents.Application.UseCases.Queries.Handler;
 using Agents.Domain.Repository;
 using Agents.Infrastructure.Repositories;
+using Contacts.Application.Abstractions;
 using Contacts.Application.Dtos;
 using Contacts.Application.UseCases.Commands;
 using Contacts.Application.UseCases.Commands.Handlers;
@@ -31,6 +32,7 @@ using CRM.Infrastructure.Config.Meta;
 using CRM.Infrastructure.Database.Configurations;
 using CRM.Infrastructure.Services;
 using Infrastructure.ExternalServices.Services;
+using Infrastructure.ExternalServices.Services.Meta;
 using Metrics.Application.abstractions;
 using Metrics.Application.Dtos;
 using Metrics.Application.UseCases.Queries;
@@ -94,6 +96,9 @@ public static class UseCaseConfigurations
         services.AddScoped<ITemplateMetricsReadService, DapperTemplateMetricsService>();
         services.AddScoped<IMensageriaBotService, MensageriaBotService>();
         services.AddScoped<IMetaMediaService, MetaMediaService>();
+        services.AddScoped<IMetaContactService , MetaContactService>();
+        services.AddScoped<IBotSessionCache, RedisBotSessionCache>();
+        services.AddScoped<IDistributedLock, RedisDistributedLock>();
 
         services.AddScoped<ExpirarSessoesJob>();
         services.AddScoped<CleanExpiredBotSessionsJob>();
@@ -137,6 +142,7 @@ public static class UseCaseConfigurations
         services.AddScoped<IQueryHandler<GetContactByTelefoneQuery, ContatoDto?>, GetContactByTelefoneQueryHandler>();
         services.AddScoped<ICommandHandler<EnviarTemplateCommand>, EnviarTemplateCommandHandler>();
         services.AddScoped<ICommandHandler<RegistrarMensagemEnviadaCommand>, RegistrarMensagemEnviadaCommandHandler>();
+        services.AddScoped<ICommandHandler<AtualizarAvatarContatoCommand>, AtualizarAvatarContatoCommandHandler>();
 
 
 
