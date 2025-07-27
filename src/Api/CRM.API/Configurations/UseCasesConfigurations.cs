@@ -97,6 +97,8 @@ public static class UseCaseConfigurations
         services.AddScoped<IMensageriaBotService, MensageriaBotService>();
         services.AddScoped<IMetaMediaService, MetaMediaService>();
         services.AddScoped<IMetaContactService , MetaContactService>();
+        services.AddScoped<IBotSessionCache, RedisBotSessionCache>();
+        services.AddScoped<IDistributedLock, RedisDistributedLock>();
 
         services.AddScoped<ExpirarSessoesJob>();
         services.AddScoped<CleanExpiredBotSessionsJob>();
