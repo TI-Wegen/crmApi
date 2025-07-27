@@ -71,8 +71,6 @@ app.MapControllers();
 
 app.MapHub<ConversationHub>("/conversationHub");
 
-
-
 RecurringJob.AddOrUpdate<CleanExpiredBotSessionsJob>(
     recurringJobId: "clean-expired-bot-sessions",
     methodCall: job => job.Executar(),
