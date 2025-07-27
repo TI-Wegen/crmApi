@@ -22,7 +22,6 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
     private readonly IMetaMessageSender _metaSender; // NOVO
     private readonly IContactRepository _contactRepository; // NOVO
     private readonly IUserContext _userContext;
-    private readonly IBotSessionCache _botSessionCache;
     private readonly IAtendimentoRepository _atendimentoRepository;
 
 
@@ -34,7 +33,6 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         IRealtimeNotifier notifier,
         IMetaMessageSender metaSender,
         IContactRepository contactRepository,
-        IBotSessionCache botSessionCache,
         IUserContext userContext,
         IAtendimentoRepository atendimentoRepository)
     {
@@ -45,7 +43,6 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         _metaSender = metaSender;
         _contactRepository = contactRepository;
         _userContext = userContext;
-        _botSessionCache = botSessionCache;
         _atendimentoRepository = atendimentoRepository;
     }
 

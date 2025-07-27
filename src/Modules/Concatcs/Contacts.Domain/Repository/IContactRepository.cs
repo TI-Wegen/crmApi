@@ -10,6 +10,7 @@ namespace Contacts.Domain.Repository
         Task<Contato?> GetByIdWithDetailsAsync(Guid id, CancellationToken cancellationToken = default);
         Task<IEnumerable<Contato>> GetAllAsync(int pageNumber, int pageSize, bool incluirInativos, CancellationToken cancellationToken = default);
         Task UpdateAsync(Contato contato, CancellationToken cancellationToken = default);
+        Task<Contato?> GetByWaIdAsync(string waId, CancellationToken cancellationToken = default);
 
 
     }

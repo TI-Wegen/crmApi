@@ -96,6 +96,11 @@ public class DapperConversationReadService : IConversationReadService
                 co.""Telefone"" AS ContatoTelefone,
                 ag.""Nome"" AS AgenteNome,
                 a.""Status"",
+                CASE 
+                WHEN c.""SessaoFim"" > NOW() AT TIME ZONE 'UTC' THEN true 
+                ELSE false 
+                END AS SessaoWhatsappAtiva,
+                c.""SessaoFim"" AS SessaoWhatsappExpiraEm,
                 (SELECT m.""Timestamp"" FROM ""Mensagens"" m WHERE m.""ConversaId"" = c.""Id"" ORDER BY m.""Timestamp"" DESC LIMIT 1) AS UltimaMensagemTimestamp,
                 (SELECT m.""Texto"" FROM ""Mensagens"" m WHERE m.""ConversaId"" = c.""Id"" ORDER BY m.""Timestamp"" DESC LIMIT 1) AS UltimaMensagemPreview
             FROM ""Conversas"" c
@@ -103,7 +108,7 @@ public class DapperConversationReadService : IConversationReadService
             INNER JOIN ""Contatos"" co ON c.""ContatoId"" = co.""Id""
             LEFT JOIN ""Agentes"" ag ON a.""AgenteId"" = ag.""Id""
             WHERE c.""Id"" = @ConversationId
-            ORDER BY a.""CreatedAt"" DESC -- Supondo que você tenha uma coluna 'CreatedAt'
+            ORDER BY a.""Timestamp"" DESC -- Supondo que você tenha uma coluna 'CreatedAt'
             LIMIT 1;
     ";
 
@@ -111,4 +116,44 @@ public class DapperConversationReadService : IConversationReadService
             new CommandDefinition(sql, new { ConversationId = conversationId }, cancellationToken: cancellationToken)
         );
     }
+   public async Task<ConversationDetailsDto?> GetConversationDetailsAsync(Guid conversationId, CancellationToken cancellationToken)
+{
+    // A query agora busca o nome do contato e o ID do atendimento ativo mais recente.
+    var sql = @"
+        -- Busca os detalhes da Conversa, Contato e do Atendimento Ativo
+        SELECT
+            c.""Id"", c.""ContatoId"",
+            co.""Nome"" AS ContatoNome, -- NOVO: Buscando o nome do contato
+            a.""Id"" AS AtendimentoId, a.""AgenteId"", a.""SetorId"", a.""Status"", a.""BotStatus"",
+          CASE 
+                WHEN c.""SessaoFim"" > NOW() AT TIME ZONE 'UTC' THEN true 
+                ELSE false 
+                END AS SessaoWhatsappAtiva,
+                c.""SessaoFim"" AS SessaoWhatsappExpiraEm
+        FROM ""Conversas"" c
+        INNER JOIN ""Contatos"" co ON c.""ContatoId"" = co.""Id"" -- Garantindo que temos o contato
+        LEFT JOIN ""Atendimentos"" a ON c.""Id"" = a.""ConversaId"" 
+            AND a.""Status"" IN ('EmAutoAtendimento', 'AguardandoNaFila', 'EmAtendimento', 'AguardandoRespostaCliente')
+        WHERE c.""Id"" = @ConversationId;
+
+        -- Busca TODAS as mensagens da conversa
+        SELECT 
+            m.""Id"", m.""Texto"", m.""AnexoUrl"", m.""Timestamp"",
+            m.""RemetenteTipo"", m.""RemetenteAgenteId""
+        FROM ""Mensagens"" m
+        WHERE m.""ConversaId"" = @ConversationId
+        ORDER BY m.""Timestamp"" ASC;
+    ";
+
+    using var multi = await _dbConnection.QueryMultipleAsync(sql, new { ConversationId = conversationId });
+
+    var details = await multi.ReadFirstOrDefaultAsync<ConversationDetailsDto>();
+    if (details is null) return null;
+
+
+    // Esta linha agora funciona, pois 'Mensagens' tem um setter público.
+    details.Mensagens = (await multi.ReadAsync<MessageDto>()).ToList();
+
+    return details;
+}
 }

@@ -61,4 +61,10 @@ public class ContactRepository : IContactRepository
         _context.Contatos.Update(contato);
         await _context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<Contato?> GetByWaIdAsync(string waId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Contatos.FirstOrDefaultAsync(c => c.WaId == waId, cancellationToken);
+
+    }
 }

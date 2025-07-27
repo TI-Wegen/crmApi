@@ -10,5 +10,7 @@ public interface IConversationReadService
         CancellationToken cancellationToken = default);
 
     Task<ConversationSummaryDto?> GetSummaryByIdAsync(Guid conversationId, CancellationToken cancellationToken = default);
+    Task<ConversationDetailsDto?> GetConversationDetailsAsync(Guid conversationId, CancellationToken cancellationToken = default);
+
 
 }

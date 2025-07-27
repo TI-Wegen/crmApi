@@ -17,6 +17,7 @@
 	<ItemGroup>
 	  <ProjectReference Include="..\..\..\Core\CRM.Application\CRM.Application.csproj" />
 	  <ProjectReference Include="..\..\Concatcs\Contacts.Domain\Contacts.Domain.csproj" />
+	  <ProjectReference Include="..\..\Templates\Templates.Domain\Templates.Domain.csproj" />
 	  <ProjectReference Include="..\Conversations.Domain\Conversations.Domain.csproj" />
 	</ItemGroup>	
 </Project>

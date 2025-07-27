@@ -8,31 +8,26 @@ namespace Conversations.Application.UseCases.Queries.Handlers;
 
 public class GetConversationByIdQueryHandler : IQueryHandler<GetConversationByIdQuery, ConversationDetailsDto>
 {
-    private readonly IConversationRepository _conversationRepository;
-    private readonly IAtendimentoRepository _atendimentoRepository;
+
+    private readonly IConversationReadService _readService;
 
 
-    public GetConversationByIdQueryHandler(IConversationRepository conversationRepository, 
-        IAtendimentoRepository atendimentoRepository)
+    public GetConversationByIdQueryHandler(
+        IConversationReadService readService)
     {
-        _conversationRepository = conversationRepository;
-        _atendimentoRepository = atendimentoRepository;
+
+        _readService = readService;
     }
 
     public async Task<ConversationDetailsDto> HandleAsync(GetConversationByIdQuery query, CancellationToken cancellationToken)
     {
-        // 1. Buscamos o agregado, incluindo suas mensagens.
-        // Precisaremos adicionar este novo método ao nosso repositório.
-        var conversa = await _conversationRepository.GetByIdWithMessagesAsync(query.ConversaId, cancellationToken);
+        var conversationDetails = await _readService.GetConversationDetailsAsync(query.ConversaId, cancellationToken);
 
-        // 2. Validamos a existência.
-        if (conversa is null)
+        if (conversationDetails is null)
         {
             throw new NotFoundException($"Conversa com o Id '{query.ConversaId}' não encontrada.");
         }
 
-        var atendimentoAtivo = await _atendimentoRepository.FindActiveByConversaIdAsync(query.ConversaId, cancellationToken);
-
-        return conversa.ToDetailsDto(atendimentoAtivo);
+        return conversationDetails;
     }
 }

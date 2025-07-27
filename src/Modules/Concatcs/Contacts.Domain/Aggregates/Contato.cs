@@ -90,6 +90,8 @@ public class Contato : Entity
 
     }
 
+
+
     public void Inativar()
     {
     

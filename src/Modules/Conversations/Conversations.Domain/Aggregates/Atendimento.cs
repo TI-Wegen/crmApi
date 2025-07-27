@@ -59,7 +59,7 @@ public class Atendimento : Entity
 
     public void AtribuirAgente(Guid? agenteId)
     {
-        if (Status != ConversationStatus.AguardandoNaFila )
+        if ( Status != ConversationStatus.AguardandoRespostaCliente && Status != ConversationStatus.AguardandoNaFila)
             throw new DomainException("Apenas atendimentos na fila podem ser atribuídos.");
 
         Status = ConversationStatus.EmAtendimento;

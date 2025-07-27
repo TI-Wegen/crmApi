@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.SignalR;
 public class SignalRNotifier : IRealtimeNotifier
 {
     private readonly IHubContext<ConversationHub> _hubContext;
-    private const string UnassignedQueueGroupName = "UnassignedQueue"; 
+    private const string UnassignedQueueGroupName = "UnassignedQueue";
     public SignalRNotifier(IHubContext<ConversationHub> hubContext)
     {
         _hubContext = hubContext;
@@ -32,6 +32,12 @@ public class SignalRNotifier : IRealtimeNotifier
         await _hubContext.Clients
             .Group(conversationId)
             .SendAsync("ReceiveMessage", enrichedMessage);
+
+            await _hubContext.Clients
+         .Group("UnassignedQueue")
+         .SendAsync("ReceiveMessage", enrichedMessage);
+
+
     }
 
     public async Task NotificarNovaConversaNaFilaAsync(ConversationSummaryDto conversationDto)

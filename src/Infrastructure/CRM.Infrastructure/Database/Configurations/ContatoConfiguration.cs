@@ -42,5 +42,6 @@ public class ContatoConfiguration : IEntityTypeConfiguration<Contato>
             .OnDelete(DeleteBehavior.Cascade); // Se o contato for deletado, seu histórico também será.
 
         builder.Ignore(c => c.DomainEvents);
+
     }
 }
