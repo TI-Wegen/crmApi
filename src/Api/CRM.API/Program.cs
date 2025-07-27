@@ -14,10 +14,13 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddHttpClient();
 
-var allowedOrigins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Value;
-if (string.IsNullOrEmpty(allowedOrigins))
+var allowedOrigins = builder.Configuration
+    .GetSection("CorsSettings:AllowedOrigins")
+    .Get<string[]>();
+
+if (allowedOrigins == null || !allowedOrigins.Any())
 {
-    throw new InvalidOperationException("Configuração de 'AllowedOrigins' para o CORS não encontrada.");
+    throw new InvalidOperationException("Configuração de 'AllowedOrigins' para o CORS não encontrada ou vazia.");
 }
 
 builder.Services.Configure<MetaSettings>(builder.Configuration.GetSection("MetaSettings"));
@@ -29,18 +32,24 @@ builder.Services
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowNextAppPolicy", policy =>
+    options.AddPolicy("DefaultCorsPolicy", policy =>
     {
-        policy.WithOrigins(allowedOrigins.Split(','))
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+        var allowedOrigins = builder.Configuration
+            .GetSection("CorsSettings:AllowedOrigins")
+            .Get<string[]>();
+
+        policy
+            .WithOrigins(allowedOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
+
 var app = builder.Build();
 
-app.UseCors("AllowNextAppPolicy");
+app.UseCors("DefaultCorsPolicy");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
