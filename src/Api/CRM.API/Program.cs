@@ -12,7 +12,11 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddHttpClient();
 
-var frontEndUrl = "http://localhost:3000";
+var allowedOrigins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Value;
+if (string.IsNullOrEmpty(allowedOrigins))
+{
+    throw new InvalidOperationException("Configuração de 'AllowedOrigins' para o CORS não encontrada.");
+}
 
 builder.Services.Configure<MetaSettings>(builder.Configuration.GetSection("MetaSettings"));
 
@@ -25,12 +29,13 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowNextAppPolicy", policy =>
     {
-        policy.WithOrigins(frontEndUrl)  // IMPORTANTE: Substitui .AllowAnyOrigin()
+        policy.WithOrigins(allowedOrigins.Split(','))
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials();      // ESSENCIAL: Adicione esta linha
+              .AllowCredentials();
     });
 });
+
 var app = builder.Build();
 
 app.UseCors("AllowNextAppPolicy");
@@ -39,7 +44,7 @@ app.UseCors("AllowNextAppPolicy");
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.UseSwaggerUI( options =>
+    app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/openapi/v1.json", "CRM API");
     });
