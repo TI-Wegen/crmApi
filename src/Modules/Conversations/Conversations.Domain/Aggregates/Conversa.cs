@@ -21,12 +21,19 @@ public class Conversa : Entity
     public int TotalSessoesIniciadas { get; private set; }
     private Conversa() { }
 
-    public static Conversa Iniciar(Guid contatoId)
+    public static Conversa Iniciar(Guid contatoId, string contatoNome)
     {
         if (contatoId == Guid.Empty)
             throw new DomainException("Uma conversa precisa estar associada a um contato.");
 
-        var conversa = new Conversa { ContatoId = contatoId };
+        if (string.IsNullOrWhiteSpace(contatoNome))
+            throw new DomainException("O nome do contato não pode ser vazio.");
+
+        var conversa = new Conversa
+        {
+            ContatoId = contatoId,
+            ContatoNome = contatoNome
+        };
         return conversa;
     }
 

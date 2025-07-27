@@ -50,7 +50,7 @@ public class EnviarTemplateCommandHandler : ICommandHandler<EnviarTemplateComman
         var conversa = await _conversationRepository.FindActiveByContactIdAsync(contato.Id, cancellationToken);
         if (conversa is null)
         {
-            conversa = Conversa.Iniciar(contato.Id);
+            conversa = Conversa.Iniciar(contato.Id, contato.Nome);
             await _conversationRepository.AddAsync(conversa);
         }
 

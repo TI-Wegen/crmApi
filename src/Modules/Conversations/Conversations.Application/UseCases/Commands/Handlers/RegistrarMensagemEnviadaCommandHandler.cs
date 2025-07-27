@@ -63,7 +63,7 @@ public class RegistrarMensagemEnviadaCommandHandler : ICommandHandler<RegistrarM
         if (conversa is null)
         {
             var mensagemParaNovaConversa = new Mensagem(Guid.NewGuid(), novoAtendimento.Id, command.TextoDaMensagem, remetente, timestamp: timestamp, null);
-            conversa = Conversa.Iniciar(contato.Id);
+            conversa = Conversa.Iniciar(contato.Id, contato.Nome);
             conversa.SetConversaId( mensagemParaNovaConversa.ConversaId); 
 
             await _conversationRepository.AddAsync(conversa, cancellationToken);

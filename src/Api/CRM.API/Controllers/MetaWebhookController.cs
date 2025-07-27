@@ -210,7 +210,7 @@ namespace CRM.API.Controllers
                 }
                 else { contatoId = contatoDto.Id; }
 
-                var iniciarConversaCommand = new IniciarConversaCommand(contatoId, textoDaMensagem, Timestamp: timestampMensagem, IniciarComBot: isDeveloper);
+                var iniciarConversaCommand = new IniciarConversaCommand(contatoId, textoDaMensagem, nomeDoContato, Timestamp: timestampMensagem, IniciarComBot: isDeveloper);
                 await _iniciarConversaHandler.HandleAsync(iniciarConversaCommand);
             }
         }
@@ -372,6 +372,7 @@ namespace CRM.API.Controllers
             var iniciarConversaCommand = new IniciarConversaCommand(
                 ContatoId: contatoId,
                 TextoDaMensagem: textoDaMensagem,
+                ContatoNome: nomeDoContato,
                 Timestamp: timestamp,
                 AnexoUrl: anexoUrl,
                 IniciarComBot: isDeveloper

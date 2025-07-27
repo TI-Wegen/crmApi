@@ -102,6 +102,7 @@ public class ConversationsController : ControllerBase
 
             var command = new IniciarConversaCommand(request.ContatoId,
                 request.Texto,
+                request.ContatoNome,
                 timestamp,
                 null,
                 null,

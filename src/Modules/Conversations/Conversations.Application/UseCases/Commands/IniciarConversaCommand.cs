@@ -5,6 +5,7 @@ namespace Conversations.Application.UseCases.Commands;
 public record IniciarConversaCommand(
     Guid ContatoId,
     string TextoDaMensagem,
+    string ContatoNome,
        DateTime? Timestamp,
        string? MessageId = null,
        string? AnexoUrl = null,
