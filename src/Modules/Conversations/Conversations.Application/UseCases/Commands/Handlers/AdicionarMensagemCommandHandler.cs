@@ -59,28 +59,17 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
             atendimento = Atendimento.Iniciar(conversa.Id);
             await _atendimentoRepository.AddAsync(atendimento, cancellationToken);
         }
-        else if (atendimento.Status == ConversationStatus.Resolvida)
-        {
-            throw new DomainException("Não é possível adicionar mensagens a um atendimento já resolvido.");
-        }
+    
 
         string? anexoUrl = null;
+        Guid? agenteId = null;
+
         if (command.RemetenteTipo == RemetenteTipo.Agente)
         {
             if (conversa.SessaoAtiva is null || !conversa.SessaoAtiva.EstaAtiva(DateTime.UtcNow))
             {
                 throw new DomainException("A janela de 24 horas para respostas livres está fechada. Use um Template de Mensagem para iniciar uma nova conversa.");
             }
-        }
-        if (command.AnexoStream is not null)
-        {
-            var nomeUnicoAnexo = $"{Guid.NewGuid()}-{command.AnexoNome}";
-            anexoUrl = await _fileStorageService.UploadAsync(command.AnexoStream, nomeUnicoAnexo, command.AnexoContentType!);
-        }
-
-        Guid? agenteId = null;
-        if (command.RemetenteTipo == RemetenteTipo.Agente)
-        {
             agenteId = _userContext.GetCurrentUserId();
             if (agenteId is null)
             {
@@ -91,6 +80,16 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
             {
                 atendimento.AtribuirAgente(agenteId.Value);
             }
+        }
+        if (command.AnexoStream is not null)
+        {
+            var nomeUnicoAnexo = $"{Guid.NewGuid()}-{command.AnexoNome}";
+            anexoUrl = await _fileStorageService.UploadAsync(command.AnexoStream, nomeUnicoAnexo, command.AnexoContentType!);
+        }
+
+        if (command.RemetenteTipo == RemetenteTipo.Agente)
+        {
+         
         }
 
         var remetente = command.RemetenteTipo == RemetenteTipo.Agente

@@ -155,8 +155,6 @@ namespace CRM.API.Controllers
                     case "audio":
                         await HandleAudioMessageAsync(message, contactPayload);
                         break;
-            
-
                     default:
                         _logger.LogInformation("Tipo de mensagem '{MessageType}' recebido para {Telefone} e ignorado.", message.Type, telefoneDoContato);
                         break;
