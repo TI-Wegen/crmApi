@@ -59,76 +59,49 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
             atendimento = Atendimento.Iniciar(conversa.Id);
             await _atendimentoRepository.AddAsync(atendimento, cancellationToken);
         }
-    
+
+
+        if (command.RemetenteTipo != RemetenteTipo.Agente)
+            throw new DomainException("Remetente inválido. Deve ser 'Agente'");
 
         string? anexoUrl = null;
-        Guid? agenteId = null;
+        if (conversa.SessaoAtiva is null || !conversa.SessaoAtiva.EstaAtiva(DateTime.UtcNow))
+            throw new DomainException("A janela de 24 horas para respostas livres está fechada. Use um Template de Mensagem para iniciar uma nova conversa.");
 
-        if (command.RemetenteTipo == RemetenteTipo.Agente)
-        {
-            if (conversa.SessaoAtiva is null || !conversa.SessaoAtiva.EstaAtiva(DateTime.UtcNow))
-            {
-                throw new DomainException("A janela de 24 horas para respostas livres está fechada. Use um Template de Mensagem para iniciar uma nova conversa.");
-            }
-            agenteId = _userContext.GetCurrentUserId();
-            if (agenteId is null)
-            {
-                throw new UnauthorizedAccessException("Não foi possível identificar o agente autenticado.");
-            }
+        var agenteId = _userContext.GetCurrentUserId();
+        if (agenteId is null) throw new UnauthorizedAccessException("Não foi possível identificar o agente autenticado.");
 
-            if (atendimento.Status == ConversationStatus.AguardandoNaFila)
-            {
-                atendimento.AtribuirAgente(agenteId.Value);
-            }
-        }
+
+        if (atendimento.Status == ConversationStatus.AguardandoNaFila) atendimento.AtribuirAgente(agenteId.Value);
+
         if (command.AnexoStream is not null)
         {
             var nomeUnicoAnexo = $"{Guid.NewGuid()}-{command.AnexoNome}";
             anexoUrl = await _fileStorageService.UploadAsync(command.AnexoStream, nomeUnicoAnexo, command.AnexoContentType!);
         }
 
-        if (command.RemetenteTipo == RemetenteTipo.Agente)
-        {
-         
-        }
+        var remetente = Remetente.Agente(agenteId.Value);
 
-        var remetente = command.RemetenteTipo == RemetenteTipo.Agente
-                    ? Remetente.Agente(agenteId.Value)
-                    : Remetente.Cliente();
-
-        var novaMensagem = new Mensagem(conversa.Id,atendimento.Id ,command.Texto, remetente, timestamp: timestamp, anexoUrl);
+        var novaMensagem = new Mensagem(conversa.Id, atendimento.Id, command.Texto, remetente, timestamp: timestamp, anexoUrl);
 
         conversa.AdicionarMensagem(novaMensagem, atendimento.Id);
 
-        if (command.RemetenteTipo == RemetenteTipo.Agente)
-        {
-            var contato = await _contactRepository.GetByIdAsync(conversa.ContatoId, cancellationToken);
-            if (contato is not null)
-            {
-                if(novaMensagem.AnexoUrl is not null)
-                {
-                   await _metaSender.EnviarDocumentoAsync(contato.Telefone, anexoUrl, command.AnexoNome, novaMensagem.Texto);
-                }
-                else
-                {
-                    await _metaSender.EnviarMensagemTextoAsync(contato.Telefone, command.Texto);
 
-                }
+        var contato = await _contactRepository.GetByIdAsync(conversa.ContatoId, cancellationToken);
+        if (contato is not null)
+        {
+            if (novaMensagem.AnexoUrl is not null)
+            {
+                await _metaSender.EnviarDocumentoAsync(contato.Telefone, anexoUrl, command.AnexoNome, novaMensagem.Texto);
+            }
+            else
+            {
+                await _metaSender.EnviarMensagemTextoAsync(contato.Telefone, command.Texto);
+
             }
         }
 
-        try
-        {
-
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-        }
-        catch (DbUpdateConcurrencyException ex)
-        {
-            await _unitOfWork.ReloadEntityAsync(conversa, cancellationToken);
-
-            conversa.AdicionarMensagem(novaMensagem, atendimento.Id);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-        }
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         var messageDto = novaMensagem.ToDto();
         await _notifier.NotificarNovaMensagemAsync(conversa.Id.ToString(), messageDto);

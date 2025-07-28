@@ -89,34 +89,34 @@ public class DapperConversationReadService : IConversationReadService
     public async Task<ConversationSummaryDto?> GetSummaryByIdAsync(Guid conversationId, CancellationToken cancellationToken = default)
     {
         var sql = @"
-            SELECT
-                a.""Id"" AS AtendimentoId,
-                c.""Id"" AS Id,
-                co.""Nome"" AS ContatoNome,
-                co.""Telefone"" AS ContatoTelefone,
-                ag.""Nome"" AS AgenteNome,
-                a.""Status"",
-                CASE 
+        SELECT
+            a.""Id"" AS AtendimentoId,
+            c.""Id"" AS Id,
+            co.""Nome"" AS ContatoNome,
+            co.""Telefone"" AS ContatoTelefone,
+            ag.""Nome"" AS AgenteNome,
+            a.""Status"",
+            CASE 
                 WHEN c.""SessaoFim"" > NOW() AT TIME ZONE 'UTC' THEN true 
                 ELSE false 
-                END AS SessaoWhatsappAtiva,
-                c.""SessaoFim"" AS SessaoWhatsappExpiraEm,
-                (SELECT m.""Timestamp"" FROM ""Mensagens"" m WHERE m.""ConversaId"" = c.""Id"" ORDER BY m.""Timestamp"" DESC LIMIT 1) AS UltimaMensagemTimestamp,
-                (SELECT m.""Texto"" FROM ""Mensagens"" m WHERE m.""ConversaId"" = c.""Id"" ORDER BY m.""Timestamp"" DESC LIMIT 1) AS UltimaMensagemPreview
-            FROM ""Conversas"" c
-            INNER JOIN ""Atendimentos"" a ON c.""Id"" = a.""ConversaId""
-            INNER JOIN ""Contatos"" co ON c.""ContatoId"" = co.""Id""
-            LEFT JOIN ""Agentes"" ag ON a.""AgenteId"" = ag.""Id""
-            WHERE c.""Id"" = @ConversationId
-            ORDER BY a.""Timestamp"" DESC -- Supondo que você tenha uma coluna 'CreatedAt'
-            LIMIT 1;
+            END AS SessaoWhatsappAtiva,
+            c.""SessaoFim"" AS SessaoWhatsappExpiraEm,
+            (SELECT m.""Timestamp"" FROM ""Mensagens"" m WHERE m.""ConversaId"" = c.""Id"" ORDER BY m.""Timestamp"" DESC LIMIT 1) AS UltimaMensagemTimestamp,
+            (SELECT m.""Texto"" FROM ""Mensagens"" m WHERE m.""ConversaId"" = c.""Id"" ORDER BY m.""Timestamp"" DESC LIMIT 1) AS UltimaMensagemPreview
+        FROM ""Conversas"" c
+        INNER JOIN ""Atendimentos"" a ON c.""Id"" = a.""ConversaId""
+        INNER JOIN ""Contatos"" co ON c.""ContatoId"" = co.""Id""
+        LEFT JOIN ""Agentes"" ag ON a.""AgenteId"" = ag.""Id""
+        WHERE c.""Id"" = @ConversationId
+        ORDER BY a.""CreatedAt"" DESC 
+        LIMIT 1;
     ";
 
         return await _dbConnection.QueryFirstOrDefaultAsync<ConversationSummaryDto>(
             new CommandDefinition(sql, new { ConversationId = conversationId }, cancellationToken: cancellationToken)
         );
     }
-   public async Task<ConversationDetailsDto?> GetConversationDetailsAsync(Guid conversationId, CancellationToken cancellationToken)
+    public async Task<ConversationDetailsDto?> GetConversationDetailsAsync(Guid conversationId, CancellationToken cancellationToken)
 {
     // A query agora busca o nome do contato e o ID do atendimento ativo mais recente.
     var sql = @"

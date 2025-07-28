@@ -1,5 +1,6 @@
 ﻿using Agents.Domain.Enuns;
 using Agents.Domain.Repository;
+using Contacts.Domain.Aggregates;
 using Contacts.Domain.Repository;
 using Conversations.Application.Abstractions;
 using Conversations.Application.Dtos;
@@ -92,7 +93,8 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
         conversa.IniciarOuRenovarSessao(timestamp);
 
 
-
+        var contato = await _contactRepository.GetByIdAsync(conversa.ContatoId);
+        if (contato is null) return conversa.Id; // Ou logar erro
         // 4. Cria a primeira Mensagem, agora que temos todos os IDs.
         var fusoHorarioBrasil = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
         var dataAtualLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, fusoHorarioBrasil).Date;
@@ -103,11 +105,10 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
 
         if (deveIniciarBot)
         {
+            _logger.LogInformation("Mensagem atual recebida. Iniciando fluxo de bot para a conversa {ConversaId}.", conversa.Id);
+
             var novoAtendimento = Atendimento.Iniciar(conversa.Id);
             var primeiraMensagem = new Mensagem(conversa.Id, novoAtendimento.Id, command.TextoDaMensagem, Remetente.Cliente(), timestamp, command.AnexoUrl);
-
-            // **CENÁRIO A: Mensagem de hoje e o fluxo permite bot -> Inicia o Bot**
-            _logger.LogInformation("Mensagem atual recebida. Iniciando fluxo de bot para a conversa {ConversaId}.", conversa.Id);
 
             primeiraMensagem.SetAtendimentoId(novoAtendimento.Id);
             conversa.AdicionarMensagem(primeiraMensagem, novoAtendimento.Id);
@@ -116,25 +117,32 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             // Inicia o fluxo externo do bot (Redis + Meta)
-            var contato = await _contactRepository.GetByIdAsync(conversa.ContatoId, cancellationToken);
             var sessionState = new BotSessionState(novoAtendimento.Id, novoAtendimento.BotStatus, DateTime.UtcNow);
             await _botSessionCache.SetStateAsync(contato!.Telefone, sessionState, TimeSpan.FromHours(2));
             var menuText = "Olá! Bem-vindo ao nosso atendimento. Digite o número da opção desejada:\n1- Segunda via de boleto\n2- Falar com o Comercial\n3- Falar com o Financeiro\n4- Encerrar atendimento";
             await _mensageriaBotService.EnviarEMensagemTextoAsync(novoAtendimento.Id, contato.Telefone, menuText);
 
-            var summaryDto = await _notifier.GetSummaryByIdAsync(novoAtendimento.Id);
-            if (summaryDto is not null)
+            var summaryDto = new ConversationSummaryDto
             {
-                await _readService.NotificarNovaConversaNaFilaAsync(summaryDto);
-            }
+                Id = conversa.Id,
+                AtendimentoId = novoAtendimento.Id,
+                ContatoNome = contato.Nome,
+                ContatoTelefone = contato.Telefone,
+
+                AgenteNome = null,
+                Status = novoAtendimento.Status.ToString(),
+
+                UltimaMensagemTimestamp = primeiraMensagem.Timestamp,
+                UltimaMensagemPreview = primeiraMensagem.Texto,
+
+                SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva(DateTime.UtcNow) ?? false,
+                SessaoWhatsappExpiraEm = conversa.SessaoAtiva?.DataFim
+            };
+            await _readService.NotificarNovaConversaNaFilaAsync(summaryDto);
+            
         }
         else
         {
-            if (dataAtualLocal != dataMensagemLocal)
-            {
-                _logger.LogWarning("Mensagem com timestamp antigo ({Timestamp}) recebida. Pulando o bot e enviando para a fila humana.", timestamp);
-            }
-
             var setorAdmin = await _agentRepository.GetSetorByNomeAsync(SetorNomeExtensions.ToDbValue(SetorNome.Admin));
             var novoAtendimento = Atendimento.IniciarEmFila(conversa.Id, setorAdmin.Id);
             var primeiraMensagem = new Mensagem(conversa.Id, novoAtendimento.Id, command.TextoDaMensagem, Remetente.Cliente(), timestamp, command.AnexoUrl);
@@ -143,16 +151,24 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
             await _atendimentoRepository.AddAsync(novoAtendimento, cancellationToken);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            var summaryDto = await _notifier.GetSummaryByIdAsync(novoAtendimento.Id);
-            if (summaryDto is not null)
+            var summaryDto = new ConversationSummaryDto
             {
+                Id = conversa.Id,
+                AtendimentoId = novoAtendimento.Id,
+                ContatoNome = contato.Nome,
+                ContatoTelefone = contato.Telefone,
+
+                AgenteNome = null,
+                Status = novoAtendimento.Status.ToString(),
+
+                UltimaMensagemTimestamp = primeiraMensagem.Timestamp,
+                UltimaMensagemPreview = primeiraMensagem.Texto,
+
+                SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva(DateTime.UtcNow) ?? false,
+                SessaoWhatsappExpiraEm = conversa.SessaoAtiva?.DataFim
+            };
                 await _readService.NotificarNovaConversaNaFilaAsync(summaryDto);
-            }
         }
-
-
-
         return conversa.Id;
 
     }

@@ -142,7 +142,6 @@ namespace CRM.API.Controllers
                     case "text":
                         await HandleTextMessageAsync(message, contactPayload);
                         break;
-
                     case "interactive":
                         await HandleInteractiveMessageAsync(message, contactPayload);
                         break;
@@ -159,6 +158,9 @@ namespace CRM.API.Controllers
                         _logger.LogInformation("Tipo de mensagem '{MessageType}' recebido para {Telefone} e ignorado.", message.Type, telefoneDoContato);
                         break;
                 }
+            }catch (Exception e)
+            {
+                throw new Exception($"Erro ao processar mensagem de {telefoneDoContato}: {e.Message}", e);
             }
             finally
             {
