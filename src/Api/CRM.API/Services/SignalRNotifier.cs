@@ -2,7 +2,6 @@
 
 
 using Conversations.Application.Abstractions;
-// Em Api/Services/ (pode criar esta pasta)
 using Conversations.Application.Dtos;
 using CRM.API.Hubs;
 using Microsoft.AspNetCore.SignalR;
@@ -42,8 +41,6 @@ public class SignalRNotifier : IRealtimeNotifier
 
     public async Task NotificarNovaConversaNaFilaAsync(ConversationSummaryDto conversationDto)
     {
-        // Envia uma mensagem para o grupo geral dos agentes.
-        // O evento se chamará "ReceiveNewConversation".
         await _hubContext.Clients
             .Group(UnassignedQueueGroupName)
             .SendAsync("ReceiveNewConversation", conversationDto);

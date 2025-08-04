@@ -32,7 +32,6 @@ public class ResolverAtendimentoCommandHandler : ICommandHandler<ResolverAtendim
     }
       public async Task HandleAsync(ResolverAtendimentoCommand command, CancellationToken cancellationToken)
     {
-        // 1. Carrega o agregado de Atendimento.
         var atendimento = await _atendimentoRepository.GetByIdAsync(command.AtendimentoId, cancellationToken);
         if (atendimento is null)
         {

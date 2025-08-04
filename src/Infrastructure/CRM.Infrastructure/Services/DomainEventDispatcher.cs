@@ -7,7 +7,6 @@ public class DomainEventDispatcher : IDomainEventDispatcher
 {
     private readonly IServiceProvider _serviceProvider;
 
-    // Em vez de injetar o MediatR, injetamos o provedor de serviços do .NET
     public DomainEventDispatcher(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
@@ -22,8 +21,7 @@ public class DomainEventDispatcher : IDomainEventDispatcher
 
             foreach (var domainEvent in events)
             {
-                // Para cada evento, usamos o IServiceProvider para encontrar todos os
-                // handlers registrados que implementam a nossa interface IDomainEventHandler<TEvent>.
+                
                 var handlerType = typeof(IDomainEventHandler<>).MakeGenericType(domainEvent.GetType());
                 var handlers = _serviceProvider.GetServices(handlerType);
 
@@ -31,7 +29,6 @@ public class DomainEventDispatcher : IDomainEventDispatcher
                 {
                     if (handler is null) continue;
 
-                    // Usamos reflexão para chamar o método 'Handle' do handler.
                     var method = handler.GetType().GetMethod("Handle");
                     await (Task)method.Invoke(handler, new object[] { domainEvent, CancellationToken.None });
                 }

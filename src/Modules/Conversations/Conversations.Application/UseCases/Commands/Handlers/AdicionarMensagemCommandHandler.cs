@@ -19,8 +19,8 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
     private readonly IUnitOfWork _unitOfWork;
     private readonly IFileStorageService _fileStorageService;
     private readonly IRealtimeNotifier _notifier;
-    private readonly IMetaMessageSender _metaSender; // NOVO
-    private readonly IContactRepository _contactRepository; // NOVO
+    private readonly IMetaMessageSender _metaSender; 
+    private readonly IContactRepository _contactRepository; 
     private readonly IUserContext _userContext;
     private readonly IAtendimentoRepository _atendimentoRepository;
 
@@ -54,7 +54,7 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         if (conversa is null)
             throw new NotFoundException($"Conversa com o Id '{command.ConversaId}' não encontrada.");
         var atendimento = await _atendimentoRepository.FindActiveByConversaIdAsync(conversa.Id, cancellationToken);
-        if (atendimento is null) // Se não houver atendimento ativo, cria um novo
+        if (atendimento is null) 
         {
             atendimento = Atendimento.Iniciar(conversa.Id);
             await _atendimentoRepository.AddAsync(atendimento, cancellationToken);

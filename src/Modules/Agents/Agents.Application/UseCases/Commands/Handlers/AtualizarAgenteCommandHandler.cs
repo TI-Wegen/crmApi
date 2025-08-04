@@ -21,8 +21,6 @@ public class AtualizarAgenteCommandHandler : ICommandHandler<AtualizarAgenteComm
         if (agente is null)
             throw new NotFoundException($"Agente com o Id '{command.AgenteId}' não encontrado.");
 
-        // Nota: Poderíamos validar aqui se os SetorIds existem no banco.
-
         agente.Atualizar(command.NovoNome, command.NovosSetorIds);
 
         await _agentRepository.UpdateAsync(agente, cancellationToken); 

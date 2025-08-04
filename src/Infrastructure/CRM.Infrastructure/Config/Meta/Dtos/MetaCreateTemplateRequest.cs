@@ -5,7 +5,6 @@
 using System.Text.Json.Serialization;
 
 
-// DTO Raiz para a requisição
 public record MetaCreateTemplateRequest
 {
     [JsonPropertyName("name")]
@@ -21,7 +20,6 @@ public record MetaCreateTemplateRequest
     public List<TemplateComponent> Components { get; set; }
 }
 
-// DTO para os componentes (BODY, HEADER, FOOTER, BUTTONS)
 public record TemplateComponent
 {
     [JsonPropertyName("type")]

@@ -20,8 +20,6 @@ public class ConversaResolvidaEventHandler : IDomainEventHandler<ConversaResolvi
         _contactRepository = contactRepository;
         _metaSender = metaSender;
     }
-
-    // O nome do método agora é 'Handle' para corresponder à nossa interface.
     public async Task Handle(ConversaResolvidaEvent domainEvent, CancellationToken cancellationToken)
     {
         var conversa = await _conversationRepository.GetByIdAsync(domainEvent.ConversaId, cancellationToken);

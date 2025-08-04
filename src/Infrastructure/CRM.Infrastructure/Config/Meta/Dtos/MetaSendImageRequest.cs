@@ -26,7 +26,6 @@ public record MetaSendImageRequest
     }
 }
 
-// Objeto aninhado para os detalhes da imagem
 public record ImagePayload
 {
     [JsonPropertyName("link")]

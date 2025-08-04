@@ -1,6 +1,5 @@
 ﻿using Agents.Domain.Enuns;
 using Agents.Domain.Repository;
-using Contacts.Domain.Aggregates;
 using Contacts.Domain.Repository;
 using Conversations.Application.Abstractions;
 using Conversations.Application.Dtos;
@@ -9,7 +8,6 @@ using Conversations.Domain.Aggregates;
 using Conversations.Domain.Entities;
 using Conversations.Domain.ValueObjects;
 using CRM.Application.Interfaces;
-using CRM.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace Conversations.Application.UseCases.Commands.Handlers;
@@ -95,13 +93,12 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
 
 
         var contato = await _contactRepository.GetByIdAsync(conversa.ContatoId);
-        if (contato is null) return conversa.Id; // Ou logar erro
-        // 4. Cria a primeira Mensagem, agora que temos todos os IDs.
+        if (contato is null) return conversa.Id; 
+
         var fusoHorarioBrasil = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
         var dataAtualLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, fusoHorarioBrasil).Date;
         var timestampBrasilia = TimeZoneInfo.ConvertTimeFromUtc(timestampUtc, fusoHorarioBrasil).Date;
 
-        // A decisão de usar o bot agora depende do flag E da data da mensagem.
         bool deveIniciarBot = command.IniciarComBot && (dataAtualLocal == timestampBrasilia);
 
         if (deveIniciarBot)
@@ -117,7 +114,6 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            // Inicia o fluxo externo do bot (Redis + Meta)
             var sessionState = new BotSessionState(novoAtendimento.Id, novoAtendimento.BotStatus, DateTime.UtcNow);
             await _botSessionCache.SetStateAsync(contato!.Telefone, sessionState, TimeSpan.FromHours(2));
             var menuText = "Olá! Bem-vindo ao nosso atendimento. Digite o número da opção desejada:\n1- Segunda via de boleto\n2- Falar com o Comercial\n3- Falar com o Financeiro\n4- Encerrar atendimento";

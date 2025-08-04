@@ -27,9 +27,6 @@ public class ResolverAtendimentoPorInatividadeCommandHandler : ICommandHandler<R
         var atendimento = await _atendimentoRepository.GetByIdAsync(command.AtendimentoId, cancellationToken);
         if (atendimento is null) return;
 
-        // REGRA DE NEGÓCIO CRÍTICA:
-        // Só resolvemos se o atendimento AINDA estiver no bot. Se um agente já o pegou
-        // ou se ele já foi resolvido, não fazemos nada.
         if (atendimento.Status == ConversationStatus.EmAutoAtendimento)
         {
             _logger.LogInformation("Resolvendo atendimento {AtendimentoId} por inatividade do bot.", atendimento.Id);

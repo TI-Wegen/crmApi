@@ -21,12 +21,11 @@ namespace Conversations.Infrastructure.Services;
     {
         var httpClient = _httpClientFactory.CreateClient("MetaApiClient");
 
-        // ETAPA 1: Obter a URL da mídia
         var mediaInfoUrl = $"{_metaSettings.MetaApiVersion}/{mediaId}";
         var mediaInfoResponse = await httpClient.GetAsync(mediaInfoUrl);
         if (!mediaInfoResponse.IsSuccessStatusCode)
         {
-            // Logar o erro aqui
+            Console.WriteLine($"Erro ao obter informações do mídia: {mediaInfoResponse.StatusCode}");
             return null;
         }
 
@@ -38,8 +37,6 @@ namespace Conversations.Infrastructure.Services;
             return null;
         }
 
-        // ETAPA 2: Baixar o arquivo da URL obtida
-        // Note que o mesmo cliente com o token de autorização é usado
         var fileResponse = await httpClient.GetAsync(mediaInfo.Url);
         if (!fileResponse.IsSuccessStatusCode)
         {
@@ -55,10 +52,9 @@ namespace Conversations.Infrastructure.Services;
 
     private string GetFileExtension(string? mimeType)
     {
-        // Adiciona uma verificação para nulo ou vazio antes de tentar o Split.
         if (string.IsNullOrEmpty(mimeType))
         {
-            return "tmp"; // Retorna uma extensão padrão se o mimeType for inválido.
+            return "tmp"; 
         }
         return mimeType.Split('/').LastOrDefault() ?? "tmp";
     }

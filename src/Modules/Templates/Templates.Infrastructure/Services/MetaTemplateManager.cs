@@ -24,12 +24,11 @@ public class MetaTemplateManager : IMetaTemplateManager
         var httpClient = _httpClientFactory.CreateClient("MetaApiClient");
         var requestUrl = $"{_metaSettings.MetaApiVersion}/{_metaSettings.WhatsAppBusinessAccountId}/message_templates";
 
-        // Mapeia nosso agregado de domínio para o DTO que a Meta espera
         var requestBody = new MetaCreateTemplateRequest
         {
-            Name = template.Name.ToLower(), // Nomes de template devem ser minúsculos
+            Name = template.Name.ToLower(), 
             Language = template.Language,
-            Category = "UTILITY", // Categoria padrão, pode vir do domínio no futuro
+            Category = "UTILITY", 
             Components = new List<TemplateComponent>
             {
                 new() { Type = "BODY", Text = template.Body }

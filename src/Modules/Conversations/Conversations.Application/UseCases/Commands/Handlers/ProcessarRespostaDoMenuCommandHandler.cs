@@ -22,7 +22,7 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
     private readonly IAgentRepository _agentRepository;
     private readonly ILogger<ProcessarRespostaDoMenuCommandHandler> _logger;
     private readonly IAtendimentoRepository _atendimentoRepository;
-    private readonly IMensageriaBotService _mensageriaBot; // NOVO
+    private readonly IMensageriaBotService _mensageriaBot; 
 
 
     public ProcessarRespostaDoMenuCommandHandler(
@@ -54,7 +54,6 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
     {
         var timestamp = command.Timestamp ?? DateTime.UtcNow;
 
-        // 1. Busca o estado atual da sessão do bot no Redis usando o telefone.
         var sessionState = await _botSessionCache.GetStateAsync(command.ContatoTelefone);
         if (sessionState is null)
         {
@@ -62,19 +61,15 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
             return;
         }
 
-        // 2. Busca a conversa correspondente no banco de dados.
         var atendimento = await _atendimentoRepository.GetByIdAsync(sessionState.AtendimentoId, cancellationToken);
         if (atendimento is null || atendimento.Status != ConversationStatus.EmAutoAtendimento)
         {
             _logger.LogWarning("Inconsistência de estado detectada: Sessão de bot existe no Redis para o telefone {Telefone}, mas o atendimento correspondente ({AtendimentoId}) não foi encontrado ou não está em autoatendimento.", command.ContatoTelefone, sessionState.AtendimentoId);
 
-            // AÇÃO 1: Limpa o estado órfão do cache
             await _botSessionCache.DeleteStateAsync(command.ContatoTelefone);
 
-            // AÇÃO 2: Informa o usuário para que ele não fique confuso
             await _mensageriaBot.EnviarEMensagemTextoAsync(atendimento.Id  ,command.ContatoTelefone, "Sua sessão anterior expirou ou não pôde ser encontrada. Por favor, envie sua mensagem novamente para recomeçar.");
 
-            // Interrompe a execução, pois não há um estado válido para processar.
             return;
         }
 
@@ -82,7 +77,6 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
         var mensagemDoCliente = new Mensagem(conversa.Id, atendimento.Id, command.TextoDaResposta, Remetente.Cliente(), command.Timestamp ?? DateTime.UtcNow, null);
         conversa.AdicionarMensagem(mensagemDoCliente, atendimento.Id);
 
-        // 3. Máquina de Estados: decide o que fazer com base no estado ATUAL do bot.
         switch (sessionState.Status)
         {
             case BotStatus.AguardandoOpcaoMenuPrincipal:
@@ -116,8 +110,7 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
         switch (resposta.Trim())
         {
             case "1": // Segunda via de boleto
-                // Aqui você mudaria o estado do bot e pediria o CPF.
-                atendimento.AguardarCpf(); // Exemplo de um novo método de domínio
+                atendimento.AguardarCpf(); 
                 await _botSessionCache.SetStateAsync(contatoTelefone, new BotSessionState(atendimento.Id, atendimento.BotStatus, DateTime.UtcNow), TimeSpan.FromMinutes(30));
                 await _mensageriaBot.EnviarEMensagemTextoAsync(atendimento.Id, contatoTelefone, "Por favor, digite seu CPF para gerarmos a segunda via.");
                 await _unitOfWork.SaveChangesAsync();
@@ -126,7 +119,6 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
             case "2": // Falar com o Comercial
                 var setorComercial = await _agentRepository.GetSetorByNomeAsync(SetorNome.Comercial.ToDbValue());
                 atendimento.IniciarTransferenciaParaFila(setorComercial.Id);
-                // Remove a sessão do bot, pois agora um humano vai assumir.
                 await _botSessionCache.DeleteStateAsync(contatoTelefone);
                 await _mensageriaBot.EnviarEMensagemTextoAsync(atendimento.Id, contatoTelefone, "Ok, estou te transferindo para um de nossos especialistas do setor comercial.");
                 await _unitOfWork.SaveChangesAsync();
@@ -161,25 +153,24 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
         var boletosVencidos = boletos.Where(b => b.StatusBoleto.Equals("Vencida", StringComparison.OrdinalIgnoreCase)).ToList();
         if (boletosVencidos.Any())
         {
-            atendimento.AguardarEscolhaDeBoleto(); // Muda o estado para aguardar a escolha
+            atendimento.AguardarEscolhaDeBoleto(); 
 
             var conversa = await _conversationRepository.GetByIdAsync(atendimento.ConversaId);
             conversa.AdicionarTag(ConversaTag.Inadimplente);
 
             var sb = new StringBuilder("Identifiquei que há pendências em seu nome. Por favor, selecione uma opção:\n");
-            sb.AppendLine("0 - Enviar todos os boletos"); // Adiciona a opção de enviar todos
+            sb.AppendLine("0 - Enviar todos os boletos"); 
             for (int i = 0; i < boletosVencidos.Count; i++)
             {
                 var boleto = boletosVencidos[i];
                 sb.AppendLine($"{i + 1}- Boleto da Instalação {boleto.Numinstalacao}, venc. {boleto.DataVencimento:dd/MM/yyyy}");
             }
 
-            // Salva a lista de boletos VENCIDOS na sessão para o próximo passo
             var newSessionState = new BotSessionState(atendimento.Id, atendimento.BotStatus, DateTime.UtcNow, boletosVencidos);
             await _botSessionCache.SetStateAsync(contatoTelefone, newSessionState, TimeSpan.FromMinutes(30));
 
             await _mensageriaBot.EnviarEMensagemTextoAsync(atendimento.Id,contatoTelefone, sb.ToString());
-            return; // Encerra o método aqui
+            return; 
         }
 
         if (!boletos.Any())
@@ -194,8 +185,6 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
 
         if (gruposDeInstalacao.Count == 1)
         {
-            // CENÁRIO 1: Todas as faturas são da MESMA instalação.
-            // Pegamos o boleto com o vencimento mais próximo (o primeiro, pois ordenamos por data).
             var boletoParaEnviar = boletos.First();
 
             var boletoCompleto = await _boletoService.GetBoletoAsync(boletoParaEnviar.IdFatura);
@@ -206,7 +195,6 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
         }
         else
         {
-            // CENÁRIO 2: Faturas de instalações DIFERENTES. Apresentamos o menu de escolha.
             atendimento.AguardarEscolhaDeBoleto();
 
             var sb = new StringBuilder("Identifiquei boletos para mais de uma instalação em seu nome. Digite o número do boleto que você deseja:\n");
@@ -214,11 +202,9 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
             for (int i = 0; i < boletos.Count; i++)
             {
                 var boleto = boletos[i];
-                // No menu, deixamos claro de qual instalação é cada boleto.
                 sb.AppendLine($"{i + 1}- Instalação {boleto.Numinstalacao}: Ref. a {boleto.Referente}, venc. {boleto.DataVencimento:dd/MM/yyyy}");
             }
 
-            // Armazena a lista de boletos na sessão do Redis para o próximo passo.
             var newSessionState = new BotSessionState(atendimento.Id, atendimento.BotStatus, DateTime.UtcNow, boletos);
             await _botSessionCache.SetStateAsync(contatoTelefone, newSessionState, TimeSpan.FromMinutes(30));
 
@@ -242,10 +228,8 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
             return;
         }
 
-        // 1. Pega o "resumo" do boleto que o usuário escolheu.
         var boletoEscolhidoSummary = boletosDisponiveis[indice - 1];
 
-        // 2. Usa o IdFatura da escolha para buscar o boleto COMPLETO (com o PDF).
         var boletoCompleto = await _boletoService.GetBoletoAsync(boletoEscolhidoSummary.IdFatura);
 
         if (boletoCompleto is null)
@@ -254,10 +238,8 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
             return;
         }
 
-        // 3. Envia o boleto completo.
         await EnviarBoleto(atendimento.Id, contatoTelefone, boletoCompleto);
 
-        // 4. Resolve a atendimento e limpa a sessão.
         atendimento.Resolver(SystemGuids.SystemAgentId);
         await _botSessionCache.DeleteStateAsync(contatoTelefone);
     }
@@ -271,14 +253,11 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
 
         var legenda = $"Pronto! Segue seu boleto referente a conta '{boleto.IdFatura}' com vencimento em {boleto.DataVencimento:dd/MM/yyyy}.";
 
-        // ANTES: await _metaMessageSender.EnviarDocumentoAsync(...)
-        // AGORA: Usamos o novo serviço que também salva no banco.
         await _mensageriaBot.EnviarEDocumentoAsync(atendimentoId, contatoTelefone, urlDoBoleto, nomeArquivo, legenda);
     }
 
     private async Task EnviarMultiplosBoletosAsync(Guid atendimentoId, string contatoTelefone, List<BoletoDto> boletosResumo)
     {
-        // Usamos o novo serviço para registrar a mensagem inicial.
         await _mensageriaBot.EnviarEMensagemTextoAsync(atendimentoId, contatoTelefone, "Certo! Preparando o envio de todos os boletos. Isso pode levar um instante...");
 
         foreach (var resumo in boletosResumo)
@@ -286,13 +265,11 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
             var boletoCompleto = await _boletoService.GetBoletoAsync(resumo.IdFatura);
             if (boletoCompleto is not null)
             {
-                // Enviamos um por um, passando o atendimentoId
                 await EnviarBoleto(atendimentoId, contatoTelefone, boletoCompleto);
                 await Task.Delay(500);
             }
         }
 
-        // Usamos o novo serviço para registrar a mensagem final.
         await _mensageriaBot.EnviarEMensagemTextoAsync(atendimentoId, contatoTelefone, "Pronto! Enviei todos os boletos solicitados. O atendimento foi encerrado.");
     }
 }

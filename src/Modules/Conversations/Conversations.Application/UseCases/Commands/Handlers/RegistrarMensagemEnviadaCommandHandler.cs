@@ -37,7 +37,6 @@ public class RegistrarMensagemEnviadaCommandHandler : ICommandHandler<RegistrarM
     public async Task HandleAsync(RegistrarMensagemEnviadaCommand command, CancellationToken cancellationToken)
     {
         var timestamp =  DateTime.UtcNow;
-        // 1. Encontra ou cria o Contato.
         var contato = await _contactRepository.GetByTelefoneAsync(command.ContatoTelefone, cancellationToken);
         if (contato is null)
         {
@@ -46,10 +45,8 @@ public class RegistrarMensagemEnviadaCommandHandler : ICommandHandler<RegistrarM
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
-        // 2. Encontra a Conversa (histórico) existente.
         var conversa = await _conversationRepository.FindActiveByContactIdAsync(contato.Id, cancellationToken);
 
-        // 3. Cria um novo Atendimento para esta mensagem de template.
         var novoAtendimento = Atendimento.Iniciar(conversa?.Id ?? Guid.Empty);
         novoAtendimento.AtribuirAgente(SystemGuids.SystemAgentId);
         novoAtendimento.Resolver(SystemGuids.SystemAgentId);
@@ -57,7 +54,6 @@ public class RegistrarMensagemEnviadaCommandHandler : ICommandHandler<RegistrarM
         await _atendimentoRepository.AddAsync(novoAtendimento, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // 4. Cria a Mensagem, agora que temos todos os IDs necessários.
         var remetente = Remetente.Agente(SystemGuids.SystemAgentId);
 
         if (conversa is null)
@@ -74,10 +70,8 @@ public class RegistrarMensagemEnviadaCommandHandler : ICommandHandler<RegistrarM
             conversa.AdicionarMensagem(novaMensagem, novoAtendimento.Id);
         }
 
-        // 6. Persiste as alterações finais.
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // 7. Notifica o frontend.
         var ultimaMensagem = conversa.Mensagens.Last();
         await _notifier.NotificarNovaMensagemAsync(conversa.Id.ToString(), ultimaMensagem.ToDto());
     }

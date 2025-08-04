@@ -18,7 +18,7 @@ public class RegistrarAvaliacaoCommandHandler : ICommandHandler<RegistrarAvaliac
     public async Task HandleAsync(RegistrarAvaliacaoCommand command, CancellationToken cancellationToken)
     {
         var atendimento = await _atendimentoRepository.GetByIdAsync(command.AtendimentoId, cancellationToken);
-        if (atendimento is null) return; // Atendimento não encontrado, ignora.
+        if (atendimento is null) return; 
 
         var avaliacao = Avaliacao.Criar(command.Nota);
         atendimento.AdicionarAvaliacao(avaliacao);

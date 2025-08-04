@@ -31,7 +31,7 @@ public record TemplatePayload
     public string Name { get; init; }
 
     [JsonPropertyName("language")]
-    public LanguagePayload Language { get; } = new("pt_BR"); // Fixo como pt_BR, pode vir da configuração
+    public LanguagePayload Language { get; } = new("pt_BR"); 
 
     [JsonPropertyName("components")]
     public List<ComponentPayload> Components { get; init; }
@@ -41,8 +41,6 @@ public record TemplatePayload
         Name = name;
         Components = new List<ComponentPayload>
         {
-            // Por enquanto, suportando apenas parâmetros no corpo do template.
-            // A lógica pode ser expandida para suportar botões e cabeçalhos.
             new ComponentPayload("body", bodyParameters.Select(p => new ParameterPayload("text", p)).ToList())
         };
     }

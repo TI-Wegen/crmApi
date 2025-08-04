@@ -28,8 +28,7 @@ namespace CRM.Infrastructure.Services;
     public Task<bool> IsFirstProcessor(string contactPhone)
     {
         var key = $"{ProcessorKeyPrefix}{contactPhone}";
-        // Tenta definir uma chave de "processador". Se for bem-sucedido (true),
-        // significa que fomos os primeiros a chegar.
+ 
         return _database.StringSetAsync(key, "active", ProcessorLockExpiry, When.NotExists);
     }
 
@@ -40,7 +39,6 @@ namespace CRM.Infrastructure.Services;
 
         var redisValues = await _database.ListRangeAsync(bufferKey);
 
-        // Limpa tanto o buffer quanto a chave do processador
         await _database.KeyDeleteAsync(new RedisKey[] { bufferKey, processorKey });
 
         return redisValues.Select(val => JsonSerializer.Deserialize<MessageObject>(val));

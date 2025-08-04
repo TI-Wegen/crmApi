@@ -2,13 +2,11 @@
 
 public class ConversationDetailsDto
 {
-    // Informações da Conversa (Histórico)
     public Guid Id { get; set; }
     public Guid ContatoId { get; set; }
-    public string ContatoNome { get; set; } // NOVO: Adicionado para o frontend
+    public string ContatoNome { get; set; } 
     public IReadOnlyCollection<MessageDto> Mensagens { get; set; } = new List<MessageDto>();
 
-    // Informações do Atendimento Atual
     public Guid? AtendimentoId { get; set; }
     public Guid? AgenteId { get; set; }
     public Guid? SetorId { get; set; }
@@ -16,17 +14,16 @@ public class ConversationDetailsDto
     public string BotStatus { get; set; }
 
     public bool SessaoWhatsappAtiva { get; set; }
-    public DateTime? SessaoWhatsappExpiraEm { get; set; } // Data de expiração da sessão ativa, se houver
+    public DateTime? SessaoWhatsappExpiraEm { get; set; } 
 }
 
-// DTO aninhado para as mensagens
 public record MessageDto
 {
     public Guid Id { get; init; }
     public string Texto { get; init; }
     public string? AnexoUrl { get; init; }
     public DateTime Timestamp { get; init; }
-    public string RemetenteTipo { get; init; } // "Agente" ou "Cliente"
+    public string RemetenteTipo { get; init; } 
     public Guid? RemetenteAgenteId { get; init; }
 }
 

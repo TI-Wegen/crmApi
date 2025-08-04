@@ -42,10 +42,10 @@ public class BoletoService : IBoletoService
         catch (Exception e)
         {
             Console.WriteLine("--- ERRO AO EXECUTAR QUERY COM DAPPER ---");
-            Console.WriteLine(e.ToString()); // .ToString() nos dá o stack trace completo.
+            Console.WriteLine(e.ToString());
             Console.WriteLine("--- FIM DO ERRO ---");
 
-            throw; // Re-lança a exceção original para que possamos vê-la no debugger.
+            throw; 
         }
     }
 

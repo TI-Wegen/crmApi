@@ -13,14 +13,14 @@ public class SetorConfiguration : IEntityTypeConfiguration<Setor>
         builder.ToTable("Setores");
         builder.HasKey(s => s.Id);
         builder.Property(s => s.Nome).IsRequired().HasMaxLength(100);
-        builder.HasIndex(s => s.Nome).IsUnique(); // Garante que não teremos setores com o mesmo nome
+        builder.HasIndex(s => s.Nome).IsUnique(); 
         builder.Property(s => s.Descricao).HasMaxLength(255);
         builder.Ignore(s => s.DomainEvents);
 
         builder.HasData(
             new
             {
-                Id = Guid.Parse("00000000-0000-0000-0001-000000000001"), // ID Fixo para o Financeiro
+                Id = Guid.Parse("00000000-0000-0000-0001-000000000001"),
                 Nome = SetorNome.Financeiro.ToDbValue(),
                 Descricao = "Setor responsável por questões financeiras e boletos.",
                 Version = Guid.Parse("f6b3a2a8-8e6a-4b2a-8b8d-9b8e1f0c3b1a"),
@@ -28,7 +28,7 @@ public class SetorConfiguration : IEntityTypeConfiguration<Setor>
             },
             new
             {
-                Id = Guid.Parse("00000000-0000-0000-0001-000000000002"), // ID Fixo para o Comercial
+                Id = Guid.Parse("00000000-0000-0000-0001-000000000002"), 
                 Nome = SetorNome.Comercial.ToDbValue(),
                 Descricao = "Setor responsável por vendas e novas oportunidades.",
                 Version = Guid.Parse("d4a3b4d5-6e7f-8a9b-0c1d-2e3f4a5b6c7d"),
@@ -37,7 +37,7 @@ public class SetorConfiguration : IEntityTypeConfiguration<Setor>
             },
              new
              {
-                 Id = Guid.Parse("00000000-0000-0000-0001-000000000003"), // ID Fixo para o Admin
+                 Id = Guid.Parse("00000000-0000-0000-0001-000000000003"), 
                  Nome = SetorNome.Admin.ToDbValue(),
                  Descricao = "Setor responsável pela administração geral",
                  Version = Guid.Parse("d4a3b4d5-6e7f-8a9b-0c1d-2e3f4a5b6c7a"),

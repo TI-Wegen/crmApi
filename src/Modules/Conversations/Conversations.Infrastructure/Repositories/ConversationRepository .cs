@@ -44,7 +44,7 @@ public class ConversationRepository : IConversationRepository
     public Task<Conversa?> FindActiveByContactIdAsync(Guid contactId, CancellationToken cancellationToken = default)
     {
         return _context.Conversas
-            .Include(c => c.Mensagens) // Manter o Include é uma boa prática.
+            .Include(c => c.Mensagens) 
             .FirstOrDefaultAsync(c =>
                 c.ContatoId == contactId,
                 cancellationToken);

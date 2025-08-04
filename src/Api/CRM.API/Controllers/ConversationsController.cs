@@ -74,19 +74,17 @@ public class ConversationsController : ControllerBase
     {
         try
         {
-            // Mapeamos o DTO da requisição para o nosso Comando interno.
+         
             var command = new AtribuirAgenteCommand(id, request.AgenteId);
             await _atribuirAgenteHandler.HandleAsync(command);
-            return NoContent(); // 204: Sucesso, sem conteúdo para retornar.
+            return NoContent(); 
         }
         catch (NotFoundException ex)
         {
-            // Ocorre se a conversa não for encontrada
             return NotFound(new { message = ex.Message });
         }
         catch (DomainException ex)
         {
-            // Ocorre se uma regra de negócio for violada (ex: atribuir conversa já resolvida)
             return BadRequest(new { message = ex.Message });
         }
     }
@@ -173,8 +171,6 @@ public class ConversationsController : ControllerBase
         {
             var command = new ResolverAtendimentoCommand(id);
             await _resolverAtendimentoHandler.HandleAsync(command);
-
-            // 204 NoContent é a resposta ideal para um comando de sucesso que não retorna dados.
             return NoContent();
         }
         catch (NotFoundException ex)
@@ -183,7 +179,6 @@ public class ConversationsController : ControllerBase
         }
         catch (DomainException ex)
         {
-            // Se tentarmos resolver uma conversa que não está "EmAtendimento", cairá aqui.
             return BadRequest(new { message = ex.Message });
         }
     }
@@ -223,7 +218,7 @@ public class ConversationsController : ControllerBase
     public async Task<IActionResult> GetActiveChat(Guid id)
     {
         var query = new GetActiveChatQuery(id);
-        var chatData = await _getActiveChatHandler.HandleAsync(query); // Injete o novo handler
+        var chatData = await _getActiveChatHandler.HandleAsync(query); 
         return Ok(chatData);
     }
 

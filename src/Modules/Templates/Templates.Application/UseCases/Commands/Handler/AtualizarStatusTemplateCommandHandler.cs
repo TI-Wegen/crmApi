@@ -25,7 +25,6 @@ public class AtualizarStatusTemplateCommandHandler : ICommandHandler<AtualizarSt
 
         template.AtualizarStatus(command.NovoStatus, command.MotivoRejeicao);
 
-        // O Change Tracker detecta a alteração no status.
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         Console.WriteLine($"Status do template '{template.Name}' atualizado para '{template.Status}'.");

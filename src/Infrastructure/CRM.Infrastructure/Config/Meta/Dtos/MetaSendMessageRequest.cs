@@ -23,7 +23,6 @@ namespace CRM.Infrastructure.Config.Meta.Dtos
         }
     }
 
-    // DTO aninhado para o objeto de texto
     public record TextPayload
     {
         [JsonPropertyName("body")]

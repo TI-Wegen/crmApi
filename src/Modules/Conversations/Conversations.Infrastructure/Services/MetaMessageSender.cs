@@ -26,7 +26,6 @@ public class MetaMessageSender : IMetaMessageSender
 
         var requestUrl = $"{_metaSettings.MetaApiVersion}/{_metaSettings.WhatsAppBusinessPhoneNumberId}/messages";
 
-        // Monta o corpo da requisição que a API da Meta espera
         var requestBody = new MetaSendMessageRequest(numeroDestino, textoMensagem);
 
 
@@ -42,7 +41,6 @@ public class MetaMessageSender : IMetaMessageSender
         {
             var errorContent = await response.Content.ReadAsStringAsync();
             Console.WriteLine($"--> Erro ao enviar mensagem pela API da Meta: {errorContent}");
-            // Em produção, você lançaria uma exceção customizada aqui.
             throw new Exception("Falha ao enviar mensagem pela API da Meta.");
         }
 
@@ -129,7 +127,6 @@ public class MetaMessageSender : IMetaMessageSender
 
         var requestBody = new MetaSendTemplateRequest(numeroDestino, templateName, bodyParameters);
 
-        // Usamos opções para ignorar valores nulos, caso um componente não tenha parâmetros
         var serializerOptions = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
         var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody, serializerOptions), Encoding.UTF8, "application/json");
 
@@ -144,7 +141,6 @@ public class MetaMessageSender : IMetaMessageSender
 
         Console.WriteLine($"--> Resposta de SUCESSO da Meta (Template): {responseContent}");
 
-        // Extrai o ID da mensagem da resposta de sucesso
         using var jsonDoc = JsonDocument.Parse(responseContent);
         var messageId = jsonDoc.RootElement.GetProperty("messages")[0].GetProperty("id").GetString();
 
@@ -165,13 +161,11 @@ public class MetaMessageSender : IMetaMessageSender
     });
 
 
-        // Agora podemos criar o payload interativo com os novos campos
         var body = new InteractiveBodyPayload("Ficamos felizes em ajudar! Como você avalia nosso atendimento?");
         var interactive = new InteractivePayload(body, action);
 
         var requestBody = new MetaSendInteractiveRequest(numeroDestino, interactive);
 
-        // Para garantir que campos nulos (como o Header) não sejam enviados, usamos esta opção no serializador.
         var serializerOptions = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
         var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody, serializerOptions), Encoding.UTF8, "application/json");
 

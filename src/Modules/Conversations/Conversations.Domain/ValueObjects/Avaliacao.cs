@@ -4,8 +4,6 @@ public record Avaliacao
 {
     public int Nota { get; private init; }
     public string? Comentario { get; private init; }
-
-    // Construtor privado para garantir a criação válida através do método de fábrica
     private Avaliacao(int nota, string? comentario)
     {
         if (nota < 1 || nota > 5)

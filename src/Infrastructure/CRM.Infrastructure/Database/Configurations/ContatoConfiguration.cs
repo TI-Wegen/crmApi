@@ -18,20 +18,17 @@ public class ContatoConfiguration : IEntityTypeConfiguration<Contato>
         builder.Property(c => c.Status).HasConversion<string>().HasMaxLength(50);
 
         builder.Property(c => c.WaId).IsRequired().HasMaxLength(50);
-        builder.HasIndex(c => c.WaId).IsUnique(); // Garante que não haja contatos duplicados do WhatsApp
+        builder.HasIndex(c => c.WaId).IsUnique(); 
         builder.Property(c => c.AvatarUrl).HasMaxLength(1024);
 
-        // Configura a coleção de Value Objects 'Tag'
-        // O EF Core criará uma tabela 'ContatoTags' para armazenar esta coleção.
         builder.OwnsMany(c => c.Tags, tagsBuilder =>
         {
             tagsBuilder.ToTable("ContatoTags");
             tagsBuilder.WithOwner().HasForeignKey("ContatoId");
-            tagsBuilder.HasKey("Id"); // Chave primária para a tabela de tags
+            tagsBuilder.HasKey("Id"); 
             tagsBuilder.Property(t => t.Texto).IsRequired().HasMaxLength(50);
         });
 
-        // Configura a coleção de Entidades Internas 'HistoricoStatus'
         var historicoNavigation = builder.Navigation(c => c.HistoricoStatus);
         historicoNavigation.UsePropertyAccessMode(PropertyAccessMode.Field);
         historicoNavigation.HasField("_historicoStatus");
@@ -39,7 +36,7 @@ public class ContatoConfiguration : IEntityTypeConfiguration<Contato>
         builder.HasMany(c => c.HistoricoStatus)
             .WithOne()
             .HasForeignKey("ContatoId")
-            .OnDelete(DeleteBehavior.Cascade); // Se o contato for deletado, seu histórico também será.
+            .OnDelete(DeleteBehavior.Cascade); 
 
         builder.Ignore(c => c.DomainEvents);
 

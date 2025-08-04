@@ -93,13 +93,13 @@ public class ContactsController : ControllerBase
             var command = new AtualizarContatoCommand(id, request.Nome, request.Telefone, request.Tags);
             await _atualizarContatoHandler.HandleAsync(command);
 
-            return NoContent(); // Resposta padrão para um PUT/UPDATE bem-sucedido
+            return NoContent(); 
         }
         catch (NotFoundException ex)
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex) // Captura tanto a DomainException quanto a validação de telefone duplicado
+        catch (Exception ex) 
         {
             return BadRequest(new { message = ex.Message });
         }
@@ -133,7 +133,7 @@ public class ContactsController : ControllerBase
     public async Task<IActionResult> SendTemplate(Guid id, [FromBody] SendTemplateRequest request)
     {
         var command = new EnviarTemplateCommand(id, request.TemplateName, request.BodyParameters);
-        await _enviarTemplateHandler.HandleAsync(command); // Injete o novo handler no controller
+        await _enviarTemplateHandler.HandleAsync(command); 
 
         return Accepted();
     }

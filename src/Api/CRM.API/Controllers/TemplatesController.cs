@@ -25,7 +25,6 @@ namespace CRM.API.Controllers
         public async Task<IActionResult> Criar([FromBody] CriarTemplateCommand command)
         {
             var templateDto = await _criarTemplateHandler.HandleAsync(command);
-            // Retorna 201 Created com a localização do novo recurso (se você criar um endpoint GetById)
             return CreatedAtAction(nameof(Criar), new { id = templateDto.Id }, templateDto);
         }
 

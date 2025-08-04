@@ -31,39 +31,32 @@ public class CleanExpiredBotSessionsJob
         _logger = logger;
     }
 
-    // O Hangfire irá chamar este método público na frequência que definirmos.
     public async Task Executar()
     {
         _logger.LogInformation("Iniciando Job de limpeza de sessões de bot expiradas...");
 
-        // 1. Busca todos os atendimentos que deveriam ter uma sessão de bot.
         var atendimentosNoBot = await _atendimentoRepository.GetAtendimentosEmAutoAtendimentoAsync();
         int sessoesExpiradas = 0;
 
         foreach (var atendimento in atendimentosNoBot)
         {
-            // 2. Para cada atendimento, busca o contato para obter o telefone (a chave do cache).
             var conversa = await _conversationRepository.GetByIdAsync(atendimento.ConversaId);
             if (conversa is null) continue;
 
             var contato = await _contactRepository.GetByIdAsync(conversa.ContatoId);
             if (contato is null) continue;
 
-            // 3. Verifica se a sessão AINDA existe no Redis.
             var sessionState = await _botSessionCache.GetStateAsync(contato.Telefone);
 
-            // 4. Se a sessão NÃO existe, significa que o TTL expirou.
             if (sessionState is null)
             {
                 _logger.LogInformation("Sessão para o atendimento {AtendimentoId} expirou. Resolvendo...", atendimento.Id);
 
-                // 5. Resolve o atendimento.
                 atendimento.Resolver(SystemGuids.SystemAgentId);
                 sessoesExpiradas++;
             }
         }
 
-        // 6. Salva todas as alterações de uma vez só.
         if (sessoesExpiradas > 0)
         {
             await _unitOfWork.SaveChangesAsync();

@@ -32,9 +32,7 @@ public class AgenteConfiguration : IEntityTypeConfiguration<Agente>
 
             cargaBuilder.HasData(new
             {
-                // Especificamos a qual Agente esta CargaDeTrabalho pertence
                 AgenteId = SystemGuids.SystemAgentId,
-                // E definimos o valor inicial
                 Valor = 0
             });
         });

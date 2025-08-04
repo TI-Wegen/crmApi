@@ -9,7 +9,7 @@ namespace Conversations.Domain.ValueObjects;
     private Guid guid;
 
     public RemetenteTipo Tipo { get; init; }
-    public Guid? AgenteId { get; init; } // Nulo se o remetente for o Cliente
+    public Guid? AgenteId { get; init; } 
     public Remetente(RemetenteTipo tipo, Guid? agenteId = null)
     {
         if (tipo == RemetenteTipo.Agente && agenteId == null)

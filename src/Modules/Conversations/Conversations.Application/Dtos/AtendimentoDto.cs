@@ -9,8 +9,6 @@
     public string Status { get; init; }
     public string BotStatus { get; init; }
     public DateTime? DataFinalizacao { get; init; }
-
-    // Incluímos a avaliação como um objeto aninhado para manter a estrutura.
     public AvaliacaoDto? Avaliacao { get; init; }
 }
 

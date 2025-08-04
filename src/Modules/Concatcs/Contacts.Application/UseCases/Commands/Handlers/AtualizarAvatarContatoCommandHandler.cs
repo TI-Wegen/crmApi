@@ -39,20 +39,16 @@ namespace Contacts.Application.UseCases.Commands.Handlers;
         {
             try
             {
-                // Usa um HttpClient simples para baixar a imagem da URL temporária
                 var httpClient = _httpClientFactory.CreateClient();
                 var imageStream = await httpClient.GetStreamAsync(avatarUrl, cancellationToken);
 
-                // Faz o upload para nosso S3 para obter uma URL permanente
                 var fileName = $"avatar-{command.WaId}.jpg";
                 var permanentAvatarUrl = await _fileStorageService.UploadAsync(imageStream, fileName, "image/jpeg");
 
-                // Define a URL permanente no nosso agregado
                 contato.DefinirAvatarUrl(permanentAvatarUrl);
             }
             catch (Exception ex)
             {
-                // Logar o erro, mas não impedir a criação do contato se o download do avatar falhar.
                 _logger.LogWarning(ex, "Falha ao baixar e salvar o avatar para o contato {ContatoId}", contato.Id);
             }
         }

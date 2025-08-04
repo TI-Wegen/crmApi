@@ -11,9 +11,8 @@ public class AtendimentoConfiguration : IEntityTypeConfiguration<Atendimento>
         builder.ToTable("Atendimentos");
         builder.HasKey(a => a.Id);
 
-        // Relacionamento com a Conversa
         builder.HasOne<Conversa>()
-            .WithMany() // Uma conversa pode ter muitos atendimentos
+            .WithMany() 
             .HasForeignKey(a => a.ConversaId)
             .IsRequired();
 
@@ -21,7 +20,6 @@ public class AtendimentoConfiguration : IEntityTypeConfiguration<Atendimento>
         builder.Property(a => a.BotStatus).HasConversion<string>().IsRequired();
         builder.Property(a => a.DataFinalizacao).HasColumnName("DataFinalizacao");
 
-        // Mapeamento do Value Object Avaliacao
         builder.OwnsOne(a => a.Avaliacao, avaliacaoBuilder =>
         {
             avaliacaoBuilder.Property(av => av.Nota).HasColumnName("AvaliacaoNota");

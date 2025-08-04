@@ -80,7 +80,6 @@ public class Conversa : Entity
         {
             SessaoAtiva = SessaoWhatsapp.Iniciar(dataMensagem);
             TotalSessoesIniciadas++;
-            // Disparar evento: NovaSessaoWhatsappIniciadaEvent
         }
     }
 }

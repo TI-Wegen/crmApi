@@ -45,10 +45,9 @@ public class AgentsController : ControllerBase
         try
         {
             var agenteDto = await _criarAgenteHandler.HandleAsync(command);
-            // Retorna 201 Created com a localização do novo recurso e o próprio recurso no corpo.
             return CreatedAtAction(nameof(GetById), new { id = agenteDto.Id }, agenteDto);
         }
-        catch (Exception ex) // Idealmente, uma exceção de aplicação mais específica
+        catch (Exception ex) 
         {
             return BadRequest(new { message = ex.Message });
         }
@@ -89,8 +88,6 @@ public class AgentsController : ControllerBase
         {
             var command = new AtualizarAgenteCommand(id, request.Nome, request.SetorIds);
             await _atualizarAgenteHandler.HandleAsync(command);
-
-            // 204 NoContent é a resposta padrão para uma atualização bem-sucedida.
             return NoContent();
         }
         catch (NotFoundException ex)
@@ -114,8 +111,6 @@ public class AgentsController : ControllerBase
         {
             var command = new InativarAgenteCommand(id);
             await _inativarAgenteHandler.HandleAsync(command);
-
-            // 204 NoContent é a resposta padrão para um DELETE bem-sucedido.
             return NoContent();
         }
         catch (NotFoundException ex)
@@ -124,7 +119,6 @@ public class AgentsController : ControllerBase
         }
         catch (DomainException ex)
         {
-            // Se a regra "não inativar com conversas ativas" for violada, cairá aqui.
             return BadRequest(new { message = ex.Message });
         }
     }

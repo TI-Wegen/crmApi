@@ -2,7 +2,6 @@
 
 namespace CRM.Infrastructure.Config.Meta;
 
-// Nível 1: O objeto raiz do webhook
 public record MetaWebhookPayload
 {
     [JsonPropertyName("object")]
@@ -12,7 +11,6 @@ public record MetaWebhookPayload
     public List<EntryObject> Entry { get; set; }
 }
 
-// Nível 2: Cada "entry" contém um conjunto de alterações
 public record EntryObject
 {
     [JsonPropertyName("id")]
@@ -22,7 +20,6 @@ public record EntryObject
     public List<ChangeObject> Changes { get; set; }
 }
 
-// Nível 3: Cada "change" tem um campo e um valor
 public record ChangeObject
 {
     [JsonPropertyName("field")]
@@ -32,7 +29,6 @@ public record ChangeObject
     public ValueObject Value { get; set; }
 }
 
-// Nível 4: O "value" contém os dados principais (mensagens, contatos, status)
 public record ValueObject
 {
     [JsonPropertyName("messaging_product")]
@@ -50,7 +46,7 @@ public record ValueObject
     [JsonPropertyName("statuses")]
     public List<StatusObject>? Statuses { get; set; }
     [JsonPropertyName("event")]
-    public string? Event { get; set; } // "approved", "rejected"
+    public string? Event { get; set; } 
 
     [JsonPropertyName("message_template_id")]
     public string? MessageTemplateId { get; set; }
@@ -62,7 +58,6 @@ public record ValueObject
     public string? Reason { get; set; }
 }
 
-// --- Objetos de Dados Aninhados ---
 
 public record MetadataObject
 {
@@ -113,7 +108,6 @@ public record MessageObject
 
     [JsonPropertyName("interactive")]
     public InteractiveReplyPayload? Interactive { get; set; }
-    // Adicione outros tipos de mídia aqui se necessário (audio, video, etc.)
 }
 
 public record TextObject
@@ -142,13 +136,12 @@ public record StatusObject
     [JsonPropertyName("status")]
     public string Status { get; set; }
 
-    // ... outras propriedades de status ...
 }
 
 public record ButtonReplyPayload
 {
     [JsonPropertyName("id")]
-    public string Id { get; set; } // O ID que enviamos: "rating_CONVERSATION_ID_NOTA"
+    public string Id { get; set; } 
     [JsonPropertyName("title")]
     public string Title { get; set; }
 }
@@ -156,7 +149,7 @@ public record ButtonReplyPayload
 public record InteractiveReplyPayload
 {
     [JsonPropertyName("type")]
-    public string Type { get; init; } // Será "button_reply"
+    public string Type { get; init; } 
 
     [JsonPropertyName("button_reply")]
     public ButtonReplyPayload ButtonReply { get; init; }

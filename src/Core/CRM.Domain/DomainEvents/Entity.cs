@@ -23,6 +23,4 @@ public abstract class Entity
         _domainEvents.Clear();
     }
 }
-
-// Interface marcadora para os eventos
 public interface IDomainEvent { }

@@ -3,9 +3,7 @@
 using CRM.Infrastructure.Config.Meta;
 
 public static class WebhookMessageParser
-{
-    // Este método converte um objeto de mensagem da Meta em um texto simples.
-    public static string ParseMessage(MessageObject message)
+{    public static string ParseMessage(MessageObject message)
     {
         return message.Type.ToLower() switch
         {

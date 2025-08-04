@@ -16,8 +16,6 @@ public class DapperConversationReadService : IConversationReadService
     {
         _dbConnection = dbConnection;
     }
-
-    // A LÓGICA DO DAPPER FOI MOVIDA PARA CÁ
     public async Task<IEnumerable<ConversationSummaryDto>> GetAllSummariesAsync(
         GetAllConversationsQuery query,
         CancellationToken cancellationToken = default)
@@ -118,7 +116,6 @@ public class DapperConversationReadService : IConversationReadService
     }
     public async Task<ConversationDetailsDto?> GetConversationDetailsAsync(Guid conversationId, CancellationToken cancellationToken)
 {
-    // A query agora busca o nome do contato e o ID do atendimento ativo mais recente.
     var sql = @"
         -- Busca os detalhes da Conversa, Contato e do Atendimento Ativo
         SELECT
@@ -150,8 +147,6 @@ public class DapperConversationReadService : IConversationReadService
     var details = await multi.ReadFirstOrDefaultAsync<ConversationDetailsDto>();
     if (details is null) return null;
 
-
-    // Esta linha agora funciona, pois 'Mensagens' tem um setter público.
     details.Mensagens = (await multi.ReadAsync<MessageDto>()).ToList();
 
     return details;

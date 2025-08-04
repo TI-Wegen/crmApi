@@ -27,7 +27,6 @@ public record MetaSendAudioRequest
     }
 }
 
-// Objeto aninhado para os detalhes do áudio
 public record AudioPayload
 {
     [JsonPropertyName("link")]

@@ -6,7 +6,6 @@ namespace Conversations.Application.Mappers;
 
 public static class ConversationMappers
 {
-    // Método de extensão que converte o agregado para o DTO detalhado
     public static ConversationDetailsDto ToDetailsDto(this Conversa conversa, Atendimento? atendimentoAtivo)
     {
         return new ConversationDetailsDto
@@ -15,19 +14,16 @@ public static class ConversationMappers
             ContatoId = conversa.ContatoId,
             Mensagens = conversa.Mensagens?.Select(m => m.ToDto()).ToList() ?? new List<MessageDto>(),
 
-
-             // Dados do Atendimento Atual
             AtendimentoId = atendimentoAtivo?.Id,
             AgenteId = atendimentoAtivo?.AgenteId,
             SetorId = atendimentoAtivo?.SetorId,
-            Status = atendimentoAtivo?.Status.ToString() ?? "N/A", // Se não houver atendimento ativo
+            Status = atendimentoAtivo?.Status.ToString() ?? "N/A", 
             BotStatus = atendimentoAtivo?.BotStatus.ToString() ?? "N/A",
             SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva(DateTime.UtcNow) ?? false,
             SessaoWhatsappExpiraEm = conversa.SessaoAtiva?.DataFim
         };
     }
 
-    // Método de extensão que converte a entidade Mensagem para seu DTO
     public static MessageDto ToDto(this Mensagem mensagem)
     {
         return new MessageDto

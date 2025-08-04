@@ -1,6 +1,5 @@
 ﻿namespace CRM.Infrastructure.Database.Configurations;
 
-// Em Infrastructure/Database/Configurations/
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Conversations.Domain.Entities;
@@ -12,7 +11,6 @@ public class MensagemConfiguration : IEntityTypeConfiguration<Mensagem>
         builder.ToTable("Mensagens");
         builder.HasKey(m => m.Id);
 
-        // Mapeia o Value Object 'Remetente' como um Owned Type
         builder.OwnsOne(m => m.Remetente, remetenteBuilder =>
         {
             remetenteBuilder.Property(r => r.Tipo).HasConversion<string>().HasColumnName("RemetenteTipo");
@@ -22,6 +20,6 @@ public class MensagemConfiguration : IEntityTypeConfiguration<Mensagem>
 
         builder.Property(m => m.MessageId)
        .HasColumnName("MessageId")
-       .IsRequired(false); // <-- Torna opcional
+       .IsRequired(false);
     }
 }

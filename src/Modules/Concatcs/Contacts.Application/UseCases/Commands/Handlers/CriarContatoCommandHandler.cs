@@ -37,7 +37,6 @@ public class CriarContatoCommandHandler : ICommandHandler<CriarContatoCommand, C
 
     public async Task<ContatoDto> HandleAsync(CriarContatoCommand command, CancellationToken cancellationToken)
     {
-        // 1. Validação da Aplicação: verificar se o telefone já existe
         var existingContact = await _contactRepository.GetByTelefoneAsync(command.Telefone, cancellationToken);
         if (existingContact is not null)
         {
@@ -76,13 +75,10 @@ public class CriarContatoCommandHandler : ICommandHandler<CriarContatoCommand, C
         //}
 
 
-        // 3. Adicionar ao repositório
         await _contactRepository.AddAsync(contato, cancellationToken);
 
-        // 4. Salvar as alterações
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // 5. Mapear para DTO e retornar
         return contato.ToDto();
     }
 }

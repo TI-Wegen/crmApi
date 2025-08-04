@@ -29,7 +29,6 @@ public class Atendimento : Entity
             Status = ConversationStatus.EmAutoAtendimento,
             BotStatus = BotStatus.AguardandoOpcaoMenuPrincipal
         };
-        // Disparar evento: AtendimentoIniciadoEvent(atendimento.Id, conversaId)
         atendimento.AddDomainEvent(new AtendimentoIniciadoEvent(atendimento.Id, conversaId));
         return atendimento;
     }
@@ -64,7 +63,6 @@ public class Atendimento : Entity
 
         Status = ConversationStatus.EmAtendimento;
         AgenteId = agenteId;
-        // Disparar evento: AtendimentoAtribuidoEvent
     }
 
     public void Resolver(Guid? agenteIdResolvedor)
@@ -131,12 +129,11 @@ public class Atendimento : Entity
             throw new DomainException("Este atendimento não estava aguardando uma resposta do cliente.");
 
         Status = ConversationStatus.EmAtendimento;
-        // Disparar evento: ClienteRespondeuTemplateEvent
     }
 
     public void MarcarComoSemResposta()
     {
-        if (Status != ConversationStatus.AguardandoRespostaCliente) return; // Ação idempotente
+        if (Status != ConversationStatus.AguardandoRespostaCliente) return; 
 
         Status = ConversationStatus.FechadoSemResposta;
     }

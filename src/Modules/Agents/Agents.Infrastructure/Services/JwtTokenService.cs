@@ -30,16 +30,15 @@ public class JwtTokenService : ITokenService
 
         var claims = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.Sub, agente.Id.ToString()), // 'Subject' - o ID do usuário
+            new Claim(JwtRegisteredClaimNames.Sub, agente.Id.ToString()), 
             new Claim(JwtRegisteredClaimNames.Email, agente.Email),
             new Claim(JwtRegisteredClaimNames.Name, agente.Nome),
-            new Claim("setorId", setor?.Id.ToString() ?? string.Empty), // Adiciona o ID do setor
-            new Claim("setorNome", setor?.Nome ?? string.Empty), // Adiciona o nome do setor
+            new Claim("setorId", setor?.Id.ToString() ?? string.Empty), 
+            new Claim("setorNome", setor?.Nome ?? string.Empty), 
            
 
 
 
-            // Podemos adicionar 'Roles' aqui no futuro
         };
 
         var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);

@@ -7,24 +7,10 @@ namespace Templates.Domain.Aggregates;
 
 public class MessageTemplate : Entity
 {
-    /// <summary>
-    /// O nome exato do template na plataforma da Meta (ex: "hello_world").
-    /// </summary>
+
     public string Name { get; private set; }
-
-    /// <summary>
-    /// O código do idioma do template (ex: "pt_BR").
-    /// </summary>
     public string Language { get; private set; }
-
-    /// <summary>
-    /// O conteúdo do corpo do template, com placeholders como {{1}}, {{2}}, etc.
-    /// </summary>
     public string Body { get; private set; }
-
-    /// <summary>
-    /// Uma descrição amigável para o agente entender o propósito do template.
-    /// </summary>
     public string? Description { get; private set; }
 
     public TemplateStatus Status { get; private set; }
@@ -56,6 +42,5 @@ public class MessageTemplate : Entity
     {
         Status = novoStatus;
         MotivoRejeicao = motivo;
-        // Disparar evento de domínio: TemplateStatusAtualizadoEvent
     }
 }

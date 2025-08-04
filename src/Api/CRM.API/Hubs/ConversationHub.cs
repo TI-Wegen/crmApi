@@ -1,7 +1,5 @@
 ﻿namespace CRM.API.Hubs;
 
-
-// Em Api/Hubs/
 using Microsoft.AspNetCore.SignalR;
 
 public class ConversationHub : Hub

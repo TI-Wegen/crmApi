@@ -18,10 +18,8 @@ public class GetAllAgentsQueryHandler : IQueryHandler<GetAllAgentsQuery, IEnumer
 
     public async Task<IEnumerable<AgenteDto>> HandleAsync(GetAllAgentsQuery query, CancellationToken cancellationToken)
     {
-        // 1. Usa o repositório para buscar os agentes com paginação
         var agentes = await _agentRepository.GetAllAsync(query.PageNumber, query.PageSize, false, cancellationToken);
 
-        // 2. Mapeia a lista de entidades de domínio para uma lista de DTOs
         return agentes.Select(agente => agente.ToDto());
     }
 }

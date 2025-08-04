@@ -39,7 +39,6 @@ public class AtendimentoRepository : IAtendimentoRepository
 
     public async Task<IEnumerable<Atendimento>> GetAtendimentosAtivosCriadosAntesDeAsync(DateTime dataLimite, CancellationToken cancellationToken = default)
     {
-        // Define quais status são considerados ativos e podem expirar.
         var activeStatuses = new[]
         {
         ConversationStatus.EmAutoAtendimento,
@@ -49,9 +48,8 @@ public class AtendimentoRepository : IAtendimentoRepository
 
 
       
-        // Busca todos os atendimentos que estão em um status ativo E foram criados antes da data limite.
         return await _context.Atendimentos
-            .Where(a => activeStatuses.Contains(a.Status) && a.CreatedAt < dataLimite) // Supondo que você tenha uma propriedade CreatedAt
+            .Where(a => activeStatuses.Contains(a.Status) && a.CreatedAt < dataLimite) 
             .ToListAsync(cancellationToken);
     }
 
@@ -59,14 +57,13 @@ public class AtendimentoRepository : IAtendimentoRepository
     {
         var query = _context.Atendimentos
             .Where(a => a.ConversaId == conversaId)
-            .OrderByDescending(a => a.CreatedAt) // Ordena pela data de criação mais recente
-            .Take(2); // Limita a dois resultados
+            .OrderByDescending(a => a.CreatedAt) 
+            .Take(2); 
 
         return await query.ToListAsync(cancellationToken);
     }
     public async Task<IEnumerable<Atendimento>> GetAtendimentosEmAutoAtendimentoAsync(CancellationToken cancellationToken = default)
     {
-        // Define quais status são considerados de autoatendimento
         var botStatuses = new[]
         {
         ConversationStatus.EmAutoAtendimento

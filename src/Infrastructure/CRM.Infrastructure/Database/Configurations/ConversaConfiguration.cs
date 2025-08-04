@@ -1,6 +1,5 @@
 ﻿namespace CRM.Infrastructure.Database.Configurations;
 
-// Em Infrastructure/Database/Configurations/
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Conversations.Domain.Aggregates;
@@ -9,16 +8,14 @@ public class ConversaConfiguration : IEntityTypeConfiguration<Conversa>
 {
     public void Configure(EntityTypeBuilder<Conversa> builder)
     {
-        builder.ToTable("Conversas"); // Nome da tabela no banco
-        builder.HasKey(c => c.Id); // Chave primária
+        builder.ToTable("Conversas");
+        builder.HasKey(c => c.Id);
         builder.Property(c => c.Version).IsConcurrencyToken();
 
-        // Configura o relacionamento "um-para-muitos" com Mensagem
         var navigation = builder.Navigation(c => c.Mensagens);
-        navigation.UsePropertyAccessMode(PropertyAccessMode.Field); // Diz ao EF para usar o campo privado _mensagens
+        navigation.UsePropertyAccessMode(PropertyAccessMode.Field); 
         navigation.HasField("_mensagens");
 
-        // Ignora a propriedade de eventos de domínio, para não ser persistida
         builder.Ignore(c => c.DomainEvents);
 
         builder.OwnsOne(c => c.SessaoAtiva, sessaoBuilder =>

@@ -136,7 +136,6 @@ namespace CRM.API.Controllers
 
             try
             {
-                // O switch agora delega para o método especialista apropriado.
                 switch (message.Type)
                 {
                     case "text":
@@ -171,8 +170,6 @@ namespace CRM.API.Controllers
         private async Task HandleTextMessageAsync(MessageObject message, ContactObject contactPayload)
         {
             var telefoneDoContato = message.From;
-
-            // A lógica de buffer pertence apenas a mensagens de texto.
             await _messageBuffer.AddToBufferAsync(telefoneDoContato, message);
             if (!await _messageBuffer.IsFirstProcessor(telefoneDoContato))
             {
@@ -192,8 +189,6 @@ namespace CRM.API.Controllers
             var dataHoraBrasil = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, fusoHorarioBr);
 
 
-
-            // O resto da lógica de roteamento que já tínhamos...
             var isDeveloper = _metaSettings.DeveloperPhoneNumbers.Contains(telefoneDoContato);
             var botSession = isDeveloper ? await _botSessionCache.GetStateAsync(telefoneDoContato) : null;
 
@@ -328,14 +323,12 @@ namespace CRM.API.Controllers
 
         private async Task HandleDocumentMessageAsync(MessageObject message, ContactObject contactPayload)
         {
-            // Guardião de segurança
             if (message.Document is null)
             {
                 _logger.LogWarning("Mensagem do tipo 'document' recebida, mas sem o objeto 'document'. Ignorando.");
                 return;
             }
 
-            // 1. Baixa a mídia da Meta e faz o upload para nosso storage (S3/Minio). 
             var mediaFile = await _metaMediaService.DownloadMediaAsync(message.Document.Id);
             if (mediaFile is null)
             {
@@ -345,10 +338,8 @@ namespace CRM.API.Controllers
 
             var anexoUrl = await _fileStorageService.UploadAsync(mediaFile.Content, mediaFile.FileName, mediaFile.MimeType);
 
-            // 2. Usa nosso parser para extrair o texto (legenda ou nome do arquivo).
             var textoParaProcessar = WebhookMessageParser.ParseMessage(message);
 
-            // 3. Extrai as outras informações necessárias.
             var telefoneDoContato = message.From;
             var nomeDoContato = contactPayload.Profile.Name;
             var waIdDoContato = contactPayload.WaId;
@@ -357,7 +348,6 @@ namespace CRM.API.Controllers
 
             var isDeveloper = _metaSettings.DeveloperPhoneNumbers.Any() && _metaSettings.DeveloperPhoneNumbers.Contains(telefoneDoContato);
 
-            // 4. REUTILIZA nosso fluxo de iniciar um novo atendimento, agora passando a URL do anexo.
             await IniciarNovoFluxoDeAtendimento(telefoneDoContato, nomeDoContato, textoParaProcessar, timestampMensagem, anexoUrl, isDeveloper, waIdDoContato);
         }
         private async Task IniciarNovoFluxoDeAtendimento(string telefoneDoContato, string nomeDoContato, string textoDaMensagem, DateTime timestamp, string? anexoUrl, bool isDeveloper, string waId)
@@ -373,7 +363,6 @@ namespace CRM.API.Controllers
             }
             else { contatoId = contatoDto.Id; }
 
-            // O IniciarConversaCommand agora precisa aceitar o anexoUrl.
             var iniciarConversaCommand = new IniciarConversaCommand(
                 ContatoId: contatoId,
                 TextoDaMensagem: textoDaMensagem,
@@ -402,7 +391,6 @@ namespace CRM.API.Controllers
             var contactPayload = value?.Contacts?.FirstOrDefault();
             if (contactPayload is null) return;
 
-            // Despacha o comando para o caso de uso que fará o trabalho pesado.
             var command = new AtualizarAvatarContatoCommand(contactPayload.WaId);
             await _atualizarAvatarHandler.HandleAsync(command); // Injete o novo handler
         }
@@ -421,7 +409,7 @@ namespace CRM.API.Controllers
         private bool IsValidSignature(string payload, string signature)
         {
             // Lógica para validar o hash HMACSHA256 usando seu AppSecret
-            // ...
+            
             return true; // Implementação real da validação é necessária aqui
         }
 

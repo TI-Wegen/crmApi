@@ -15,11 +15,10 @@ public class MinioStorageService : IFileStorageService
     public MinioStorageService(IOptions<MinioSettings> settings)
     {
         _settings = settings.Value;
-        // Configuração para usar um serviço compatível com S3 (como o Minio)
         var config = new AmazonS3Config
         {
             ServiceURL = _settings.ServiceUrl,
-            ForcePathStyle = true // ESSENCIAL para o Minio
+            ForcePathStyle = true 
         };
         _s3Client = new AmazonS3Client(_settings.AccessKey, _settings.SecretKey, config);
     }
@@ -29,20 +28,18 @@ public class MinioStorageService : IFileStorageService
         var request = new PutObjectRequest
         {
             BucketName = _settings.BucketName,
-            Key = fileName, // Nome do arquivo no bucket
+            Key = fileName, 
             InputStream = fileStream,
             ContentType = contentType,
-            CannedACL = S3CannedACL.PublicRead // Torna o objeto publicamente legível
+            CannedACL = S3CannedACL.PublicRead 
         };
 
         await _s3Client.PutObjectAsync(request);
 
-        // Retorna a URL pública do arquivo
         return $"{_settings.ServiceUrl}/{_settings.BucketName}/{fileName}";
     }
 }
 
-// Classe para carregar as configurações do appsettings.json
 public class MinioSettings
 {
     public string ServiceUrl { get; set; }

@@ -16,11 +16,10 @@ public class Agente : Entity
     private readonly List<Guid> _setorIds = new();
     public IReadOnlyCollection<Guid> SetorIds => _setorIds.AsReadOnly();
 
-    private Agente() { } // Construtor privado para o EF Core e para forçar o uso do método de fábrica
+    private Agente() { }
 
     public static Agente Criar(string nome, string email)
     {
-        // Validações (invariantes) para garantir um estado inicial consistente
         if (string.IsNullOrWhiteSpace(nome)) throw new DomainException("O nome do agente é obrigatório.");
         if (string.IsNullOrWhiteSpace(email)) throw new DomainException("O e-mail do agente é obrigatório.");
 
@@ -29,16 +28,14 @@ public class Agente : Entity
             Id = Guid.NewGuid(),
             Nome = nome,
             Email = email,
-            Status = AgenteStatus.Offline, // Um agente sempre começa como Offline
-            CargaDeTrabalho = CargaDeTrabalho.Nenhuma() // E com carga de trabalho zerada 
+            Status = AgenteStatus.Offline, 
+            CargaDeTrabalho = CargaDeTrabalho.Nenhuma() 
         };
     }
 
     public void AlterarStatus(AgenteStatus novoStatus)
     {
-        // Poderíamos ter regras aqui, ex: não pode ficar Online se não pertencer a nenhum setor.
         Status = novoStatus;
-        // Disparar evento de domínio: AgenteStatusAlteradoEvent
     }
 
     public void AtribuirASetor(Guid setorId)
@@ -67,29 +64,22 @@ public class Agente : Entity
 
         Nome = novoNome;
 
-        // Atualiza a lista de setores
         _setorIds.Clear();
         foreach (var setorId in novosSetorIds ?? new List<Guid>())
         {
             AtribuirASetor(setorId);
         }
-
-        // Opcional: Disparar um evento de domínio
-        // AddDomainEvent(new AgenteAtualizadoEvent(this.Id));
     }
 
     public void Inativar()
     {
-        // Regra de negócio: não se pode inativar um agente com atendimentos em andamento.
         if (CargaDeTrabalho.Valor > 0)
             throw new DomainException("Não é possível inativar um agente com conversas ativas.");
 
-        if (Status == AgenteStatus.Inativo) return; // Já está inativo, nenhuma ação necessária.
+        if (Status == AgenteStatus.Inativo) return; 
 
         Status = AgenteStatus.Inativo;
 
-        // Disparar evento de domínio: AgenteInativadoEvent
-        // AddDomainEvent(new AgenteInativadoEvent(this.Id));
     }
 
     public void DefinirSenha(string senha)
@@ -98,7 +88,6 @@ public class Agente : Entity
         {
             throw new DomainException("A senha deve ter no mínimo 8 caracteres.");
         }
-        // Gera o hash da senha usando BCrypt
         PasswordHash = BCrypt.Net.BCrypt.HashPassword(senha);
     }
 

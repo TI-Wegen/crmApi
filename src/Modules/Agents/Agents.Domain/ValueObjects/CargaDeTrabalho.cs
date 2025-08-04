@@ -1,7 +1,4 @@
-﻿// Em Modules/Agents/Domain/ValueObjects/
-using CRM.Domain.Exceptions;
-
-// Usamos 'record' para imutabilidade e comparação baseada em valor.
+﻿using CRM.Domain.Exceptions;
 public record CargaDeTrabalho
 {
     public int Valor { get; }

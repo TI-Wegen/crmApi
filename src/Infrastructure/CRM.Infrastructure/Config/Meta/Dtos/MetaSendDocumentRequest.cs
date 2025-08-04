@@ -7,7 +7,6 @@ public record MetaSendDocumentRequest
     [JsonPropertyName("messaging_product")]
     public string MessagingProduct { get; } = "whatsapp";
 
-    // NOVO: Adicionado para conformidade com a documentação
     [JsonPropertyName("recipient_type")]
     public string RecipientType { get; } = "individual";
 
@@ -27,7 +26,6 @@ public record MetaSendDocumentRequest
     }
 }
 
-// Objeto aninhado para os detalhes do documento
 public record DocumentPayload
 {
     [JsonPropertyName("link")]
@@ -36,7 +34,6 @@ public record DocumentPayload
     [JsonPropertyName("filename")]
     public string Filename { get; init; }
 
-    // O '?' torna a legenda opcional. Se for nula, não será serializada no JSON.
     [JsonPropertyName("caption")]
     public string? Caption { get; init; }
 

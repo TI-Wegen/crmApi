@@ -26,7 +26,6 @@ public class MetaContactService : IMetaContactService
     public async Task<string?> GetProfilePictureUrlAsync(string waId)
     {
         var httpClient = _httpClientFactory.CreateClient("MetaApiClient");
-        // A query agora pede o campo específico 'profile_picture_url'
         var requestUrl = $"{_metaSettings.MetaApiVersion}/{waId}?fields=profile_picture_url";
 
         var response = await httpClient.GetAsync(requestUrl);
@@ -44,7 +43,6 @@ public class MetaContactService : IMetaContactService
         var httpClient = _httpClientFactory.CreateClient("MetaApiClient");
         var requestUrl = $"{_metaSettings.MetaApiVersion}/{_metaSettings.WhatsAppBusinessAccountId}/contacts";
 
-        // O corpo da requisição para verificar contatos
         var requestBody = new
         {
             blocking = "wait",
@@ -60,10 +58,7 @@ public class MetaContactService : IMetaContactService
             throw new Exception($"Erro ao verificar contato: {content}");
         }
 
-        // DTO para parsear a resposta da verificação
         var result = JsonSerializer.Deserialize<MetaContactCheckResponse>(content);
-
-        // Retorna o wa_id do primeiro contato que foi validado com sucesso
         return result?.Contacts?.FirstOrDefault(c => c.Status == "valid")?.WaId;
     }
 }

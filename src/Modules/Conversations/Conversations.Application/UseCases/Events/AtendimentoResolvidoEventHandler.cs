@@ -24,10 +24,8 @@ public class AtendimentoResolvidoEventHandler : IDomainEventHandler<AtendimentoR
         _metaSender = metaSender;
     }
 
-    // O nome do método é 'Handle' para corresponder à nossa interface IDomainEventHandler
     public async Task Handle(AtendimentoResolvidoEvent domainEvent, CancellationToken cancellationToken)
     {
-        // Precisamos buscar o atendimento para descobrir a qual conversa e contato ele pertence
         var atendimento = await _atendimentoRepository.GetByIdAsync(domainEvent.AtendimentoId, cancellationToken);
         if (atendimento is null) return;
 
@@ -37,7 +35,6 @@ public class AtendimentoResolvidoEventHandler : IDomainEventHandler<AtendimentoR
         var contato = await _contactRepository.GetByIdAsync(conversa.ContatoId, cancellationToken);
         if (contato is null) return;
 
-        // Chama nosso serviço de envio da Meta, passando o ID do ATENDIMENTO
         await _metaSender.EnviarPesquisaDeSatisfacaoAsync(contato.Telefone, atendimento.Id);
     }
 }

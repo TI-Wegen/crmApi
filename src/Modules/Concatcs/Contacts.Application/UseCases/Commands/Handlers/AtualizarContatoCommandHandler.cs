@@ -22,7 +22,6 @@ public class AtualizarContatoCommandHandler : ICommandHandler<AtualizarContatoCo
         if (contato is null)
             throw new NotFoundException($"Contato com o Id '{command.ContactId}' não encontrado.");
 
-        // Validação de unicidade do telefone, caso ele tenha sido alterado.
         if (contato.Telefone != command.NovoTelefone)
         {
             var existingContact = await _contactRepository.GetByTelefoneAsync(command.NovoTelefone, cancellationToken);
@@ -34,7 +33,7 @@ public class AtualizarContatoCommandHandler : ICommandHandler<AtualizarContatoCo
 
         contato.Atualizar(command.NovoNome, command.NovoTelefone, command.NovasTags);
 
-        await _contactRepository.UpdateAsync(contato); // O Update é opcional aqui, mas explícito
+        await _contactRepository.UpdateAsync(contato); 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

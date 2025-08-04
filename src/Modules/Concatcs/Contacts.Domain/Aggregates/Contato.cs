@@ -1,6 +1,5 @@
 ﻿namespace Contacts.Domain.Aggregates;
 
-// Em Modules/Contacts/Domain/Aggregates/
 using Contacts.Domain.Entities;
 using Contacts.Domain.Enums;
 using Contacts.Domain.ValueObjects;
@@ -37,7 +36,6 @@ public class Contato : Entity
             WaId = waId,
         };
 
-        // Adiciona o primeiro status ao histórico
         contato.AdicionarEntradaNoHistorico(ContatoStatus.Novo);
         return contato;
     }
@@ -47,12 +45,11 @@ public class Contato : Entity
     }
     public void AlterarStatus(ContatoStatus novoStatus)
     {
-        if (Status == novoStatus) return; // Nenhuma alteração necessária
+        if (Status == novoStatus) return; 
 
         Status = novoStatus;
         AdicionarEntradaNoHistorico(novoStatus);
 
-        // Disparar evento de domínio: ContatoStatusAlteradoEvent
     }
 
     public void AdicionarTag(string textoDaTag)
@@ -95,9 +92,8 @@ public class Contato : Entity
     public void Inativar()
     {
     
-        if (Status == ContatoStatus.Inativo) return; // Nenhuma ação necessária
+        if (Status == ContatoStatus.Inativo) return; 
 
-        // Reutilizamos o método que já criamos para alterar o status e registrar no histórico!
         AlterarStatus(ContatoStatus.Inativo);
 
     }

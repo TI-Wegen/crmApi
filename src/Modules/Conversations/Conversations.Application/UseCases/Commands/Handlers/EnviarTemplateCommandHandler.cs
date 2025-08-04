@@ -57,21 +57,17 @@ public class EnviarTemplateCommandHandler : ICommandHandler<EnviarTemplateComman
         var novoAtendimento = Atendimento.IniciarProativamente(conversa.Id, agenteId);
         await _atendimentoRepository.AddAsync(novoAtendimento, cancellationToken);
 
-        // Salva a criação do novo atendimento no banco PRIMEIRO.
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Chama o nosso novo serviço centralizado que faz tudo: envia, registra e notifica.
         await _mensageriaBotService.EnviarETemplateAsync(
             novoAtendimento.Id,
             contato.Telefone,
             command.TemplateName,
             command.BodyParameters);
 
-        // O evento de domínio pode ser disparado aqui se ainda for necessário para outras métricas.
         novoAtendimento.AddDomainEvent(new TemplateEnviadoEvent(
             novoAtendimento.Id, agenteId, command.TemplateName, DateTime.UtcNow));
 
-        // Salva o evento de domínio.
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

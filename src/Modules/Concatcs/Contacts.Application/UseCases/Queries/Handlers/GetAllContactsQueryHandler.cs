@@ -18,10 +18,8 @@ public class GetAllContactsQueryHandler : IQueryHandler<GetAllContactsQuery, IEn
 
     public async Task<IEnumerable<ContatoDto>> HandleAsync(GetAllContactsQuery query, CancellationToken cancellationToken)
     {
-        // 1. Usa o repositório para buscar os contatos com paginação
         var contatos = await _contactRepository.GetAllAsync(query.PageNumber, query.PageSize, false, cancellationToken);
 
-        // 2. Mapeia a lista de entidades para uma lista de DTOs
         return contatos.Select(contato => contato.ToDto());
     }
 }

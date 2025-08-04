@@ -44,8 +44,7 @@ public class CriarTemplateCommandHandler : ICommandHandler<CriarTemplateCommand,
         }
         catch (Exception ex)
         {
-            // Se a chamada à Meta falhar, não revertemos a criação no nosso banco.
-            // Apenas registramos o erro. Poderíamos ter um status "PendenteDeSincronizacao".
+           
             Console.WriteLine($"--> O template '{template.Name}' foi salvo no CRM, mas falhou ao ser enviado para a Meta. Erro: {ex.Message}");
         }
 
