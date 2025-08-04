@@ -57,6 +57,7 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
     public async Task<Guid> HandleAsync(IniciarConversaCommand command, CancellationToken cancellationToken)
     {
         var timestamp = command.Timestamp ?? DateTime.UtcNow;
+        var timestampUtc = DateTime.SpecifyKind(timestamp, DateTimeKind.Utc);
 
         var conversa = await _conversationRepository.FindActiveByContactIdAsync(command.ContatoId, cancellationToken);
         if (conversa is not null)
@@ -73,7 +74,7 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
 
                 }
 
-                var mensagemEmAndamento = new Mensagem(conversa.Id, atendimentoAtivo.Id, command.TextoDaMensagem, Remetente.Cliente(), timestamp, command.AnexoUrl);
+                var mensagemEmAndamento = new Mensagem(conversa.Id, atendimentoAtivo.Id, command.TextoDaMensagem, Remetente.Cliente(), timestampUtc, command.AnexoUrl);
                 conversa.AdicionarMensagem(mensagemEmAndamento, atendimentoAtivo.Id);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -90,7 +91,7 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
             conversa = Conversa.Iniciar(command.ContatoId, command.ContatoNome);
             await _conversationRepository.AddAsync(conversa, cancellationToken);
         }
-        conversa.IniciarOuRenovarSessao(timestamp);
+        conversa.IniciarOuRenovarSessao(timestampUtc);
 
 
         var contato = await _contactRepository.GetByIdAsync(conversa.ContatoId);
@@ -98,17 +99,17 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
         // 4. Cria a primeira Mensagem, agora que temos todos os IDs.
         var fusoHorarioBrasil = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
         var dataAtualLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, fusoHorarioBrasil).Date;
-        var dataMensagemLocal = TimeZoneInfo.ConvertTimeFromUtc(timestamp, fusoHorarioBrasil).Date;
+        var timestampBrasilia = TimeZoneInfo.ConvertTimeFromUtc(timestampUtc, fusoHorarioBrasil).Date;
 
         // A decisão de usar o bot agora depende do flag E da data da mensagem.
-        bool deveIniciarBot = command.IniciarComBot && (dataAtualLocal == dataMensagemLocal);
+        bool deveIniciarBot = command.IniciarComBot && (dataAtualLocal == timestampBrasilia);
 
         if (deveIniciarBot)
         {
             _logger.LogInformation("Mensagem atual recebida. Iniciando fluxo de bot para a conversa {ConversaId}.", conversa.Id);
 
             var novoAtendimento = Atendimento.Iniciar(conversa.Id);
-            var primeiraMensagem = new Mensagem(conversa.Id, novoAtendimento.Id, command.TextoDaMensagem, Remetente.Cliente(), timestamp, command.AnexoUrl);
+            var primeiraMensagem = new Mensagem(conversa.Id, novoAtendimento.Id, command.TextoDaMensagem, Remetente.Cliente(), timestampUtc, command.AnexoUrl);
 
             primeiraMensagem.SetAtendimentoId(novoAtendimento.Id);
             conversa.AdicionarMensagem(primeiraMensagem, novoAtendimento.Id);
@@ -135,7 +136,7 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
                 UltimaMensagemTimestamp = primeiraMensagem.Timestamp,
                 UltimaMensagemPreview = primeiraMensagem.Texto,
 
-                SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva(DateTime.UtcNow) ?? false,
+                SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva(DateTime.UtcNow) ?? true,
                 SessaoWhatsappExpiraEm = conversa.SessaoAtiva?.DataFim
             };
             await _readService.NotificarNovaConversaNaFilaAsync(summaryDto);
@@ -145,7 +146,7 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
         {
             var setorAdmin = await _agentRepository.GetSetorByNomeAsync(SetorNomeExtensions.ToDbValue(SetorNome.Admin));
             var novoAtendimento = Atendimento.IniciarEmFila(conversa.Id, setorAdmin.Id);
-            var primeiraMensagem = new Mensagem(conversa.Id, novoAtendimento.Id, command.TextoDaMensagem, Remetente.Cliente(), timestamp, command.AnexoUrl);
+            var primeiraMensagem = new Mensagem(conversa.Id, novoAtendimento.Id, command.TextoDaMensagem, Remetente.Cliente(), timestampUtc, command.AnexoUrl);
             primeiraMensagem.SetAtendimentoId(novoAtendimento.Id);
             conversa.AdicionarMensagem(primeiraMensagem, novoAtendimento.Id);
             await _atendimentoRepository.AddAsync(novoAtendimento, cancellationToken);
@@ -164,7 +165,7 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
                 UltimaMensagemTimestamp = primeiraMensagem.Timestamp,
                 UltimaMensagemPreview = primeiraMensagem.Texto,
 
-                SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva(DateTime.UtcNow) ?? false,
+                SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva(DateTime.UtcNow) ?? true,
                 SessaoWhatsappExpiraEm = conversa.SessaoAtiva?.DataFim
             };
                 await _readService.NotificarNovaConversaNaFilaAsync(summaryDto);

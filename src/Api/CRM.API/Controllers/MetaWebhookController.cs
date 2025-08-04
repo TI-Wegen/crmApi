@@ -186,7 +186,12 @@ namespace CRM.API.Controllers
             var nomeDoContato = contactPayload.Profile.Name;
             var waIdDoContato = contactPayload.WaId;
             var primeiroTimestampUnix = long.Parse(mensagensAgrupadas.First().Timestamp);
-            var timestampMensagem = DateTime.UnixEpoch.AddSeconds(primeiroTimestampUnix).ToUniversalTime();
+            var utcDateTime = DateTimeOffset.FromUnixTimeSeconds(primeiroTimestampUnix).UtcDateTime;
+
+            var fusoHorarioBr = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
+            var dataHoraBrasil = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, fusoHorarioBr);
+
+
 
             // O resto da lógica de roteamento que já tínhamos...
             var isDeveloper = _metaSettings.DeveloperPhoneNumbers.Contains(telefoneDoContato);
@@ -194,7 +199,7 @@ namespace CRM.API.Controllers
 
             if (botSession is not null)
             {
-                var processarRespostaCommand = new ProcessarRespostaDoMenuCommand(telefoneDoContato, textoDaMensagem, timestampMensagem);
+                var processarRespostaCommand = new ProcessarRespostaDoMenuCommand(telefoneDoContato, textoDaMensagem, dataHoraBrasil);
                 await _processarRespostaHandler.HandleAsync(processarRespostaCommand);
             }
             else
@@ -210,7 +215,7 @@ namespace CRM.API.Controllers
                 }
                 else { contatoId = contatoDto.Id; }
 
-                var iniciarConversaCommand = new IniciarConversaCommand(contatoId, textoDaMensagem, nomeDoContato, Timestamp: timestampMensagem, IniciarComBot: isDeveloper);
+                var iniciarConversaCommand = new IniciarConversaCommand(contatoId, textoDaMensagem, nomeDoContato, Timestamp: dataHoraBrasil, IniciarComBot: isDeveloper);
                 await _iniciarConversaHandler.HandleAsync(iniciarConversaCommand);
             }
         }

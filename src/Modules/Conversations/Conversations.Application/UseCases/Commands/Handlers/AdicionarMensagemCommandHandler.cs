@@ -106,6 +106,24 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         var messageDto = novaMensagem.ToDto();
         await _notifier.NotificarNovaMensagemAsync(conversa.Id.ToString(), messageDto);
 
+        var summaryDto = new ConversationSummaryDto
+        {
+            Id = conversa.Id,
+            AtendimentoId = novaMensagem.Id,
+            ContatoNome = contato.Nome,
+            ContatoTelefone = contato.Telefone,
+
+            AgenteNome = null,
+            Status = atendimento.Status.ToString(),
+
+            UltimaMensagemTimestamp = novaMensagem.Timestamp,
+            UltimaMensagemPreview = novaMensagem.Texto,
+
+            SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva(DateTime.UtcNow) ?? true,
+            SessaoWhatsappExpiraEm = conversa.SessaoAtiva?.DataFim
+        };
+        await _notifier.NotificarNovaConversaNaFilaAsync(summaryDto);
+
         return messageDto;
     }
 }
