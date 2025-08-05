@@ -14,7 +14,7 @@ public static class SetorNomeExtensions
         {
             SetorNome.Financeiro => "Financeiro",
             SetorNome.Comercial => "Comercial",
-            SetorNome.Admin => "Administração",
+            SetorNome.Admin => "Administracao",
             _ => throw new ArgumentOutOfRangeException(nameof(setor), setor, null)
         };
     }
