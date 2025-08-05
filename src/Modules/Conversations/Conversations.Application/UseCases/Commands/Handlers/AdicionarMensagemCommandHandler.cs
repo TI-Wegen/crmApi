@@ -51,7 +51,7 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         var timestamp = command.Timestamp ?? DateTime.UtcNow;
         var timestampUtc = DateTime.SpecifyKind(timestamp, DateTimeKind.Utc);
         var fusoHorarioBrasil = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
-        var timestampBrasilia = TimeZoneInfo.ConvertTimeFromUtc(timestampUtc, fusoHorarioBrasil).Date;
+        var timestampBrasilia = TimeZoneInfo.ConvertTimeFromUtc(timestampUtc, fusoHorarioBrasil);
 
 
         var conversa = await _conversationRepository.GetByIdAsync(command.ConversaId, cancellationToken);
@@ -85,8 +85,9 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         }
 
         var remetente = Remetente.Agente(agenteId.Value);
+        var timestampCompatível = DateTime.SpecifyKind(timestampBrasilia, DateTimeKind.Utc);
 
-        var novaMensagem = new Mensagem(conversa.Id, atendimento.Id, command.Texto, remetente, timestamp: timestampBrasilia, anexoUrl);
+        var novaMensagem = new Mensagem(conversa.Id, atendimento.Id, command.Texto, remetente, timestamp: timestampCompatível, anexoUrl);
 
         conversa.AdicionarMensagem(novaMensagem, atendimento.Id);
 
