@@ -100,7 +100,6 @@ public static class UseCaseConfigurations
         services.AddScoped<IBotSessionCache, RedisBotSessionCache>();
         services.AddScoped<IDistributedLock, RedisDistributedLock>();
 
-        services.AddScoped<ExpirarSessoesJob>();
         services.AddScoped<CleanExpiredBotSessionsJob>();
         return services;
     }
