@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Templates.Application.UseCases.Commands;
 using Templates.Domain.Enuns;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 
 namespace CRM.API.Controllers
@@ -182,12 +183,7 @@ namespace CRM.API.Controllers
             var textoDaMensagem = string.Join(" ", mensagensAgrupadas.Select(m => WebhookMessageParser.ParseMessage(m)).Where(b => !string.IsNullOrEmpty(b)));
             var nomeDoContato = contactPayload.Profile.Name;
             var waIdDoContato = contactPayload.WaId;
-            var primeiroTimestampUnix = long.Parse(mensagensAgrupadas.First().Timestamp);
-            var utcDateTime = DateTimeOffset.FromUnixTimeSeconds(primeiroTimestampUnix).UtcDateTime;
-
-            var fusoHorarioBr = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
-            var dataHoraBrasil = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, fusoHorarioBr);
-
+            var dataHoraBrasil = ConvertTimestampBR(mensagensAgrupadas.First().Timestamp);
 
             var isDeveloper = _metaSettings.DeveloperPhoneNumbers.Contains(telefoneDoContato);
             var botSession = isDeveloper ? await _botSessionCache.GetStateAsync(telefoneDoContato) : null;
@@ -214,17 +210,9 @@ namespace CRM.API.Controllers
                 await _iniciarConversaHandler.HandleAsync(iniciarConversaCommand);
             }
         }
-
         private async Task HandleAudioMessageAsync(MessageObject message, ContactObject contactPayload)
         {
-            // Guardião de segurança
-            if (message.Audio is null)
-            {
-                _logger.LogWarning("Mensagem do tipo 'audio' recebida, mas sem o objeto 'audio'. Ignorando.");
-                return;
-            }
-
-            // 1. Baixa a mídia da Meta e faz o upload para nosso storage (S3/Minio). 
+        
             var mediaFile = await _metaMediaService.DownloadMediaAsync(message.Audio.Id);
             if (mediaFile is null)
             {
@@ -234,23 +222,19 @@ namespace CRM.API.Controllers
 
             var anexoUrl = await _fileStorageService.UploadAsync(mediaFile.Content, mediaFile.FileName, mediaFile.MimeType);
 
-            // 2. Usa nosso parser para obter o texto descritivo.
             var textoParaProcessar = WebhookMessageParser.ParseMessage(message);
 
-            // 3. Extrai as outras informações necessárias.
             var telefoneDoContato = message.From;
             var nomeDoContato = contactPayload.Profile.Name;
             var waIdDoContato = contactPayload.WaId;
-            var timestampUnix = long.Parse(message.Timestamp);
-            var timestampMensagem = DateTime.UnixEpoch.AddSeconds(timestampUnix).ToUniversalTime();
+            var dataHoraBrasil = ConvertTimestampBR(message.Timestamp);
 
             var isDeveloper = _metaSettings.DeveloperPhoneNumbers.Any() && _metaSettings.DeveloperPhoneNumbers.Contains(telefoneDoContato);
 
-            // 4. REUTILIZA nosso fluxo de iniciar um novo atendimento, agora passando a URL do anexo.
             await IniciarNovoFluxoDeAtendimento(telefoneDoContato, 
                 nomeDoContato, 
-                textoParaProcessar, 
-                timestampMensagem, 
+                textoParaProcessar,
+                dataHoraBrasil, 
                 anexoUrl, 
                 isDeveloper,
                 waIdDoContato
@@ -268,15 +252,9 @@ namespace CRM.API.Controllers
                 await _registrarAvaliacaoHandler.HandleAsync(command);
             }
         }
-
         private async Task HandleImageMessageAsync(MessageObject message, ContactObject contactPayload)
         {
-            if (message.Image is null)
-            {
-                _logger.LogWarning("Mensagem do tipo 'image' recebida, mas sem o objeto 'image' no payload. Ignorando.");
-                return;
-            }
-            // 1. Baixa a mídia da Meta e faz o upload para nosso storage (S3/Minio).
+          
             var mediaFile = await _metaMediaService.DownloadMediaAsync(message.Image!.Id);
             if (mediaFile is null)
             {
@@ -290,8 +268,8 @@ namespace CRM.API.Controllers
             var telefoneDoContato = message.From;
             var nomeDoContato = contactPayload.Profile.Name;
             var waIdDoContato = contactPayload.WaId;
-            var timestampUnix = long.Parse(message.Timestamp);
-            var timestampMensagem = DateTime.UnixEpoch.AddSeconds(timestampUnix).ToUniversalTime();
+         
+            var dataHoraBrasil = ConvertTimestampBR(message.Timestamp);
 
             var isDeveloper = _metaSettings.DeveloperPhoneNumbers.Any() && _metaSettings.DeveloperPhoneNumbers.Contains(telefoneDoContato);
 
@@ -313,8 +291,8 @@ namespace CRM.API.Controllers
             {
                 await IniciarNovoFluxoDeAtendimento(telefoneDoContato, 
                     nomeDoContato, 
-                    textoParaProcessar, 
-                    timestampMensagem, 
+                    textoParaProcessar,
+                    dataHoraBrasil, 
                     anexoUrl, 
                     isDeveloper, 
                     waIdDoContato);
@@ -343,12 +321,11 @@ namespace CRM.API.Controllers
             var telefoneDoContato = message.From;
             var nomeDoContato = contactPayload.Profile.Name;
             var waIdDoContato = contactPayload.WaId;
-            var timestampUnix = long.Parse(message.Timestamp);
-            var timestampMensagem = DateTime.UnixEpoch.AddSeconds(timestampUnix).ToUniversalTime();
+            var dataHoraBrasil = ConvertTimestampBR(message.Timestamp);
 
             var isDeveloper = _metaSettings.DeveloperPhoneNumbers.Any() && _metaSettings.DeveloperPhoneNumbers.Contains(telefoneDoContato);
 
-            await IniciarNovoFluxoDeAtendimento(telefoneDoContato, nomeDoContato, textoParaProcessar, timestampMensagem, anexoUrl, isDeveloper, waIdDoContato);
+            await IniciarNovoFluxoDeAtendimento(telefoneDoContato, nomeDoContato, textoParaProcessar, dataHoraBrasil, anexoUrl, isDeveloper, waIdDoContato);
         }
         private async Task IniciarNovoFluxoDeAtendimento(string telefoneDoContato, string nomeDoContato, string textoDaMensagem, DateTime timestamp, string? anexoUrl, bool isDeveloper, string waId)
         {
@@ -404,6 +381,16 @@ namespace CRM.API.Controllers
                 // Adicione outros status como "PENDING" ou "PAUSED" se necessário
                 _ => null
             };
+        }
+        private DateTime ConvertTimestampBR (string timestamo)
+        {
+            var primeiroTimestampUnix = long.Parse(timestamo);
+            var utcDateTime = DateTimeOffset.FromUnixTimeSeconds(primeiroTimestampUnix).UtcDateTime;
+
+            var fusoHorarioBr = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
+            var dataHoraBrasil = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, fusoHorarioBr);
+
+            return dataHoraBrasil;
         }
 
         private bool IsValidSignature(string payload, string signature)
