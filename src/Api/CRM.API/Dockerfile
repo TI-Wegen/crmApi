@@ -43,6 +43,7 @@ RUN dotnet publish "./CRM.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p
 FROM base AS final
 WORKDIR /app
 USER root
+ENV ASPNETCORE_ENVIRONMENT=Development
 # Atualiza a lista de pacotes e instala/atualiza os certificados de autoridade confiáveis
 RUN apt-get update && apt-get install -y ca-certificates \
     # Limpa o cache para manter a imagem final pequena (boa prática)
