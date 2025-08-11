@@ -139,7 +139,7 @@ public class DapperConversationReadService : IConversationReadService
             m.""RemetenteTipo"", m.""RemetenteAgenteId""
         FROM ""Mensagens"" m
         WHERE m.""ConversaId"" = @ConversationId
-        ORDER BY m.""Timestamp"" ASC;
+        ORDER BY m.""Timestamp"" DESC;
     ";
 
     using var multi = await _dbConnection.QueryMultipleAsync(sql, new { ConversationId = conversationId });
