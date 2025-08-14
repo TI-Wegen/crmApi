@@ -1,4 +1,5 @@
 ﻿using Conversations.Application.Abstractions;
+using CRM.Application.Interfaces;
 using CRM.Infrastructure.Config.Meta;
 using Microsoft.Extensions.Options;
 using System.Text.Json;

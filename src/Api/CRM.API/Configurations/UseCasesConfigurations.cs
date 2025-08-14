@@ -5,6 +5,11 @@ using Agents.Application.UseCases.Queries;
 using Agents.Application.UseCases.Queries.Handler;
 using Agents.Domain.Repository;
 using Agents.Infrastructure.Repositories;
+using Boletos.Application.Interrfaces;
+using Boletos.Application.UseCases.Commands.Handlers;
+using Boletos.Application.UseCases.SedInvoices;
+using Boletos.Domain.Entities;
+using Boletos.Domain.Repositories;
 using Contacts.Application.Abstractions;
 using Contacts.Application.Dtos;
 using Contacts.Application.UseCases.Commands;
@@ -16,7 +21,6 @@ using Contacts.Domain.Repository;
 using Contacts.Infrastructure.Repositories;
 using Conversations.Application.Abstractions;
 using Conversations.Application.Dtos;
-using Conversations.Application.Services;
 using Conversations.Application.UseCases.Commands;
 using Conversations.Application.UseCases.Commands.Handlers;
 using Conversations.Application.UseCases.Events;
@@ -27,11 +31,18 @@ using Conversations.Infrastructure.Repositories;
 using Conversations.Infrastructure.Services;
 using CRM.API.Services;
 using CRM.Application.Interfaces;
+using CRM.Application.Mappers;
 using CRM.Domain.DomainEvents;
 using CRM.Infrastructure.Config.Meta;
 using CRM.Infrastructure.Database.Configurations;
-using CRM.Infrastructure.Services;
-using Infrastructure.ExternalServices.Services;
+using CRM.Infrastructure.Jobs;
+using CRM.Infrastructure.Jobs.Automations;
+using CRM.Infrastructure.Services.Cache;
+using CRM.Infrastructure.Services.Events;
+using CRM.Infrastructure.Services.Meta;
+using Infrastructure.ExternalServices.Services.Boleto;
+using Infrastructure.ExternalServices.Services.ClientService;
+using Infrastructure.ExternalServices.Services.Documents;
 using Infrastructure.ExternalServices.Services.Meta;
 using Metrics.Application.abstractions;
 using Metrics.Application.Dtos;
@@ -62,6 +73,7 @@ public static class UseCaseConfigurations
         services.AddRepositories();
         services.AddHandlers();
         services.AddServicesConfiguration();
+        services.AddAutomations();
         return services;
     }
 
@@ -101,9 +113,21 @@ public static class UseCaseConfigurations
         services.AddScoped<IDistributedLock, RedisDistributedLock>();
 
         services.AddScoped<CleanExpiredBotSessionsJob>();
+        services.AddScoped< SendInvoicesJobs>();
+
         return services;
     }
 
+    private static IServiceCollection AddAutomations(
+      this IServiceCollection services)
+    {
+
+        services.AddScoped< ISendInvoicesHandler , SendInvoicesCommandHandler>();
+        services.AddScoped<IReportServices, ReportService>();
+        services.AddScoped<IDocumentServices, MergeService>();
+        services.AddScoped<IClientRepository, ClientRepository>();
+        return services;
+    }
     private static IServiceCollection AddHandlers(
     this IServiceCollection services)
     {
@@ -153,6 +177,11 @@ public static class UseCaseConfigurations
 
         // modulo de metricas
         services.AddScoped<IQueryHandler<GetTemplatesSentPerAgentQuery, IEnumerable<TemplatesSentPerAgentDto>>, GetTemplatesSentPerAgentQueryHandler>();
+
+
+
+        // modulo de automação de boletos
+        services.AddScoped<ICommandHandler<SendInvoiceCommand, IEnumerable<Client> >, SendInvoicesCommandHandler>();
 
 
 

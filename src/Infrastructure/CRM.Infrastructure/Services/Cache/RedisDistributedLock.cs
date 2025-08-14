@@ -1,7 +1,7 @@
 ﻿using CRM.Application.Interfaces;
 using StackExchange.Redis;
 
-namespace CRM.Infrastructure.Services;
+namespace CRM.Infrastructure.Services.Cache;
 
 public class RedisDistributedLock : IDistributedLock
 {

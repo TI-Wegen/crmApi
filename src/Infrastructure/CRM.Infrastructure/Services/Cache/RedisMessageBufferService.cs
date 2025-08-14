@@ -2,7 +2,7 @@
 using StackExchange.Redis;
 using System.Text.Json;
 
-namespace CRM.Infrastructure.Services;
+namespace CRM.Infrastructure.Services.Cache;
 
     public class RedisMessageBufferService : IMessageBufferService
 {

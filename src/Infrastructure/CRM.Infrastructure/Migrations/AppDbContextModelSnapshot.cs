@@ -130,7 +130,7 @@ namespace CRM.Infrastructure.Migrations
                             Id = new Guid("00000000-0000-0000-0001-000000000003"),
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Descricao = "Setor responsável pela administração geral",
-                            Nome = "Administração",
+                            Nome = "Administracao",
                             Version = new Guid("d4a3b4d5-6e7f-8a9b-0c1d-2e3f4a5b6c7a")
                         });
                 });

@@ -1,4 +1,5 @@
-﻿using Conversations.Application.Abstractions;
+﻿using CRM.Application.Interfaces;
+using CRM.Application.ValueObject;
 using CRM.Infrastructure.Config.Meta;
 using CRM.Infrastructure.Config.Meta.Dtos;
 using Microsoft.Extensions.Options;
@@ -120,12 +121,12 @@ public class MetaMessageSender : IMetaMessageSender
 
         Console.WriteLine("--> Áudio enviado com sucesso pela API da Meta!");
     }
-    public async Task<string> EnviarTemplateAsync(string numeroDestino, string templateName, List<string> bodyParameters)
+    public async Task<string> EnviarTemplateAsync(SendTemplateInput input)
     {
         var httpClient = _httpClientFactory.CreateClient("MetaApiClient");
         var requestUrl = $"{_metaSettings.MetaApiVersion}/{_metaSettings.WhatsAppBusinessPhoneNumberId}/messages";
 
-        var requestBody = new MetaSendTemplateRequest(numeroDestino, templateName, bodyParameters);
+        var requestBody = new MetaSendTemplateRequest(input);
 
         var serializerOptions = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
         var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody, serializerOptions), Encoding.UTF8, "application/json");

@@ -1,10 +1,8 @@
 ﻿namespace CRM.Infrastructure.Storage;
 
-// Em Infrastructure/FileStorage/
 using Amazon.S3;
 using Amazon.S3.Model;
-using Conversations.Application.Abstractions;
-using CRM.Application.Interfaces;
+using global::CRM.Application.Interfaces;
 using Microsoft.Extensions.Options;
 
 public class MinioStorageService : IFileStorageService
@@ -23,15 +21,20 @@ public class MinioStorageService : IFileStorageService
         _s3Client = new AmazonS3Client(_settings.AccessKey, _settings.SecretKey, config);
     }
 
-    public async Task<string> UploadAsync(Stream fileStream, string fileName, string contentType)
+    public Task DeleteFileAsync(string fileName, Domain.Enums.BucketTypeEnum? type = Domain.Enums.BucketTypeEnum.CRM)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<string> UploadAsync(Stream fileStream, string fileName, string contentType, Domain.Enums.BucketTypeEnum? type = Domain.Enums.BucketTypeEnum.CRM)
     {
         var request = new PutObjectRequest
         {
             BucketName = _settings.BucketName,
-            Key = fileName, 
+            Key = fileName,
             InputStream = fileStream,
             ContentType = contentType,
-            CannedACL = S3CannedACL.PublicRead 
+            CannedACL = S3CannedACL.PublicRead
         };
 
         await _s3Client.PutObjectAsync(request);

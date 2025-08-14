@@ -1,7 +1,7 @@
 ﻿using CRM.Domain.DomainEvents;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CRM.Infrastructure.Services;
+namespace CRM.Infrastructure.Services.Events;
 
 public class DomainEventDispatcher : IDomainEventDispatcher
 {

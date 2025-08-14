@@ -1,5 +1,5 @@
-﻿using Conversations.Application.Dtos;
-using CRM.Application.Interfaces;
+﻿using CRM.Application.Interfaces;
+using CRM.Application.Mappers;
 
 namespace Conversations.Application.UseCases.Queries;
 

@@ -1,6 +1,6 @@
-﻿using Conversations.Application.Dtos;
-using Conversations.Domain.Enuns;
+﻿using Conversations.Domain.Enuns;
 using CRM.Application.Interfaces;
+using CRM.Application.Mappers;
 
 namespace Conversations.Application.UseCases.Queries;
 

@@ -1,9 +1,10 @@
 ﻿namespace CRM.API.Services;
 
 
-using Conversations.Application.Abstractions;
-using Conversations.Application.Dtos;
+
 using CRM.API.Hubs;
+using CRM.Application.Interfaces;
+using CRM.Application.Mappers;
 using Microsoft.AspNetCore.SignalR;
 
 public class SignalRNotifier : IRealtimeNotifier

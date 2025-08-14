@@ -1,5 +1,6 @@
 ﻿using Conversations.Application.Dtos;
 using Conversations.Application.UseCases.Queries;
+using CRM.Application.Mappers;
 
 namespace Conversations.Application.Abstractions;
 

@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\CRM.Application\CRM.Application.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Agents\Agents.Domain\Agents.Domain.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Concatcs\Contacts.Domain\Contacts.Domain.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Conversations\Conversations.Domain\Conversations.Domain.csproj" />
+    <ProjectReference Include="..\Boletos.Domain\Boletos.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

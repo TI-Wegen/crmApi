@@ -5,10 +5,7 @@ using CRM.Application.Interfaces;
 namespace Conversations.Application.UseCases.Queries.Handlers;
 
 using Conversations.Application.Abstractions;
-
-
-using Conversations.Application.Dtos;
-
+using CRM.Application.Mappers;
 
 public class GetAllConversationsQueryHandler : IQueryHandler<GetAllConversationsQuery, IEnumerable<ConversationSummaryDto>>
 {

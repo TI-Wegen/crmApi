@@ -1,7 +1,6 @@
 ﻿using Agents.Infrastructure.Services;
 using Amazon;
 using Amazon.S3;
-using Conversations.Application.Abstractions;
 using Conversations.Infrastructure.Services;
 using CRM.API.Services;
 using CRM.Application.Interfaces;
@@ -10,6 +9,7 @@ using CRM.Infrastructure.Database;
 using CRM.Infrastructure.Storage;
 using Hangfire;
 using Hangfire.PostgreSql;
+using Infrastructure.ExternalServices.DataBase;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -27,6 +27,7 @@ public static class ConnectionsConfigurations
         this IServiceCollection services,
         IConfiguration config)
     {
+
         services.AddDbConnection(config);
         services.AddHangFire(config);
         services.AddFileStorage(config);
@@ -93,6 +94,7 @@ public static class ConnectionsConfigurations
     {
         var connectionString = config.GetConnectionString("DefaultConnection");
         services.AddScoped<IDbConnection>(sp => new NpgsqlConnection(connectionString));
+        services.AddSingleton<IDbConnectionFactory, MySqlConnectionFactory>();
         return services;
     }
     private static IServiceCollection AddRedisConnection(

@@ -38,13 +38,27 @@ public class Atendimento : Entity
         var atendimento = new Atendimento
         {
             ConversaId = conversaId,
-            Status = ConversationStatus.AguardandoNaFila,
+            Status = ConversationStatus.EnvioDeMensagemAutomatica,
             BotStatus = BotStatus.Nenhum, 
             SetorId = setorId
         };
         atendimento.AddDomainEvent(new AtendimentoIniciadoEvent(atendimento.Id, conversaId));
         return atendimento;
     }
+
+    public static Atendimento IniciarPorAutomacao(Guid conversaId, Guid setorId)
+    {
+        var atendimento = new Atendimento
+        {
+            ConversaId = conversaId,
+            Status = ConversationStatus.AguardandoRespostaCliente,
+            BotStatus = BotStatus.Nenhum,
+            SetorId = setorId
+        };
+        atendimento.AddDomainEvent(new AtendimentoIniciadoEvent(atendimento.Id, conversaId));
+        return atendimento;
+    }
+
 
     public void IniciarTransferenciaParaFila(Guid setorId)
     {

@@ -3,9 +3,8 @@ using Conversations.Application.Dtos;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
-using System.Data;
 
-namespace Infrastructure.ExternalServices.Services;
+namespace Infrastructure.ExternalServices.Services.Boleto;
 
 
 public class BoletoService : IBoletoService

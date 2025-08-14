@@ -8,5 +8,6 @@ public enum ConversationStatus
     Resolvida = 3,
     EmAutoAtendimento = 4,
     AguardandoRespostaCliente = 5,
-    FechadoSemResposta  = 6
+    FechadoSemResposta  = 6,
+    EnvioDeMensagemAutomatica = 7
 }

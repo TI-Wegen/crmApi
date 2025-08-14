@@ -3,6 +3,7 @@
 using Conversations.Application.Abstractions;
 using Conversations.Application.Dtos;
 using Conversations.Application.UseCases.Queries;
+using CRM.Application.Mappers;
 using Dapper;
 // Em Modules/Conversations/Infrastructure/Services/ (pode criar esta pasta)
 using System.Data;

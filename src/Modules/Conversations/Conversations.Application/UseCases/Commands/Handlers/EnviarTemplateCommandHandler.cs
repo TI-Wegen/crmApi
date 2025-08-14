@@ -5,6 +5,7 @@ using Conversations.Domain.Aggregates;
 using Conversations.Domain.Events;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
+using CRM.Application.ValueObject;
 
 namespace Conversations.Application.UseCases.Commands.Handlers;
 
@@ -55,15 +56,19 @@ public class EnviarTemplateCommandHandler : ICommandHandler<EnviarTemplateComman
         }
 
         var novoAtendimento = Atendimento.IniciarProativamente(conversa.Id, agenteId);
+        var templateInput = new SendTemplateInput(
+            to: contato.Telefone,
+            templateName: command.TemplateName,
+            parameters: command.BodyParameters,
+            type: TemplateType.Text
+            );
+
         await _atendimentoRepository.AddAsync(novoAtendimento, cancellationToken);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         await _mensageriaBotService.EnviarETemplateAsync(
-            novoAtendimento.Id,
-            contato.Telefone,
-            command.TemplateName,
-            command.BodyParameters);
+            novoAtendimento.Id, templateInput);
 
         novoAtendimento.AddDomainEvent(new TemplateEnviadoEvent(
             novoAtendimento.Id, agenteId, command.TemplateName, DateTime.UtcNow));

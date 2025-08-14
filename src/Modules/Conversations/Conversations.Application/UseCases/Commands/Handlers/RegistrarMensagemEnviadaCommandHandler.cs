@@ -1,11 +1,11 @@
 ﻿using Contacts.Domain.Aggregates;
 using Contacts.Domain.Repository;
 using Conversations.Application.Abstractions;
-using Conversations.Application.Mappers;
 using Conversations.Domain.Aggregates;
 using Conversations.Domain.Entities;
 using Conversations.Domain.ValueObjects;
 using CRM.Application.Interfaces;
+using CRM.Application.Mappers;
 using CRM.Domain.Common;
 
 namespace Conversations.Application.UseCases.Commands.Handlers;

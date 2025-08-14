@@ -1,4 +1,6 @@
-﻿namespace Conversations.Application.Dtos;
+﻿using CRM.Application.Mappers;
+
+namespace Conversations.Application.Dtos;
 
 public record ActiveChatDto
 {

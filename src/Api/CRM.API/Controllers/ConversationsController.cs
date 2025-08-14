@@ -5,6 +5,7 @@ using Conversations.Domain.Enuns;
 using CRM.API.Dtos;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
+using CRM.Application.Mappers;
 using CRM.Domain.Exceptions;
 using CRM.Infrastructure.Config.Meta;
 using Google.Protobuf.WellKnownTypes;

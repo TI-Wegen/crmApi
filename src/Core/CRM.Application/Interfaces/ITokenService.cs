@@ -1,4 +1,5 @@
-﻿using Agents.Domain.Aggregates;
+﻿
+using Agents.Domain.Aggregates;
 
 namespace CRM.Application.Interfaces;
 

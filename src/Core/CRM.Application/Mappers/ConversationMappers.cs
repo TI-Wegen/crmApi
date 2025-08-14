@@ -1,8 +1,10 @@
-﻿using Conversations.Application.Dtos;
+﻿
+
+using Conversations.Application.Dtos;
 using Conversations.Domain.Aggregates;
 using Conversations.Domain.Entities;
 
-namespace Conversations.Application.Mappers;
+namespace CRM.Application.Mappers;
 
 public static class ConversationMappers
 {

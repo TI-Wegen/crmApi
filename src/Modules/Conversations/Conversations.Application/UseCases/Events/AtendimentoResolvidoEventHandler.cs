@@ -1,5 +1,6 @@
 ﻿using Contacts.Domain.Repository;
 using Conversations.Application.Abstractions;
+using CRM.Application.Interfaces;
 using CRM.Domain.DomainEvents;
 using static Conversations.Domain.Events.AtendimentoEvent;
 

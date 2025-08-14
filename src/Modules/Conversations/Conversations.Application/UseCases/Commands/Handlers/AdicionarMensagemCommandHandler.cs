@@ -2,16 +2,14 @@
 
 using Contacts.Domain.Repository;
 using Conversations.Application.Abstractions;
-using Conversations.Application.Dtos;
-using Conversations.Application.Mappers;
 using Conversations.Domain.Aggregates;
 using Conversations.Domain.Entities;
 using Conversations.Domain.Enuns;
 using Conversations.Domain.ValueObjects;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
+using CRM.Application.Mappers;
 using CRM.Domain.Exceptions;
-using Microsoft.EntityFrameworkCore;
 
 public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagemCommand, MessageDto>
 {

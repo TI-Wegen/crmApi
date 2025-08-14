@@ -72,4 +72,10 @@ public class AgentRepository : IAgentRepository
             .OrderBy(s => s.Nome)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<Agente?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
+    {
+        return await _context.Agentes
+            .FirstOrDefaultAsync(a => a.Nome == name, cancellationToken);
+    }
 }

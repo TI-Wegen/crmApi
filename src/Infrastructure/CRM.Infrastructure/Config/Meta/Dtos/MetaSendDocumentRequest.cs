@@ -28,6 +28,8 @@ public record MetaSendDocumentRequest
 
 public record DocumentPayload
 {
+    private string url;
+
     [JsonPropertyName("link")]
     public string Link { get; init; }
 

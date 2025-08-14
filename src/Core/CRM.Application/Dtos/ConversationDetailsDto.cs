@@ -1,4 +1,4 @@
-﻿namespace Conversations.Application.Dtos;
+﻿namespace CRM.Application.Mappers;
 
 public class ConversationDetailsDto
 {

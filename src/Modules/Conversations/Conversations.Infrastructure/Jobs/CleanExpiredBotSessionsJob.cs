@@ -2,11 +2,12 @@
 using Conversations.Application.Abstractions;
 using CRM.Application.Interfaces;
 using CRM.Domain.Common;
+using CRM.Infrastructure.Jobs;
 using Microsoft.Extensions.Logging;
 
 namespace Conversations.Infrastructure.Jobs;
 
-public class CleanExpiredBotSessionsJob
+public class CleanExpiredBotSessionsJob : IJobs
 {
     private readonly IAtendimentoRepository _atendimentoRepository;
     private readonly IConversationRepository _conversationRepository;
@@ -31,7 +32,7 @@ public class CleanExpiredBotSessionsJob
         _logger = logger;
     }
 
-    public async Task Executar()
+    public async Task Execute()
     {
         _logger.LogInformation("Iniciando Job de limpeza de sessões de bot expiradas...");
 

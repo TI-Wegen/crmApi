@@ -2,13 +2,13 @@ using Conversations.Infrastructure.Jobs;
 using CRM.API.Configurations;
 using CRM.API.Hubs;
 using CRM.Infrastructure.Config.Meta;
+using CRM.Infrastructure.Jobs.Automations;
 using Hangfire;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -52,7 +52,6 @@ var app = builder.Build();
 
 app.UseCors("DefaultCorsPolicy");
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -81,9 +80,20 @@ app.MapControllers();
 
 app.MapHub<ConversationHub>("/conversationHub");
 
-RecurringJob.AddOrUpdate<CleanExpiredBotSessionsJob>(
-    recurringJobId: "clean-expired-bot-sessions",
-    methodCall: job => job.Executar(),
-    cronExpression: "*/5 * * * *"); // A cada 5 minutos
+//RecurringJob.AddOrUpdate<CleanExpiredBotSessionsJob>(
+//    recurringJobId: "clean-expired-bot-sessions",
+//    methodCall: job => job.Execute(),
+//    cronExpression: "*/5 * * * *");
+
+//RecurringJob.AddOrUpdate<SendInvoicesJobs>(
+//    recurringJobId: "send-invoices-jobs",
+//    methodCall: job => job.Execute(),
+//    cronExpression: "*/5 * * * *");
+
+//RecurringJob.AddOrUpdate<SendInvoicesJobs>(
+//    recurringJobId: "send-invoices-jobs",
+//    methodCall: job => job.Execute(),
+//    cronExpression: "0 12,17 * * 1-5"
+//);
 
 app.Run();

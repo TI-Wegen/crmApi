@@ -1,6 +1,6 @@
-﻿using Conversations.Application.Dtos;
-
-namespace Conversations.Application.Abstractions;
+﻿
+namespace CRM.Application.Interfaces;
+using CRM.Application.Mappers;
 
 public interface IRealtimeNotifier
 {
