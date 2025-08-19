@@ -52,7 +52,7 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
 
     public async Task<Guid> HandleAsync(IniciarConversaCommand command, CancellationToken cancellationToken)
     {
-        var timestamp = command.Timestamp ?? DateTime.UtcNow;
+        var timestamp = DateTime.UtcNow;
         var timestampUtc = DateTime.SpecifyKind(timestamp, DateTimeKind.Utc);
 
         var conversa = await _conversationRepository.FindActiveByContactIdAsync(command.ContatoId, cancellationToken);
