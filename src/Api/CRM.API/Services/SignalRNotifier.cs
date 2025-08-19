@@ -23,7 +23,7 @@ public class SignalRNotifier : IRealtimeNotifier
             Id = messageDto.Id,
             Texto = messageDto.Texto,
             AnexoUrl = messageDto.AnexoUrl,
-            Timestamp = messageDto.Timestamp,
+            Timestamp = DateTime.Now,
             RemetenteTipo = messageDto.RemetenteTipo,
             RemetenteAgenteId = messageDto.RemetenteAgenteId
         };
