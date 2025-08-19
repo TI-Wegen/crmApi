@@ -1,20 +1,15 @@
-﻿using Amazon.Runtime.Internal;
-using Contacts.Application.Dtos;
+﻿using Contacts.Application.Dtos;
 using Contacts.Application.UseCases.Commands;
 using Contacts.Application.UseCases.Commands.Queries;
 using Conversations.Application.Abstractions;
 using Conversations.Application.UseCases.Commands;
-using Conversations.Infrastructure.Services;
 using CRM.API.Services;
 using CRM.Application.Interfaces;
 using CRM.Infrastructure.Config.Meta;
-using CRM.Infrastructure.Storage;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Templates.Application.UseCases.Commands;
 using Templates.Domain.Enuns;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
-
 
 namespace CRM.API.Controllers
 {
@@ -392,16 +387,5 @@ namespace CRM.API.Controllers
 
             return dataHoraBrasil;
         }
-
-        private bool IsValidSignature(string payload, string signature)
-        {
-            // Lógica para validar o hash HMACSHA256 usando seu AppSecret
-            
-            return true; // Implementação real da validação é necessária aqui
-        }
-
     }
-
-
 }
-
