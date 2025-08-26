@@ -10,8 +10,7 @@ public abstract class Entity
 
     private readonly List<IDomainEvent> _domainEvents = new();
 
-    [NotMapped]
-    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+    [NotMapped] public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
 
     public void AddDomainEvent(IDomainEvent domainEvent)
     {
@@ -23,4 +22,7 @@ public abstract class Entity
         _domainEvents.Clear();
     }
 }
-public interface IDomainEvent { }
+
+public interface IDomainEvent
+{
+}

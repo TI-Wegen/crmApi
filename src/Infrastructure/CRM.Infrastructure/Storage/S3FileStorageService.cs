@@ -1,13 +1,11 @@
-﻿namespace CRM.Infrastructure.Storage;
-
-using Amazon;
+﻿using Amazon;
+using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Transfer;
 using CRM.Application.Interfaces;
-using Microsoft.Extensions.Options; 
-using System.IO;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 
+namespace CRM.Infrastructure.Storage;
 
 public class S3FileStorageService : IFileStorageService
 {
@@ -18,7 +16,7 @@ public class S3FileStorageService : IFileStorageService
     {
         _settings = settings.Value;
 
-        var credentials = new Amazon.Runtime.BasicAWSCredentials(_settings.AccessKey, _settings.SecretKey);
+        var credentials = new BasicAWSCredentials(_settings.AccessKey, _settings.SecretKey);
         var region = RegionEndpoint.GetBySystemName(_settings.Region);
 
         _s3Client = new AmazonS3Client(credentials, region);
@@ -33,9 +31,9 @@ public class S3FileStorageService : IFileStorageService
             var uploadRequest = new TransferUtilityUploadRequest
             {
                 InputStream = fileStream,
-                Key = fileName, 
+                Key = fileName,
                 BucketName = _settings.BucketName,
-                ContentType = contentType, 
+                ContentType = contentType,
             };
 
             await fileTransferUtility.UploadAsync(uploadRequest);
@@ -45,10 +43,8 @@ public class S3FileStorageService : IFileStorageService
         }
         catch (Exception e)
         {
-         
             Console.WriteLine($"Erro ao fazer upload para o S3: {e.Message}");
             throw new ApplicationException("Erro no serviço de storage.", e);
         }
-
     }
 }

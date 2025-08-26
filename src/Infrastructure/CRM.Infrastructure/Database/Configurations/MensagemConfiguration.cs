@@ -1,8 +1,8 @@
-﻿namespace CRM.Infrastructure.Database.Configurations;
-
+﻿using Conversations.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Conversations.Domain.Entities;
+
+namespace CRM.Infrastructure.Database.Configurations;
 
 public class MensagemConfiguration : IEntityTypeConfiguration<Mensagem>
 {
@@ -19,7 +19,7 @@ public class MensagemConfiguration : IEntityTypeConfiguration<Mensagem>
         builder.Property(m => m.Id).ValueGeneratedOnAdd();
 
         builder.Property(m => m.MessageId)
-       .HasColumnName("MessageId")
-       .IsRequired(false);
+            .HasColumnName("MessageId")
+            .IsRequired(false);
     }
 }

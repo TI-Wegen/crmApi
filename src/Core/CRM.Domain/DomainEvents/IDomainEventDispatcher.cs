@@ -3,5 +3,4 @@
 public interface IDomainEventDispatcher
 {
     Task DispatchAndClearEvents(IEnumerable<Entity> entitiesWithEvents);
-
 }

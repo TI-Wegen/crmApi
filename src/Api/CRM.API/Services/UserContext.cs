@@ -1,8 +1,8 @@
-﻿namespace CRM.API.Services;
-
+﻿using System.Security.Claims;
 using CRM.Application.Interfaces;
 using Microsoft.IdentityModel.JsonWebTokens;
-using System.Security.Claims;
+
+namespace CRM.API.Services;
 
 public class UserContext : IUserContext
 {

@@ -5,7 +5,5 @@
         Task<bool> AcquireLockAsync(string resourceKey, TimeSpan expiry);
 
         Task ReleaseLockAsync(string resourceKey);
-
     }
-
 }

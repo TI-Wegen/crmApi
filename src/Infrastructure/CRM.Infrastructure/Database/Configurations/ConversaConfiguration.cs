@@ -1,8 +1,8 @@
-﻿namespace CRM.Infrastructure.Database.Configurations;
-
+﻿using Conversations.Domain.Aggregates;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Conversations.Domain.Aggregates;
+
+namespace CRM.Infrastructure.Database.Configurations;
 
 public class ConversaConfiguration : IEntityTypeConfiguration<Conversa>
 {
@@ -13,7 +13,7 @@ public class ConversaConfiguration : IEntityTypeConfiguration<Conversa>
         builder.Property(c => c.Version).IsConcurrencyToken();
 
         var navigation = builder.Navigation(c => c.Mensagens);
-        navigation.UsePropertyAccessMode(PropertyAccessMode.Field); 
+        navigation.UsePropertyAccessMode(PropertyAccessMode.Field);
         navigation.HasField("_mensagens");
 
         builder.Ignore(c => c.DomainEvents);

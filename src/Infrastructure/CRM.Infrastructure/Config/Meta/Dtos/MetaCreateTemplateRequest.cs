@@ -14,7 +14,7 @@ public record MetaCreateTemplateRequest
     public string Language { get; set; }
 
     [JsonPropertyName("category")]
-    public string Category { get; set; } // Ex: "UTILITY", "MARKETING"
+    public string Category { get; set; }
 
     [JsonPropertyName("components")]
     public List<TemplateComponent> Components { get; set; }
@@ -23,11 +23,11 @@ public record MetaCreateTemplateRequest
 public record TemplateComponent
 {
     [JsonPropertyName("type")]
-    public string Type { get; set; } // "BODY", "HEADER", etc.
+    public string Type { get; set; }
 
     [JsonPropertyName("text")]
-    public string? Text { get; set; } // Para componentes de texto
+    public string? Text { get; set; }
 
     [JsonPropertyName("format")]
-    public string? Format { get; set; } // Para HEADER (IMAGE, DOCUMENT, VIDEO)
+    public string? Format { get; set; }
 }

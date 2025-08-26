@@ -1,15 +1,12 @@
-﻿namespace Templates.Application.UseCases.Commands.Handler;
-
-
-using CRM.Application.Interfaces;
+﻿using CRM.Application.Interfaces;
 using CRM.Domain.Exceptions;
-using System.Threading;
-using System.Threading.Tasks;
 using Templates.Application.Abstractions;
 using Templates.Application.Dtos;
 using Templates.Application.Mappers;
 using Templates.Domain.Aggregates;
 using Templates.Domain.Repositories;
+
+namespace Templates.Application.UseCases.Commands.Handler;
 
 public class CriarTemplateCommandHandler : ICommandHandler<CriarTemplateCommand, TemplateDto>
 {

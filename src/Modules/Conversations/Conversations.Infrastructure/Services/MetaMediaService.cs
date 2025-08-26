@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 namespace Conversations.Infrastructure.Services;
 
-    public class MetaMediaService: IMetaMediaService
+public class MetaMediaService : IMetaMediaService
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly MetaSettings _metaSettings;
@@ -30,7 +30,8 @@ namespace Conversations.Infrastructure.Services;
         }
 
         var mediaInfoContent = await mediaInfoResponse.Content.ReadAsStringAsync();
-        var mediaInfo = JsonSerializer.Deserialize<MetaMediaInfoResponse>(mediaInfoContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        var mediaInfo = JsonSerializer.Deserialize<MetaMediaInfoResponse>(mediaInfoContent,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
         if (mediaInfo is null || string.IsNullOrEmpty(mediaInfo.Url))
         {
@@ -42,6 +43,7 @@ namespace Conversations.Infrastructure.Services;
         {
             return null;
         }
+
         var mimeTypeFinal = fileResponse.Content.Headers.ContentType?.MediaType ?? mediaInfo.MimeType;
 
         var fileStream = await fileResponse.Content.ReadAsStreamAsync();
@@ -54,16 +56,15 @@ namespace Conversations.Infrastructure.Services;
     {
         if (string.IsNullOrEmpty(mimeType))
         {
-            return "tmp"; 
+            return "tmp";
         }
+
         return mimeType.Split('/').LastOrDefault() ?? "tmp";
     }
 }
 
-public record MetaMediaInfoResponse
-(
+public record MetaMediaInfoResponse(
     [property: JsonPropertyName("url")] string Url,
-    [property: JsonPropertyName("mime_type")] string MimeType
+    [property: JsonPropertyName("mime_type")]
+    string MimeType
 );
-
-

@@ -4,6 +4,7 @@ public record Avaliacao
 {
     public int Nota { get; private init; }
     public string? Comentario { get; private init; }
+
     private Avaliacao(int nota, string? comentario)
     {
         if (nota < 1 || nota > 5)

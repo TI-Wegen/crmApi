@@ -115,7 +115,7 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
                 var sessionState = new BotSessionState(novoAtendimento.Id, novoAtendimento.BotStatus, DateTime.UtcNow);
-                await _botSessionCache.SetStateAsync(contato!.Telefone, sessionState, TimeSpan.FromHours(2));
+                await _botSessionCache.SetStateAsync(contato.Telefone, sessionState, TimeSpan.FromHours(2));
                 var menuText = "Olá! Bem-vindo ao nosso atendimento. Digite o número da opção desejada:\n1- Segunda via de boleto\n2- Falar com o Comercial\n3- Falar com o Financeiro\n4- Encerrar atendimento";
                 await _mensageriaBotService.EnviarEMensagemTextoAsync(novoAtendimento.Id, contato.Telefone, menuText);
 
@@ -172,12 +172,10 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao processar conversa: ", command.ContatoNome);
+            _logger.LogError(ex, "Erro ao processar conversa: {ContatoNome}", command.ContatoNome);
             throw;
         }
 
     
     }
-
-
 }

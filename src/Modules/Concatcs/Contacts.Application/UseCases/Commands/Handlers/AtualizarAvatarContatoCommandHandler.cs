@@ -1,21 +1,19 @@
 ﻿using Contacts.Application.Abstractions;
-using Contacts.Domain.Aggregates;
 using Contacts.Domain.Repository;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 using Microsoft.Extensions.Logging;
-using System.Net.Http;
 
 namespace Contacts.Application.UseCases.Commands.Handlers;
 
-    public class AtualizarAvatarContatoCommandHandler : ICommandHandler<AtualizarAvatarContatoCommand>
+public class AtualizarAvatarContatoCommandHandler : ICommandHandler<AtualizarAvatarContatoCommand>
 {
-
     private readonly IMetaContactService _metaContactService;
     private readonly IContactRepository _contactRepository;
     private readonly IFileStorageService _fileStorageService;
     private readonly ILogger<AtualizarAvatarContatoCommandHandler> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
+
     public AtualizarAvatarContatoCommandHandler(IMetaContactService metaContactService,
         IFileStorageService fileStorageService,
         IHttpClientFactory httpClientFactory,
@@ -26,6 +24,7 @@ namespace Contacts.Application.UseCases.Commands.Handlers;
         _httpClientFactory = httpClientFactory;
         _logger = logger;
     }
+
     public async Task HandleAsync(AtualizarAvatarContatoCommand command, CancellationToken cancellationToken)
     {
         var contato = await _contactRepository.GetByWaIdAsync(command.WaId, cancellationToken);
@@ -53,6 +52,4 @@ namespace Contacts.Application.UseCases.Commands.Handlers;
             }
         }
     }
-
 }
-

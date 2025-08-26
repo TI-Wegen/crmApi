@@ -1,5 +1,7 @@
 ﻿namespace Conversations.Domain.Enuns;
 
-public enum RemetenteTipo { Cliente, Agente }
-
-
+public enum RemetenteTipo
+{
+    Cliente,
+    Agente
+}

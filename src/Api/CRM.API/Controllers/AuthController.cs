@@ -1,6 +1,5 @@
 ﻿using Agents.Application.UseCases.Queries;
 using CRM.Application.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CRM.API.Controllers

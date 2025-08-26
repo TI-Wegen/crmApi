@@ -1,9 +1,8 @@
-﻿namespace Contacts.Application.UseCases.Commands.Handlers;
-
-
-using Contacts.Domain.Repository;
+﻿using Contacts.Domain.Repository;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
+
+namespace Contacts.Application.UseCases.Commands.Handlers;
 
 public class AtualizarContatoCommandHandler : ICommandHandler<AtualizarContatoCommand>
 {
@@ -33,7 +32,7 @@ public class AtualizarContatoCommandHandler : ICommandHandler<AtualizarContatoCo
 
         contato.Atualizar(command.NovoNome, command.NovoTelefone, command.NovasTags);
 
-        await _contactRepository.UpdateAsync(contato); 
+        await _contactRepository.UpdateAsync(contato);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

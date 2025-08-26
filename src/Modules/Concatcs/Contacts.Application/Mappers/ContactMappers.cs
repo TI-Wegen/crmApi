@@ -1,7 +1,7 @@
-﻿namespace Contacts.Application.Mappers;
-
-using Contacts.Application.Dtos;
+﻿using Contacts.Application.Dtos;
 using Contacts.Domain.Aggregates;
+
+namespace Contacts.Application.Mappers;
 
 public static class ContactMappers
 {

@@ -11,5 +11,4 @@ public class MetaSettings
     public string WhatsAppBusinessPhoneNumber { get; set; }
     public string AccessToken { get; set; }
     public List<string> DeveloperPhoneNumbers { get; set; } = new();
-
 }

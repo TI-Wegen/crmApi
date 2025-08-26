@@ -7,4 +7,3 @@ public enum BotStatus
     AguardandoCpfParaBoleto,
     AguardandoEscolhaDeBoleto
 }
-

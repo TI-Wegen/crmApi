@@ -6,8 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Agents.Infrastructure.Repositories;
 
-
-
 public class AgentRepository : IAgentRepository
 {
     private readonly AppDbContext _context;
@@ -32,7 +30,8 @@ public class AgentRepository : IAgentRepository
         return _context.Agentes.FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
     }
 
-    public async Task<IEnumerable<Agente>> GetAllAsync(int pageNumber, int pageSize, bool incluirInativos, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Agente>> GetAllAsync(int pageNumber, int pageSize, bool incluirInativos,
+        CancellationToken cancellationToken = default)
     {
         var query = _context.Agentes.AsQueryable();
 
@@ -53,6 +52,7 @@ public class AgentRepository : IAgentRepository
         _context.Agentes.Update(agente);
         await _context.SaveChangesAsync(cancellationToken);
     }
+
     public async Task<Setor?> GetSetorByNomeAsync(string nome, CancellationToken cancellationToken = default)
     {
         return await _context.Setores

@@ -1,6 +1,6 @@
-﻿namespace CRM.API.Services;
+﻿using CRM.Infrastructure.Config.Meta;
 
-using CRM.Infrastructure.Config.Meta;
+namespace CRM.API.Services;
 
 public static class WebhookMessageParser
 {    public static string ParseMessage(MessageObject message)

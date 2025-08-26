@@ -25,7 +25,7 @@ namespace CRM.API.Controllers
         private readonly ICommandHandler<ProcessarRespostaDoMenuCommand> _processarRespostaHandler;
         private readonly ICommandHandler<AtualizarStatusTemplateCommand> _atualizarStatusHandler;
         private readonly ICommandHandler<RegistrarAvaliacaoCommand> _registrarAvaliacaoHandler;
-        private readonly ICommandHandler<AtualizarAvatarContatoCommand> _atualizarAvatarHandler; 
+        private readonly ICommandHandler<AtualizarAvatarContatoCommand> _atualizarAvatarHandler;
         private readonly IDistributedLock _distributedLock;
         private readonly IMessageBufferService _messageBuffer;
         private readonly IMetaMediaService _metaMediaService;
@@ -65,10 +65,12 @@ namespace CRM.API.Controllers
         }
 
         [HttpGet]
-        public IActionResult VerifyWebhook(
+        public IActionResult VerifyWebhook
+        (
             [FromQuery(Name = "hub.mode")] string mode,
             [FromQuery(Name = "hub.challenge")] string challenge,
-            [FromQuery(Name = "hub.verify_token")] string token)
+            [FromQuery(Name = "hub.verify_token")] string token
+        )
         {
             if (mode == "subscribe" && token == _metaSettings.VerifyToken)
             {
@@ -80,11 +82,9 @@ namespace CRM.API.Controllers
             return Forbid();
         }
 
-
         [HttpPost]
         public async Task<IActionResult> ReceiveNotification([FromBody] MetaWebhookPayload payload)
         {
-
             try
             {
                 foreach (var change in payload.Entry.SelectMany(e => e.Changes))
@@ -126,7 +126,8 @@ namespace CRM.API.Controllers
             var lockKey = $"lock:contato:{telefoneDoContato}";
             if (!await _distributedLock.AcquireLockAsync(lockKey, TimeSpan.FromSeconds(30)))
             {
-                _logger.LogInformation("Trava não adquirida para {Telefone}. Requisição concorrente ignorada.", telefoneDoContato);
+                _logger.LogInformation("Trava não adquirida para {Telefone}. Requisição concorrente ignorada.",
+                    telefoneDoContato);
                 return;
             }
 
@@ -150,10 +151,12 @@ namespace CRM.API.Controllers
                         await HandleAudioMessageAsync(message, contactPayload);
                         break;
                     default:
-                        _logger.LogInformation("Tipo de mensagem '{MessageType}' recebido para {Telefone} e ignorado.", message.Type, telefoneDoContato);
+                        _logger.LogInformation("Tipo de mensagem '{MessageType}' recebido para {Telefone} e ignorado.",
+                            message.Type, telefoneDoContato);
                         break;
                 }
-            }catch (Exception e)
+            }
+            catch (Exception e)
             {
                 throw new Exception($"Erro ao processar mensagem de {telefoneDoContato}: {e.Message}", e);
             }
@@ -166,48 +169,57 @@ namespace CRM.API.Controllers
         private async Task HandleTextMessageAsync(MessageObject message, ContactObject contactPayload)
         {
             var telefoneDoContato = message.From;
-            await _messageBuffer.AddToBufferAsync(telefoneDoContato, message);
-            if (!await _messageBuffer.IsFirstProcessor(telefoneDoContato))
-            {
-                return;
-            }
-            await Task.Delay(TimeSpan.FromSeconds(3));
-            var mensagensAgrupadas = (await _messageBuffer.ConsumeBufferAsync(telefoneDoContato)).ToList();
-            if (!mensagensAgrupadas.Any()) return;
+            var textoDaMensagem = WebhookMessageParser.ParseMessage(message);
+            if (string.IsNullOrEmpty(textoDaMensagem)) return;
 
-            var textoDaMensagem = string.Join(" ", mensagensAgrupadas.Select(m => WebhookMessageParser.ParseMessage(m)).Where(b => !string.IsNullOrEmpty(b)));
             var nomeDoContato = contactPayload.Profile.Name;
             var waIdDoContato = contactPayload.WaId;
-            var dataHoraBrasil = ConvertTimestampBR(mensagensAgrupadas.First().Timestamp);
+            var dataHoraBrasil = ConvertTimestampBR(message.Timestamp);
 
             var isDeveloper = _metaSettings.DeveloperPhoneNumbers.Contains(telefoneDoContato);
             var botSession = isDeveloper ? await _botSessionCache.GetStateAsync(telefoneDoContato) : null;
 
-            if (botSession is not null)
+            Guid contatoId;
+            var contatoDto =
+                await _getContactByTelefoneHandler.HandleAsync(new GetContactByTelefoneQuery(telefoneDoContato));
+            if (contatoDto is null)
             {
-                var processarRespostaCommand = new ProcessarRespostaDoMenuCommand(telefoneDoContato, textoDaMensagem, dataHoraBrasil);
-                await _processarRespostaHandler.HandleAsync(processarRespostaCommand);
+                var novoContatoDto =
+                    await _criarContatoHandler.HandleAsync(new CriarContatoCommand(nomeDoContato, telefoneDoContato,
+                        waIdDoContato));
+                contatoId = novoContatoDto.Id;
             }
             else
             {
-                Guid contatoId;
-                var getContactQuery = new GetContactByTelefoneQuery(telefoneDoContato);
-                var contatoDto = await _getContactByTelefoneHandler.HandleAsync(getContactQuery);
-                if (contatoDto is null)
-                {
-                    var createContactCommand = new CriarContatoCommand(nomeDoContato, telefoneDoContato, waIdDoContato);
-                    var novoContatoDto = await _criarContatoHandler.HandleAsync(createContactCommand);
-                    contatoId = novoContatoDto.Id;
-                }
-                else { contatoId = contatoDto.Id; }
+                contatoId = contatoDto.Id;
+            }
 
-                var iniciarConversaCommand = new IniciarConversaCommand(contatoId, textoDaMensagem, nomeDoContato, Timestamp: dataHoraBrasil, IniciarComBot: isDeveloper);
-                await _iniciarConversaHandler.HandleAsync(iniciarConversaCommand);
+            if (botSession != null)
+            {
+                await _processarRespostaHandler.HandleAsync(
+                    new ProcessarRespostaDoMenuCommand(telefoneDoContato, textoDaMensagem, dataHoraBrasil));
+            }
+            else
+            {
+                foreach (var chunk in SplitMessage(textoDaMensagem))
+                {
+                    await _iniciarConversaHandler.HandleAsync(new IniciarConversaCommand(contatoId, chunk,
+                        nomeDoContato, Timestamp: dataHoraBrasil, IniciarComBot: isDeveloper));
+                }
             }
         }
+
+        private IEnumerable<string> SplitMessage(string message, int chunkSize = 4000)
+        {
+            if (string.IsNullOrEmpty(message))
+                yield break;
+
+            for (int i = 0; i < message.Length; i += chunkSize)
+                yield return message.Substring(i, Math.Min(chunkSize, message.Length - i));
+        }
+
         private async Task HandleAudioMessageAsync(MessageObject message, ContactObject contactPayload)
         {
-        
             var mediaFile = await _metaMediaService.DownloadMediaAsync(message.Audio.Id);
             if (mediaFile is null)
             {
@@ -215,7 +227,8 @@ namespace CRM.API.Controllers
                 return;
             }
 
-            var anexoUrl = await _fileStorageService.UploadAsync(mediaFile.Content, mediaFile.FileName, mediaFile.MimeType);
+            var anexoUrl =
+                await _fileStorageService.UploadAsync(mediaFile.Content, mediaFile.FileName, mediaFile.MimeType);
 
             var textoParaProcessar = WebhookMessageParser.ParseMessage(message);
 
@@ -224,32 +237,35 @@ namespace CRM.API.Controllers
             var waIdDoContato = contactPayload.WaId;
             var dataHoraBrasil = ConvertTimestampBR(message.Timestamp);
 
-            var isDeveloper = _metaSettings.DeveloperPhoneNumbers.Any() && _metaSettings.DeveloperPhoneNumbers.Contains(telefoneDoContato);
+            var isDeveloper = _metaSettings.DeveloperPhoneNumbers.Any() &&
+                              _metaSettings.DeveloperPhoneNumbers.Contains(telefoneDoContato);
 
-            await IniciarNovoFluxoDeAtendimento(telefoneDoContato, 
-                nomeDoContato, 
+            await IniciarNovoFluxoDeAtendimento(telefoneDoContato,
+                nomeDoContato,
                 textoParaProcessar,
-                dataHoraBrasil, 
-                anexoUrl, 
+                dataHoraBrasil,
+                anexoUrl,
                 isDeveloper,
                 waIdDoContato
-                );
+            );
         }
+
         private async Task HandleInteractiveMessageAsync(MessageObject message, ContactObject contactPayload)
         {
             if (message.Interactive?.Type != "button_reply") return;
 
             var buttonReplyId = message.Interactive.ButtonReply.Id;
             var parts = buttonReplyId.Split('_');
-            if (parts.Length == 3 && parts[0] == "rating" && Guid.TryParse(parts[1], out var atendimentoId) && int.TryParse(parts[2], out var nota))
+            if (parts.Length == 3 && parts[0] == "rating" && Guid.TryParse(parts[1], out var atendimentoId) &&
+                int.TryParse(parts[2], out var nota))
             {
                 var command = new RegistrarAvaliacaoCommand(atendimentoId, nota);
                 await _registrarAvaliacaoHandler.HandleAsync(command);
             }
         }
+
         private async Task HandleImageMessageAsync(MessageObject message, ContactObject contactPayload)
         {
-          
             var mediaFile = await _metaMediaService.DownloadMediaAsync(message.Image!.Id);
             if (mediaFile is null)
             {
@@ -257,16 +273,18 @@ namespace CRM.API.Controllers
                 return;
             }
 
-            var anexoUrl = await _fileStorageService.UploadAsync(mediaFile.Content, mediaFile.FileName, mediaFile.MimeType);
+            var anexoUrl =
+                await _fileStorageService.UploadAsync(mediaFile.Content, mediaFile.FileName, mediaFile.MimeType);
 
             var textoParaProcessar = message.Image.Caption ?? "[Imagem Recebida]";
             var telefoneDoContato = message.From;
             var nomeDoContato = contactPayload.Profile.Name;
             var waIdDoContato = contactPayload.WaId;
-         
+
             var dataHoraBrasil = ConvertTimestampBR(message.Timestamp);
 
-            var isDeveloper = _metaSettings.DeveloperPhoneNumbers.Any() && _metaSettings.DeveloperPhoneNumbers.Contains(telefoneDoContato);
+            var isDeveloper = _metaSettings.DeveloperPhoneNumbers.Any() &&
+                              _metaSettings.DeveloperPhoneNumbers.Contains(telefoneDoContato);
 
             var botSession = await _botSessionCache.GetStateAsync(telefoneDoContato);
 
@@ -274,7 +292,8 @@ namespace CRM.API.Controllers
             if (isSessionValidAndFromToday)
             {
                 var fusoHorarioBrasil = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
-                var dataSessaoLocal = TimeZoneInfo.ConvertTimeFromUtc(botSession.LastActivityTimestamp, fusoHorarioBrasil).Date;
+                var dataSessaoLocal =
+                    TimeZoneInfo.ConvertTimeFromUtc(botSession.LastActivityTimestamp, fusoHorarioBrasil).Date;
                 var dataAtualLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, fusoHorarioBrasil).Date;
                 if (dataSessaoLocal != dataAtualLocal)
                 {
@@ -284,12 +303,12 @@ namespace CRM.API.Controllers
             }
             else
             {
-                await IniciarNovoFluxoDeAtendimento(telefoneDoContato, 
-                    nomeDoContato, 
+                await IniciarNovoFluxoDeAtendimento(telefoneDoContato,
+                    nomeDoContato,
                     textoParaProcessar,
-                    dataHoraBrasil, 
-                    anexoUrl, 
-                    isDeveloper, 
+                    dataHoraBrasil,
+                    anexoUrl,
+                    isDeveloper,
                     waIdDoContato);
             }
         }
@@ -309,7 +328,8 @@ namespace CRM.API.Controllers
                 return;
             }
 
-            var anexoUrl = await _fileStorageService.UploadAsync(mediaFile.Content, mediaFile.FileName, mediaFile.MimeType);
+            var anexoUrl =
+                await _fileStorageService.UploadAsync(mediaFile.Content, mediaFile.FileName, mediaFile.MimeType);
 
             var textoParaProcessar = WebhookMessageParser.ParseMessage(message);
 
@@ -318,22 +338,29 @@ namespace CRM.API.Controllers
             var waIdDoContato = contactPayload.WaId;
             var dataHoraBrasil = ConvertTimestampBR(message.Timestamp);
 
-            var isDeveloper = _metaSettings.DeveloperPhoneNumbers.Any() && _metaSettings.DeveloperPhoneNumbers.Contains(telefoneDoContato);
+            var isDeveloper = _metaSettings.DeveloperPhoneNumbers.Any() &&
+                              _metaSettings.DeveloperPhoneNumbers.Contains(telefoneDoContato);
 
-            await IniciarNovoFluxoDeAtendimento(telefoneDoContato, nomeDoContato, textoParaProcessar, dataHoraBrasil, anexoUrl, isDeveloper, waIdDoContato);
+            await IniciarNovoFluxoDeAtendimento(telefoneDoContato, nomeDoContato, textoParaProcessar, dataHoraBrasil,
+                anexoUrl, isDeveloper, waIdDoContato);
         }
-        private async Task IniciarNovoFluxoDeAtendimento(string telefoneDoContato, string nomeDoContato, string textoDaMensagem, DateTime timestamp, string? anexoUrl, bool isDeveloper, string waId)
+
+        private async Task IniciarNovoFluxoDeAtendimento(string telefoneDoContato, string nomeDoContato,
+            string textoDaMensagem, DateTime timestamp, string? anexoUrl, bool isDeveloper, string waId)
         {
             Guid contatoId;
             var getContactQuery = new GetContactByTelefoneQuery(telefoneDoContato);
             var contatoDto = await _getContactByTelefoneHandler.HandleAsync(getContactQuery);
             if (contatoDto is null)
             {
-                var createContactCommand = new CriarContatoCommand(nomeDoContato, telefoneDoContato,  waId);
+                var createContactCommand = new CriarContatoCommand(nomeDoContato, telefoneDoContato, waId);
                 var novoContatoDto = await _criarContatoHandler.HandleAsync(createContactCommand);
                 contatoId = novoContatoDto.Id;
             }
-            else { contatoId = contatoDto.Id; }
+            else
+            {
+                contatoId = contatoDto.Id;
+            }
 
             var iniciarConversaCommand = new IniciarConversaCommand(
                 ContatoId: contatoId,
@@ -345,6 +372,7 @@ namespace CRM.API.Controllers
             );
             await _iniciarConversaHandler.HandleAsync(iniciarConversaCommand);
         }
+
         private async Task HandleTemplateStatusUpdate(ValueObject value)
         {
             var novoStatus = ParseTemplateStatus(value.Event);
@@ -358,6 +386,7 @@ namespace CRM.API.Controllers
                 await _atualizarStatusHandler.HandleAsync(command);
             }
         }
+
         private async Task HandleProfileUpdate(ValueObject value)
         {
             var contactPayload = value?.Contacts?.FirstOrDefault();
@@ -377,7 +406,8 @@ namespace CRM.API.Controllers
                 _ => null
             };
         }
-        private DateTime ConvertTimestampBR (string timestamo)
+
+        private DateTime ConvertTimestampBR(string timestamo)
         {
             var primeiroTimestampUnix = long.Parse(timestamo);
             var utcDateTime = DateTimeOffset.FromUnixTimeSeconds(primeiroTimestampUnix).UtcDateTime;

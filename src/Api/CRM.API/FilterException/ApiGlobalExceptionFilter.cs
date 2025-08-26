@@ -1,5 +1,5 @@
-﻿using CRM.Domain.Exceptions;
-using CRM.Application.Exceptions;
+﻿using CRM.Application.Exceptions;
+using CRM.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 

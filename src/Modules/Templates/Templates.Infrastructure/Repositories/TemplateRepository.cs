@@ -1,11 +1,9 @@
-﻿namespace Templates.Infrastructure.Repositories;
-using CRM.Infrastructure.Database;
+﻿using CRM.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Templates.Domain.Aggregates;
 using Templates.Domain.Repositories;
+
+namespace Templates.Infrastructure.Repositories;
 
 public class TemplateRepository : ITemplateRepository
 {

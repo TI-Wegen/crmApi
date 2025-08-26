@@ -21,14 +21,15 @@ public class AtendimentoRepository : IAtendimentoRepository
         await _context.Atendimentos.AddAsync(atendimento, cancellationToken);
     }
 
-    public async Task<Atendimento?> FindActiveByConversaIdAsync(Guid conversaId, CancellationToken cancellationToken = default)
+    public async Task<Atendimento?> FindActiveByConversaIdAsync(Guid conversaId,
+        CancellationToken cancellationToken = default)
     {
         var inactiveStatuses = new[] { ConversationStatus.Resolvida };
 
         return await _context.Atendimentos
             .FirstOrDefaultAsync(a =>
-                a.ConversaId == conversaId &&
-                !inactiveStatuses.Contains(a.Status),
+                    a.ConversaId == conversaId &&
+                    !inactiveStatuses.Contains(a.Status),
                 cancellationToken);
     }
 
@@ -37,37 +38,40 @@ public class AtendimentoRepository : IAtendimentoRepository
         return await _context.Atendimentos.FindAsync(atendimentoId, cancellationToken);
     }
 
-    public async Task<IEnumerable<Atendimento>> GetAtendimentosAtivosCriadosAntesDeAsync(DateTime dataLimite, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Atendimento>> GetAtendimentosAtivosCriadosAntesDeAsync(DateTime dataLimite,
+        CancellationToken cancellationToken = default)
     {
         var activeStatuses = new[]
         {
-        ConversationStatus.EmAutoAtendimento,
-        ConversationStatus.AguardandoNaFila,
-        ConversationStatus.EmAtendimento
-    };
+            ConversationStatus.EmAutoAtendimento,
+            ConversationStatus.AguardandoNaFila,
+            ConversationStatus.EmAtendimento
+        };
 
 
-      
         return await _context.Atendimentos
-            .Where(a => activeStatuses.Contains(a.Status) && a.CreatedAt < dataLimite) 
+            .Where(a => activeStatuses.Contains(a.Status) && a.CreatedAt < dataLimite)
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<Atendimento>> GetLastTwoByConversaIdAsync(Guid conversaId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Atendimento>> GetLastTwoByConversaIdAsync(Guid conversaId,
+        CancellationToken cancellationToken = default)
     {
         var query = _context.Atendimentos
             .Where(a => a.ConversaId == conversaId)
-            .OrderByDescending(a => a.CreatedAt) 
-            .Take(2); 
+            .OrderByDescending(a => a.CreatedAt)
+            .Take(2);
 
         return await query.ToListAsync(cancellationToken);
     }
-    public async Task<IEnumerable<Atendimento>> GetAtendimentosEmAutoAtendimentoAsync(CancellationToken cancellationToken = default)
+
+    public async Task<IEnumerable<Atendimento>> GetAtendimentosEmAutoAtendimentoAsync(
+        CancellationToken cancellationToken = default)
     {
         var botStatuses = new[]
         {
-        ConversationStatus.EmAutoAtendimento
-    };
+            ConversationStatus.EmAutoAtendimento
+        };
 
         return await _context.Atendimentos
             .Where(a => botStatuses.Contains(a.Status))

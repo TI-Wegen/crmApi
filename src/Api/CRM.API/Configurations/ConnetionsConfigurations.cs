@@ -126,8 +126,6 @@ public static class ConnectionsConfigurations
         return services;
     }
 
-
-
     private static IServiceCollection AddHealtChecks(
      this IServiceCollection services,
      IConfiguration config)

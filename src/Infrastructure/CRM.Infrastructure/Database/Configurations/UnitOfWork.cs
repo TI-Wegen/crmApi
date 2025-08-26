@@ -2,7 +2,7 @@
 
 namespace CRM.Infrastructure.Database.Configurations;
 
- public class UnitOfWork : IUnitOfWork
+public class UnitOfWork : IUnitOfWork
 {
     private readonly AppDbContext _context;
 
@@ -16,10 +16,9 @@ namespace CRM.Infrastructure.Database.Configurations;
         return _context.SaveChangesAsync(cancellationToken);
     }
 
-    public Task ReloadEntityAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default) where TEntity : class
+    public Task ReloadEntityAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default)
+        where TEntity : class
     {
         return _context.Entry(entity).ReloadAsync(cancellationToken);
     }
 }
-
-

@@ -21,7 +21,6 @@ public class DomainEventDispatcher : IDomainEventDispatcher
 
             foreach (var domainEvent in events)
             {
-                
                 var handlerType = typeof(IDomainEventHandler<>).MakeGenericType(domainEvent.GetType());
                 var handlers = _serviceProvider.GetServices(handlerType);
 

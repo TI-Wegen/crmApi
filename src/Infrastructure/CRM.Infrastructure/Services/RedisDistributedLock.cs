@@ -15,7 +15,6 @@ public class RedisDistributedLock : IDistributedLock
 
     public Task<bool> AcquireLockAsync(string resourceKey, TimeSpan expiry)
     {
- 
         return _database.LockTakeAsync(resourceKey, _lockOwnerId, expiry);
     }
 
@@ -24,4 +23,3 @@ public class RedisDistributedLock : IDistributedLock
         return _database.LockReleaseAsync(resourceKey, _lockOwnerId);
     }
 }
-

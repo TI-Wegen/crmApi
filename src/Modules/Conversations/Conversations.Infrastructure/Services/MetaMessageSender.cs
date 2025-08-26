@@ -12,7 +12,9 @@ public class MetaMessageSender : IMetaMessageSender
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly MetaSettings _metaSettings;
-    private static readonly JsonSerializerOptions _jsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+        { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
     public MetaMessageSender(IHttpClientFactory httpClientFactory, IOptions<MetaSettings> metaSettings)
     {
@@ -30,10 +32,10 @@ public class MetaMessageSender : IMetaMessageSender
 
 
         var jsonContent = new StringContent(
-          JsonSerializer.Serialize(requestBody),
-          Encoding.UTF8,
-          "application/json"
-      );
+            JsonSerializer.Serialize(requestBody),
+            Encoding.UTF8,
+            "application/json"
+        );
 
         var response = await httpClient.PostAsync(requestUrl, jsonContent);
 
@@ -47,7 +49,8 @@ public class MetaMessageSender : IMetaMessageSender
         Console.WriteLine("--> Mensagem enviada com sucesso pela API da Meta!");
     }
 
-    public async Task EnviarDocumentoAsync(string numeroDestino, string urlDoDocumento, string nomeDoArquivo, string? legenda)
+    public async Task EnviarDocumentoAsync(string numeroDestino, string urlDoDocumento, string nomeDoArquivo,
+        string? legenda)
     {
         var httpClient = _httpClientFactory.CreateClient("MetaApiClient");
         var requestUrl = $"{_metaSettings.MetaApiVersion}/{_metaSettings.WhatsAppBusinessPhoneNumberId}/messages";
@@ -71,6 +74,7 @@ public class MetaMessageSender : IMetaMessageSender
 
         Console.WriteLine($"--> Resposta de SUCESSO da Meta: {responseContent}");
     }
+
     public async Task EnviarImagemAsync(string numeroDestino, string urlDaImagem, string? legenda)
     {
         var httpClient = _httpClientFactory.CreateClient("MetaApiClient");
@@ -79,7 +83,8 @@ public class MetaMessageSender : IMetaMessageSender
         var requestBody = new MetaSendImageRequest(numeroDestino, urlDaImagem, legenda);
 
         var jsonContent = new StringContent(
-            JsonSerializer.Serialize(requestBody, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull }),
+            JsonSerializer.Serialize(requestBody,
+                new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull }),
             Encoding.UTF8,
             "application/json"
         );
@@ -120,15 +125,19 @@ public class MetaMessageSender : IMetaMessageSender
 
         Console.WriteLine("--> Áudio enviado com sucesso pela API da Meta!");
     }
-    public async Task<string> EnviarTemplateAsync(string numeroDestino, string templateName, List<string> bodyParameters)
+
+    public async Task<string> EnviarTemplateAsync(string numeroDestino, string templateName,
+        List<string> bodyParameters)
     {
         var httpClient = _httpClientFactory.CreateClient("MetaApiClient");
         var requestUrl = $"{_metaSettings.MetaApiVersion}/{_metaSettings.WhatsAppBusinessPhoneNumberId}/messages";
 
         var requestBody = new MetaSendTemplateRequest(numeroDestino, templateName, bodyParameters);
 
-        var serializerOptions = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
-        var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody, serializerOptions), Encoding.UTF8, "application/json");
+        var serializerOptions = new JsonSerializerOptions
+            { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
+        var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody, serializerOptions), Encoding.UTF8,
+            "application/json");
 
         var response = await httpClient.PostAsync(requestUrl, jsonContent);
         var responseContent = await response.Content.ReadAsStringAsync();
@@ -147,18 +156,17 @@ public class MetaMessageSender : IMetaMessageSender
         return messageId ?? string.Empty;
     }
 
-    
-        public async Task EnviarPesquisaDeSatisfacaoAsync(string numeroDestino, Guid atendimentoId)
+    public async Task EnviarPesquisaDeSatisfacaoAsync(string numeroDestino, Guid atendimentoId)
     {
         var httpClient = _httpClientFactory.CreateClient("MetaApiClient");
         var requestUrl = $"{_metaSettings.MetaApiVersion}/{_metaSettings.WhatsAppBusinessPhoneNumberId}/messages";
 
         var action = new ActionPayload(new List<ButtonPayload>
-    {
-        new(new ReplyPayload($"rating_{atendimentoId}_5", "⭐ Ótimo")),
-        new(new ReplyPayload($"rating_{atendimentoId}_3", "😐 Razoável")),
-        new(new ReplyPayload($"rating_{atendimentoId}_1", "👎 Ruim"))
-    });
+        {
+            new(new ReplyPayload($"rating_{atendimentoId}_5", "⭐ Ótimo")),
+            new(new ReplyPayload($"rating_{atendimentoId}_3", "😐 Razoável")),
+            new(new ReplyPayload($"rating_{atendimentoId}_1", "👎 Ruim"))
+        });
 
 
         var body = new InteractiveBodyPayload("Ficamos felizes em ajudar! Como você avalia nosso atendimento?");
@@ -166,8 +174,10 @@ public class MetaMessageSender : IMetaMessageSender
 
         var requestBody = new MetaSendInteractiveRequest(numeroDestino, interactive);
 
-        var serializerOptions = new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
-        var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody, serializerOptions), Encoding.UTF8, "application/json");
+        var serializerOptions = new JsonSerializerOptions
+            { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
+        var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody, serializerOptions), Encoding.UTF8,
+            "application/json");
 
         var response = await httpClient.PostAsync(requestUrl, jsonContent);
         var responseContent = await response.Content.ReadAsStringAsync();

@@ -3,7 +3,6 @@ using Contacts.Domain.Aggregates;
 using Conversations.Domain.Aggregates;
 using Conversations.Domain.Entities;
 using CRM.Domain.DomainEvents;
-using Metrics.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Templates.Domain.Aggregates;
 
@@ -18,6 +17,7 @@ public class AppDbContext : DbContext
     {
         _dispatcher = dispatcher;
     }
+
     public DbSet<Conversa> Conversas { get; set; }
     public DbSet<Mensagem> Mensagens { get; set; }
     public DbSet<Agente> Agentes { get; set; }
@@ -25,7 +25,6 @@ public class AppDbContext : DbContext
     public DbSet<Contato> Contatos { get; set; }
     public DbSet<MessageTemplate> MessageTemplates { get; set; }
     public DbSet<Atendimento> Atendimentos { get; set; }
-    public DbSet<MetricaTemplateEnviado> MetricasTemplatesEnviados { get; set; }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -42,7 +41,7 @@ public class AppDbContext : DbContext
             entry.Property("Version").CurrentValue = Guid.NewGuid();
         }
 
-    
+
         var result = await base.SaveChangesAsync(cancellationToken);
 
         if (_dispatcher is not null)

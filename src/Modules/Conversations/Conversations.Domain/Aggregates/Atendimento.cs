@@ -1,6 +1,5 @@
 ﻿using Conversations.Domain.Enuns;
 using Conversations.Domain.ValueObjects;
-
 using CRM.Domain.DomainEvents;
 using CRM.Domain.Exceptions;
 using static Conversations.Domain.Events.AtendimentoEvent;
@@ -18,8 +17,9 @@ public class Atendimento : Entity
     public DateTime? DataFinalizacao { get; private set; }
 
 
-
-    private Atendimento() { }
+    private Atendimento()
+    {
+    }
 
     public static Atendimento Iniciar(Guid conversaId)
     {
@@ -39,7 +39,7 @@ public class Atendimento : Entity
         {
             ConversaId = conversaId,
             Status = ConversationStatus.AguardandoNaFila,
-            BotStatus = BotStatus.Nenhum, 
+            BotStatus = BotStatus.Nenhum,
             SetorId = setorId
         };
         atendimento.AddDomainEvent(new AtendimentoIniciadoEvent(atendimento.Id, conversaId));
@@ -58,7 +58,7 @@ public class Atendimento : Entity
 
     public void AtribuirAgente(Guid? agenteId)
     {
-        if ( Status != ConversationStatus.AguardandoRespostaCliente && Status != ConversationStatus.AguardandoNaFila)
+        if (Status != ConversationStatus.AguardandoRespostaCliente && Status != ConversationStatus.AguardandoNaFila)
             throw new DomainException("Apenas atendimentos na fila podem ser atribuídos.");
 
         Status = ConversationStatus.EmAtendimento;
@@ -112,17 +112,19 @@ public class Atendimento : Entity
             throw new DomainException("O ID do atendimento não pode ser alterado.");
         Id = atendimentoId;
     }
+
     public static Atendimento IniciarProativamente(Guid conversaId, Guid agenteId)
     {
         var atendimento = new Atendimento
         {
             ConversaId = conversaId,
-            AgenteId = agenteId, 
-            Status = ConversationStatus.AguardandoRespostaCliente, 
-            BotStatus = BotStatus.Nenhum 
+            AgenteId = agenteId,
+            Status = ConversationStatus.AguardandoRespostaCliente,
+            BotStatus = BotStatus.Nenhum
         };
         return atendimento;
     }
+
     public void RegistrarRespostaDoCliente()
     {
         if (Status != ConversationStatus.AguardandoRespostaCliente)
@@ -133,7 +135,7 @@ public class Atendimento : Entity
 
     public void MarcarComoSemResposta()
     {
-        if (Status != ConversationStatus.AguardandoRespostaCliente) return; 
+        if (Status != ConversationStatus.AguardandoRespostaCliente) return;
 
         Status = ConversationStatus.FechadoSemResposta;
     }

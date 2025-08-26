@@ -50,7 +50,8 @@ public class CleanExpiredBotSessionsJob
 
             if (sessionState is null)
             {
-                _logger.LogInformation("Sessão para o atendimento {AtendimentoId} expirou. Resolvendo...", atendimento.Id);
+                _logger.LogInformation("Sessão para o atendimento {AtendimentoId} expirou. Resolvendo...",
+                    atendimento.Id);
 
                 atendimento.Resolver(SystemGuids.SystemAgentId);
                 sessoesExpiradas++;
@@ -62,6 +63,7 @@ public class CleanExpiredBotSessionsJob
             await _unitOfWork.SaveChangesAsync();
         }
 
-        _logger.LogInformation("Job de limpeza de sessões finalizado. {Count} atendimentos foram resolvidos.", sessoesExpiradas);
+        _logger.LogInformation("Job de limpeza de sessões finalizado. {Count} atendimentos foram resolvidos.",
+            sessoesExpiradas);
     }
 }

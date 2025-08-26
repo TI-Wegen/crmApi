@@ -1,13 +1,9 @@
-﻿namespace Templates.Application.UseCases.Queries.Handler;
-
-using CRM.Application.Interfaces;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using CRM.Application.Interfaces;
 using Templates.Application.Dtos;
 using Templates.Application.Mappers;
 using Templates.Domain.Repositories;
+
+namespace Templates.Application.UseCases.Queries.Handler;
 
 public class GetAllTemplatesQueryHandler : IQueryHandler<GetAllTemplatesQuery, IEnumerable<TemplateDto>>
 {

@@ -133,7 +133,7 @@ public class ConversationsController : ControllerBase
 
         try
         {
-            var timestamp = DateTime.UtcNow;
+            var timestamp = DateTime.UtcNow.AddHours(+3);
 
             var command = new AdicionarMensagemCommand(
                 id,

@@ -1,12 +1,12 @@
-﻿namespace Templates.Infrastructure.Services;
-
+﻿using System.Text;
+using System.Text.Json;
 using CRM.Infrastructure.Config.Meta;
 using CRM.Infrastructure.Config.Meta.Dtos;
 using Microsoft.Extensions.Options;
-using System.Text;
-using System.Text.Json;
 using Templates.Application.Abstractions;
 using Templates.Domain.Aggregates;
+
+namespace Templates.Infrastructure.Services;
 
 public class MetaTemplateManager : IMetaTemplateManager
 {
@@ -26,13 +26,12 @@ public class MetaTemplateManager : IMetaTemplateManager
 
         var requestBody = new MetaCreateTemplateRequest
         {
-            Name = template.Name.ToLower(), 
+            Name = template.Name.ToLower(),
             Language = template.Language,
-            Category = "UTILITY", 
+            Category = "UTILITY",
             Components = new List<TemplateComponent>
             {
-                new() { Type = "BODY", Text = template.Body }
-                // Adicionar lógica para HEADER (imagem/documento) ou BUTTONS aqui se necessário
+                new() { Type = "BODY", Text = template.Body }   
             }
         };
 

@@ -1,15 +1,13 @@
-﻿namespace Agents.Infrastructure.Services;
-
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using Agents.Domain.Aggregates;
 using Agents.Domain.Repository;
 using CRM.Application.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-// Usings necessários...
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
+
+namespace Agents.Infrastructure.Services;
 
 public class JwtTokenService : ITokenService
 {
@@ -30,15 +28,11 @@ public class JwtTokenService : ITokenService
 
         var claims = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.Sub, agente.Id.ToString()), 
+            new Claim(JwtRegisteredClaimNames.Sub, agente.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, agente.Email),
             new Claim(JwtRegisteredClaimNames.Name, agente.Nome),
-            new Claim("setorId", setor?.Id.ToString() ?? string.Empty), 
-            new Claim("setorNome", setor?.Nome ?? string.Empty), 
-           
-
-
-
+            new Claim("setorId", setor?.Id.ToString() ?? string.Empty),
+            new Claim("setorNome", setor?.Nome ?? string.Empty),
         };
 
         var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);
@@ -57,7 +51,4 @@ public class JwtTokenService : ITokenService
 
         return tokenHandler.WriteToken(token);
     }
-
-
-    
 }

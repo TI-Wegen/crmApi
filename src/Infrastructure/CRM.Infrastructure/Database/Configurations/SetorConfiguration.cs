@@ -1,10 +1,9 @@
-﻿namespace CRM.Infrastructure.Database.Configurations;
-
-
-using Agents.Domain.Aggregates;
+﻿using Agents.Domain.Aggregates;
 using Agents.Domain.Enuns;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace CRM.Infrastructure.Database.Configurations;
 
 public class SetorConfiguration : IEntityTypeConfiguration<Setor>
 {
@@ -13,7 +12,7 @@ public class SetorConfiguration : IEntityTypeConfiguration<Setor>
         builder.ToTable("Setores");
         builder.HasKey(s => s.Id);
         builder.Property(s => s.Nome).IsRequired().HasMaxLength(100);
-        builder.HasIndex(s => s.Nome).IsUnique(); 
+        builder.HasIndex(s => s.Nome).IsUnique();
         builder.Property(s => s.Descricao).HasMaxLength(255);
         builder.Ignore(s => s.DomainEvents);
 
@@ -28,22 +27,20 @@ public class SetorConfiguration : IEntityTypeConfiguration<Setor>
             },
             new
             {
-                Id = Guid.Parse("00000000-0000-0000-0001-000000000002"), 
+                Id = Guid.Parse("00000000-0000-0000-0001-000000000002"),
                 Nome = SetorNome.Comercial.ToDbValue(),
                 Descricao = "Setor responsável por vendas e novas oportunidades.",
                 Version = Guid.Parse("d4a3b4d5-6e7f-8a9b-0c1d-2e3f4a5b6c7d"),
                 CreatedAt = DateTime.SpecifyKind(new DateTime(2024, 01, 01, 0, 0, 0), DateTimeKind.Utc)
-
             },
-             new
-             {
-                 Id = Guid.Parse("00000000-0000-0000-0001-000000000003"), 
-                 Nome = SetorNome.Admin.ToDbValue(),
-                 Descricao = "Setor responsável pela administração geral",
-                 Version = Guid.Parse("d4a3b4d5-6e7f-8a9b-0c1d-2e3f4a5b6c7a"),
-                 CreatedAt = DateTime.SpecifyKind(new DateTime(2024, 01, 01, 0, 0, 0), DateTimeKind.Utc)
-
-             }
+            new
+            {
+                Id = Guid.Parse("00000000-0000-0000-0001-000000000003"),
+                Nome = SetorNome.Admin.ToDbValue(),
+                Descricao = "Setor responsável pela administração geral",
+                Version = Guid.Parse("d4a3b4d5-6e7f-8a9b-0c1d-2e3f4a5b6c7a"),
+                CreatedAt = DateTime.SpecifyKind(new DateTime(2024, 01, 01, 0, 0, 0), DateTimeKind.Utc)
+            }
         );
     }
 }

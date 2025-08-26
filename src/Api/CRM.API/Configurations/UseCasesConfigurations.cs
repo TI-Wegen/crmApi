@@ -33,12 +33,6 @@ using CRM.Infrastructure.Database.Configurations;
 using CRM.Infrastructure.Services;
 using Infrastructure.ExternalServices.Services;
 using Infrastructure.ExternalServices.Services.Meta;
-using Metrics.Application.abstractions;
-using Metrics.Application.Dtos;
-using Metrics.Application.UseCases.Queries;
-using Metrics.Application.UseCases.Queries.Handlers;
-using Metrics.Infrastructure.services;
-using System.Net;
 using Templates.Application.Abstractions;
 using Templates.Application.Dtos;
 using Templates.Application.UseCases.Commands;
@@ -58,7 +52,6 @@ public static class UseCaseConfigurations
     public static IServiceCollection AddUseCases(
         this IServiceCollection services)
     {
-
         services.AddRepositories();
         services.AddHandlers();
         services.AddServicesConfiguration();
@@ -68,7 +61,6 @@ public static class UseCaseConfigurations
     private static IServiceCollection AddRepositories(
         this IServiceCollection services)
     {
-
         services.AddScoped<IConversationRepository, ConversationRepository>();
         services.AddScoped<IContactRepository, ContactRepository>();
         services.AddScoped<IAgentRepository, AgentRepository>();
@@ -82,7 +74,6 @@ public static class UseCaseConfigurations
     private static IServiceCollection AddServicesConfiguration(
       this IServiceCollection services)
     {
-
         services.AddHttpContextAccessor();
         services.AddScoped<IConversationReadService, DapperConversationReadService>();
         services.AddScoped<IUserContext, UserContext>();
@@ -93,7 +84,6 @@ public static class UseCaseConfigurations
         services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
         services.AddScoped<IDistributedLock, RedisDistributedLock>();
         services.AddScoped<IMessageBufferService, RedisMessageBufferService>();
-        services.AddScoped<ITemplateMetricsReadService, DapperTemplateMetricsService>();
         services.AddScoped<IMensageriaBotService, MensageriaBotService>();
         services.AddScoped<IMetaMediaService, MetaMediaService>();
         services.AddScoped<IMetaContactService , MetaContactService>();
@@ -118,10 +108,6 @@ public static class UseCaseConfigurations
         services.AddScoped<ICommandHandler<RegistrarAvaliacaoCommand>, RegistrarAvaliacaoCommandHandler>();
         services.AddScoped<IQueryHandler<GetActiveChatQuery, ActiveChatDto>, GetActiveChatQueryHandler>();
 
-
-
-
-
         services.AddScoped<ICommandHandler<CriarAgenteCommand, AgenteDto>, CriarAgenteCommandHandler>();
         services.AddScoped<ICommandHandler<AtualizarAgenteCommand>, AtualizarAgenteCommandHandler>();
         services.AddScoped<IQueryHandler<GetAllAgentsQuery, IEnumerable<AgenteDto>>, GetAllAgentsQueryHandler>();
@@ -129,9 +115,6 @@ public static class UseCaseConfigurations
         services.AddScoped<ICommandHandler<InativarAgenteCommand>, InativarAgenteCommandHandler>();
         services.AddScoped<IQueryHandler<LoginQuery, string>, LoginQueryHandler>();
         services.AddScoped<IQueryHandler<GetSetoresQuery, IEnumerable<SetorDto>>, GetSetoresQueryHandler>();
-
-
-
 
         services.AddScoped<ICommandHandler<CriarContatoCommand, ContatoDto>, CriarContatoCommandHandler>();
         services.AddScoped<IQueryHandler<GetContactByIdQuery, ContatoDto>, GetContactByIdQueryHandler>();
@@ -142,19 +125,10 @@ public static class UseCaseConfigurations
         services.AddScoped<ICommandHandler<EnviarTemplateCommand>, EnviarTemplateCommandHandler>();
         services.AddScoped<ICommandHandler<RegistrarMensagemEnviadaCommand>, RegistrarMensagemEnviadaCommandHandler>();
         services.AddScoped<ICommandHandler<AtualizarAvatarContatoCommand>, AtualizarAvatarContatoCommandHandler>();
-
-
-
-        // Módulo de Templates
+        
         services.AddScoped<ICommandHandler<CriarTemplateCommand, TemplateDto>, CriarTemplateCommandHandler>();
         services.AddScoped<IQueryHandler<GetAllTemplatesQuery, IEnumerable<TemplateDto>>, GetAllTemplatesQueryHandler>();
         services.AddScoped<ICommandHandler<AtualizarStatusTemplateCommand>, AtualizarStatusTemplateCommandHandler>();
-
-
-        // modulo de metricas
-        services.AddScoped<IQueryHandler<GetTemplatesSentPerAgentQuery, IEnumerable<TemplatesSentPerAgentDto>>, GetTemplatesSentPerAgentQueryHandler>();
-
-
 
         return services;
     }

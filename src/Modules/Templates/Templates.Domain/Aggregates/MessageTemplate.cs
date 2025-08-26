@@ -1,7 +1,6 @@
-﻿
-using CRM.Domain.DomainEvents;
+﻿using CRM.Domain.DomainEvents;
 using CRM.Domain.Exceptions;
-using Templates.Domain.Enuns; // Usando uma exceção de domínio genérica
+using Templates.Domain.Enuns;
 
 namespace Templates.Domain.Aggregates;
 

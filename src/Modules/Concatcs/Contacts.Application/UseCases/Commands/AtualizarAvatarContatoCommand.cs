@@ -2,6 +2,4 @@
 
 namespace Contacts.Application.UseCases.Commands;
 
-    public record AtualizarAvatarContatoCommand(string WaId): ICommand;
-
-
+public record AtualizarAvatarContatoCommand(string WaId) : ICommand;

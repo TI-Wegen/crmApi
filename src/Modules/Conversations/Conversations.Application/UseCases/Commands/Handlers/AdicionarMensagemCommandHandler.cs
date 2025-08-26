@@ -19,12 +19,10 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
     private readonly IUnitOfWork _unitOfWork;
     private readonly IFileStorageService _fileStorageService;
     private readonly IRealtimeNotifier _notifier;
-    private readonly IMetaMessageSender _metaSender; 
-    private readonly IContactRepository _contactRepository; 
+    private readonly IMetaMessageSender _metaSender;
+    private readonly IContactRepository _contactRepository;
     private readonly IUserContext _userContext;
     private readonly IAtendimentoRepository _atendimentoRepository;
-
-
 
     public AdicionarMensagemCommandHandler(
         IConversationRepository conversationRepository,
@@ -58,7 +56,7 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         if (conversa is null)
             throw new NotFoundException($"Conversa com o Id '{command.ConversaId}' não encontrada.");
         var atendimento = await _atendimentoRepository.FindActiveByConversaIdAsync(conversa.Id, cancellationToken);
-        if (atendimento is null) 
+        if (atendimento is null)
         {
             atendimento = Atendimento.Iniciar(conversa.Id);
             await _atendimentoRepository.AddAsync(atendimento, cancellationToken);
@@ -70,10 +68,12 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
 
         string? anexoUrl = null;
         if (conversa.SessaoAtiva is null || !conversa.SessaoAtiva.EstaAtiva(DateTime.UtcNow))
-            throw new DomainException("A janela de 24 horas para respostas livres está fechada. Use um Template de Mensagem para iniciar uma nova conversa.");
+            throw new DomainException(
+                "A janela de 24 horas para respostas livres está fechada. Use um Template de Mensagem para iniciar uma nova conversa.");
 
         var agenteId = _userContext.GetCurrentUserId();
-        if (agenteId is null) throw new UnauthorizedAccessException("Não foi possível identificar o agente autenticado.");
+        if (agenteId is null)
+            throw new UnauthorizedAccessException("Não foi possível identificar o agente autenticado.");
 
 
         if (atendimento.Status == ConversationStatus.AguardandoNaFila) atendimento.AtribuirAgente(agenteId.Value);
@@ -81,13 +81,15 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         if (command.AnexoStream is not null)
         {
             var nomeUnicoAnexo = $"{Guid.NewGuid()}-{command.AnexoNome}";
-            anexoUrl = await _fileStorageService.UploadAsync(command.AnexoStream, nomeUnicoAnexo, command.AnexoContentType!);
+            anexoUrl = await _fileStorageService.UploadAsync(command.AnexoStream, nomeUnicoAnexo,
+                command.AnexoContentType!);
         }
 
         var remetente = Remetente.Agente(agenteId.Value);
         var timestampCompatível = DateTime.SpecifyKind(timestampBrasilia, DateTimeKind.Utc);
 
-        var novaMensagem = new Mensagem(conversa.Id, atendimento.Id, command.Texto, remetente, timestamp: timestampCompatível, anexoUrl);
+        var novaMensagem = new Mensagem(conversa.Id, atendimento.Id, command.Texto, remetente,
+            timestamp: timestampCompatível, anexoUrl);
 
         conversa.AdicionarMensagem(novaMensagem, atendimento.Id);
 
@@ -97,12 +99,12 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         {
             if (novaMensagem.AnexoUrl is not null)
             {
-                await _metaSender.EnviarDocumentoAsync(contato.Telefone, anexoUrl, command.AnexoNome, novaMensagem.Texto);
+                await _metaSender.EnviarDocumentoAsync(contato.Telefone, anexoUrl, command.AnexoNome,
+                    novaMensagem.Texto);
             }
             else
             {
                 await _metaSender.EnviarMensagemTextoAsync(contato.Telefone, command.Texto);
-
             }
         }
 

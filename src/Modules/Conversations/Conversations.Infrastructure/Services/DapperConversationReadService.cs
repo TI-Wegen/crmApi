@@ -16,6 +16,7 @@ public class DapperConversationReadService : IConversationReadService
     {
         _dbConnection = dbConnection;
     }
+
     public async Task<IEnumerable<ConversationSummaryDto>> GetAllSummariesAsync(
         GetAllConversationsQuery query,
         CancellationToken cancellationToken = default)
@@ -46,7 +47,11 @@ public class DapperConversationReadService : IConversationReadService
         var parameters = new DynamicParameters();
         var whereClauses = new List<string>();
 
-        var activeStatuses = new[] { "EmAutoAtendimento", "AguardandoNaFila", "EmAtendimento", "Resolvida", "FechadoSemResposta" , "AguardandoRespostaCliente" };
+        var activeStatuses = new[]
+        {
+            "EmAutoAtendimento", "AguardandoNaFila", "EmAtendimento", "Resolvida", "FechadoSemResposta",
+            "AguardandoRespostaCliente"
+        };
 
         whereClauses.Add(@"a.""Status"" = ANY(@ActiveStatuses)");
         parameters.Add("ActiveStatuses", activeStatuses);
@@ -56,11 +61,13 @@ public class DapperConversationReadService : IConversationReadService
             whereClauses.Add(@"a.""Status"" = @Status");
             parameters.Add("Status", query.Status.ToString());
         }
+
         if (query.AgenteId.HasValue)
         {
             whereClauses.Add(@"a.""AgenteId"" = @AgenteId");
             parameters.Add("AgenteId", query.AgenteId.Value);
         }
+
         if (query.SetorId.HasValue)
         {
             whereClauses.Add(@"a.""SetorId"" = @SetorId");
@@ -84,7 +91,8 @@ public class DapperConversationReadService : IConversationReadService
         );
     }
 
-    public async Task<ConversationSummaryDto?> GetSummaryByIdAsync(Guid conversationId, CancellationToken cancellationToken = default)
+    public async Task<ConversationSummaryDto?> GetSummaryByIdAsync(Guid conversationId,
+        CancellationToken cancellationToken = default)
     {
         var sql = @"
         SELECT
@@ -114,9 +122,11 @@ public class DapperConversationReadService : IConversationReadService
             new CommandDefinition(sql, new { ConversationId = conversationId }, cancellationToken: cancellationToken)
         );
     }
-    public async Task<ConversationDetailsDto?> GetConversationDetailsAsync(Guid conversationId, CancellationToken cancellationToken)
-{
-    var sql = @"
+
+    public async Task<ConversationDetailsDto?> GetConversationDetailsAsync(Guid conversationId,
+        CancellationToken cancellationToken)
+    {
+        var sql = @"
         -- Busca os detalhes da Conversa, Contato e do Atendimento Ativo
         SELECT
             c.""Id"", c.""ContatoId"",
@@ -142,13 +152,13 @@ public class DapperConversationReadService : IConversationReadService
         ORDER BY m.""Timestamp"" DESC;
     ";
 
-    using var multi = await _dbConnection.QueryMultipleAsync(sql, new { ConversationId = conversationId });
+        using var multi = await _dbConnection.QueryMultipleAsync(sql, new { ConversationId = conversationId });
 
-    var details = await multi.ReadFirstOrDefaultAsync<ConversationDetailsDto>();
-    if (details is null) return null;
+        var details = await multi.ReadFirstOrDefaultAsync<ConversationDetailsDto>();
+        if (details is null) return null;
 
-    details.Mensagens = (await multi.ReadAsync<MessageDto>()).ToList();
+        details.Mensagens = (await multi.ReadAsync<MessageDto>()).ToList();
 
-    return details;
-}
+        return details;
+    }
 }

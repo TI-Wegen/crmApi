@@ -7,17 +7,13 @@ public record MetaSendDocumentRequest
     [JsonPropertyName("messaging_product")]
     public string MessagingProduct { get; } = "whatsapp";
 
-    [JsonPropertyName("recipient_type")]
-    public string RecipientType { get; } = "individual";
+    [JsonPropertyName("recipient_type")] public string RecipientType { get; } = "individual";
 
-    [JsonPropertyName("to")]
-    public string To { get; init; }
+    [JsonPropertyName("to")] public string To { get; init; }
 
-    [JsonPropertyName("type")]
-    public string Type { get; } = "document";
+    [JsonPropertyName("type")] public string Type { get; } = "document";
 
-    [JsonPropertyName("document")]
-    public DocumentPayload Document { get; init; }
+    [JsonPropertyName("document")] public DocumentPayload Document { get; init; }
 
     public MetaSendDocumentRequest(string to, string link, string filename, string? caption)
     {
@@ -28,14 +24,11 @@ public record MetaSendDocumentRequest
 
 public record DocumentPayload
 {
-    [JsonPropertyName("link")]
-    public string Link { get; init; }
+    [JsonPropertyName("link")] public string Link { get; init; }
 
-    [JsonPropertyName("filename")]
-    public string Filename { get; init; }
+    [JsonPropertyName("filename")] public string Filename { get; init; }
 
-    [JsonPropertyName("caption")]
-    public string? Caption { get; init; }
+    [JsonPropertyName("caption")] public string? Caption { get; init; }
 
     public DocumentPayload(string link, string filename, string? caption)
     {

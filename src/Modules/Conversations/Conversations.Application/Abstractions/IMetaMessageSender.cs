@@ -10,5 +10,4 @@
         Task EnviarPesquisaDeSatisfacaoAsync(string numeroDestino, Guid atendimentoId);
 
     }
-
 }

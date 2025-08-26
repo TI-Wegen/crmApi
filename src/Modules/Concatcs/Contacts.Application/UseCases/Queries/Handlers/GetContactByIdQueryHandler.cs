@@ -1,13 +1,11 @@
-﻿namespace Contacts.Application.UseCases.Queries.Handlers;
-
-
-// Em Modules/Contacts/Application/UseCases/Queries/Handlers/
-using Contacts.Application.Dtos;
+﻿using Contacts.Application.Dtos;
 using Contacts.Application.Mappers;
 using Contacts.Application.UseCases.Commands.Queries;
 using Contacts.Domain.Repository;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
+
+namespace Contacts.Application.UseCases.Queries.Handlers;
 
 public class GetContactByIdQueryHandler : IQueryHandler<GetContactByIdQuery, ContatoDto>
 {

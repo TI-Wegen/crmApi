@@ -1,10 +1,10 @@
-﻿using CRM.Infrastructure.Config.Meta;
+﻿using System.Text.Json;
+using CRM.Infrastructure.Config.Meta;
 using StackExchange.Redis;
-using System.Text.Json;
 
 namespace CRM.Infrastructure.Services;
 
-    public class RedisMessageBufferService : IMessageBufferService
+public class RedisMessageBufferService : IMessageBufferService
 {
     private readonly IDatabase _database;
     private const string BufferKeyPrefix = "buffer:contato:";
@@ -28,7 +28,7 @@ namespace CRM.Infrastructure.Services;
     public Task<bool> IsFirstProcessor(string contactPhone)
     {
         var key = $"{ProcessorKeyPrefix}{contactPhone}";
- 
+
         return _database.StringSetAsync(key, "active", ProcessorLockExpiry, When.NotExists);
     }
 
@@ -44,4 +44,3 @@ namespace CRM.Infrastructure.Services;
         return redisValues.Select(val => JsonSerializer.Deserialize<MessageObject>(val));
     }
 }
-

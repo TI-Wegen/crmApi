@@ -4,7 +4,6 @@ using Conversations.Domain.ValueObjects;
 using CRM.Domain.DomainEvents;
 using CRM.Domain.Exceptions;
 
-
 namespace Conversations.Domain.Aggregates;
 
 public class Conversa : Entity
@@ -19,7 +18,10 @@ public class Conversa : Entity
     public IReadOnlyCollection<ConversaTag> Tags => _tags.AsReadOnly();
     public SessaoWhatsapp? SessaoAtiva { get; private set; }
     public int TotalSessoesIniciadas { get; private set; }
-    private Conversa() { }
+
+    private Conversa()
+    {
+    }
 
     public static Conversa Iniciar(Guid contatoId, string contatoNome)
     {
@@ -44,7 +46,6 @@ public class Conversa : Entity
             novaMensagem.SetConversaId(this.Id);
         }
 
-        // Validação para garantir que o atendimentoId é o correto
         if (novaMensagem.AtendimentoId != atendimentoId)
             throw new DomainException("A mensagem não pertence a este atendimento.");
         _mensagens.Add(novaMensagem);

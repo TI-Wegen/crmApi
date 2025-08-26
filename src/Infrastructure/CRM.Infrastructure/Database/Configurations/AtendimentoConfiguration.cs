@@ -1,8 +1,8 @@
-﻿namespace CRM.Infrastructure.Database.Configurations;
-
-using Conversations.Domain.Aggregates;
+﻿using Conversations.Domain.Aggregates;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace CRM.Infrastructure.Database.Configurations;
 
 public class AtendimentoConfiguration : IEntityTypeConfiguration<Atendimento>
 {
@@ -12,7 +12,7 @@ public class AtendimentoConfiguration : IEntityTypeConfiguration<Atendimento>
         builder.HasKey(a => a.Id);
 
         builder.HasOne<Conversa>()
-            .WithMany() 
+            .WithMany()
             .HasForeignKey(a => a.ConversaId)
             .IsRequired();
 
