@@ -74,7 +74,7 @@ public class ContactsController : ControllerBase
     }
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<ContatoDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 200)
+    public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
     {
         var query = new GetAllContactsQuery(pageNumber, pageSize);
         var contatos = await _getAllContactsHandler.HandleAsync(query);
