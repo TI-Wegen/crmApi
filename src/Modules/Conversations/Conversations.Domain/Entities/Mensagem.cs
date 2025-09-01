@@ -10,12 +10,13 @@ public class Mensagem : Entity
     public Guid AtendimentoId { get; private set; }
     public string? Texto { get; private set; }
     public string? MessageId { get; private set; }
+    public string? ExternalId { get; private set; } 
     public string? AnexoUrl { get; private set; }
     public DateTime Timestamp { get; private set; }
     public Remetente Remetente { get; private set; }
-
+    
     public Mensagem(Guid conversaId, Guid atendimentoId, string? texto, Remetente remetente, DateTime timestamp,
-        string? anexoUrl = null)
+        string? anexoUrl = null, string? externalId = null)
     {
         if (string.IsNullOrWhiteSpace(texto) && string.IsNullOrWhiteSpace(anexoUrl))
             throw new DomainException("A mensagem precisa ter um texto ou um anexo.");
@@ -26,6 +27,7 @@ public class Mensagem : Entity
         Remetente = remetente;
         AnexoUrl = anexoUrl;
         Timestamp = timestamp;
+        ExternalId = externalId;
     }
 
     private Mensagem()

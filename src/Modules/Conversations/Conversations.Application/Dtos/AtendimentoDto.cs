@@ -1,6 +1,6 @@
 ﻿namespace Conversations.Application.Dtos;
 
-    public class AtendimentoDto
+public class AtendimentoDto
 {
     public Guid Id { get; init; }
     public Guid ConversaId { get; init; }

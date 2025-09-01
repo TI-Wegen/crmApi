@@ -56,6 +56,13 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
         var timestampUtc = DateTime.SpecifyKind(timestamp, DateTimeKind.Utc);
 
         var conversa = await _conversationRepository.FindActiveByContactIdAsync(command.ContatoId, cancellationToken);
+        
+        var mensagemExistente = await _conversationRepository.FindMessageByExternalIdAsync(command.Wamid, command.TextoDaMensagem, cancellationToken);
+        if (mensagemExistente is not null)
+        {
+            _logger.LogInformation("Mensagem {Wamid} já processada para conversa {ConversaId}", command.Wamid, conversa.Id);
+            return conversa.Id;
+        }
 
         try {
             if (conversa is not null)
@@ -72,7 +79,7 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
 
                     }
 
-                    var mensagemEmAndamento = new Mensagem(conversa.Id, atendimentoAtivo.Id, command.TextoDaMensagem, Remetente.Cliente(), timestampUtc, command.AnexoUrl);
+                    var mensagemEmAndamento = new Mensagem(conversa.Id, atendimentoAtivo.Id, command.TextoDaMensagem, Remetente.Cliente(), timestampUtc, command.AnexoUrl, command.Wamid);
                     conversa.AdicionarMensagem(mensagemEmAndamento, atendimentoAtivo.Id);
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
 

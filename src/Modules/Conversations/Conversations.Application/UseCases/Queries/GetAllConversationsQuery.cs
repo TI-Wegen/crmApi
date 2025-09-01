@@ -11,4 +11,3 @@ public record GetAllConversationsQuery(
     Guid? AgenteId = null,
     Guid? SetorId = null
 ) : IQuery<IEnumerable<ConversationSummaryDto>>;
-

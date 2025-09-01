@@ -10,4 +10,3 @@ public record BoletoDto
     public string StatusBoleto { get; init; }
     public string Numinstalacao { get; init; }
 }
-

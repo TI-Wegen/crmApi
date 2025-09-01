@@ -3,6 +3,4 @@ using CRM.Application.Interfaces;
 
 namespace Conversations.Application.UseCases.Queries;
 
-    public record GetActiveChatQuery (Guid ConversaId) : IQuery<ActiveChatDto>;
-
-
+public record GetActiveChatQuery(Guid ConversaId) : IQuery<ActiveChatDto>;

@@ -1,5 +1,6 @@
 ﻿using Conversations.Application.Abstractions;
 using Conversations.Domain.Aggregates;
+using Conversations.Domain.Entities;
 using CRM.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 
@@ -46,6 +47,12 @@ public class ConversationRepository : IConversationRepository
             .FirstOrDefaultAsync(c =>
                     c.ContatoId == contactId,
                 cancellationToken);
+    }
+
+    public Task<Mensagem?> FindMessageByExternalIdAsync(string externalId, string texto, CancellationToken cancellationToken = default)
+    {
+        return _context.Set<Mensagem>()
+            .FirstOrDefaultAsync(m => m.ExternalId == externalId && m.Texto == texto, cancellationToken);
     }
 
     public void MarkAsUnchanged(Conversa conversa)

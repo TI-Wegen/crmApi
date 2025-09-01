@@ -27,6 +27,7 @@ namespace CRM.API.Controllers
         private readonly ICommandHandler<RegistrarAvaliacaoCommand> _registrarAvaliacaoHandler;
         private readonly ICommandHandler<AtualizarAvatarContatoCommand> _atualizarAvatarHandler;
         private readonly IDistributedLock _distributedLock;
+        private readonly IMessageDeduplicationService _messageDeduplicationService;
         private readonly IMessageBufferService _messageBuffer;
         private readonly IMetaMediaService _metaMediaService;
         private readonly IFileStorageService _fileStorageService;
@@ -46,6 +47,7 @@ namespace CRM.API.Controllers
             IMessageBufferService messageBuffer,
             IMetaMediaService metaMediaService,
             IFileStorageService fileStorageService,
+            IMessageDeduplicationService messageDeduplicationService,
             ILogger<MetaWebhookController> logger)
 
         {
@@ -61,6 +63,7 @@ namespace CRM.API.Controllers
             _messageBuffer = messageBuffer;
             _metaMediaService = metaMediaService;
             _fileStorageService = fileStorageService;
+            _messageDeduplicationService = messageDeduplicationService;
             _logger = logger;
         }
 
@@ -123,16 +126,28 @@ namespace CRM.API.Controllers
             var telefoneDoContato = message.From;
             if (string.IsNullOrEmpty(telefoneDoContato)) return;
 
-            var lockKey = $"lock:contato:{telefoneDoContato}";
+            var wamid = message.Id;
+            if (string.IsNullOrEmpty(wamid))
+            {
+                _logger.LogWarning("Mensagem sem wamid de {Telefone}", telefoneDoContato);
+                return;
+            }
+
+            var lockKey = $"lock:wamid:{wamid}";
             if (!await _distributedLock.AcquireLockAsync(lockKey, TimeSpan.FromSeconds(30)))
             {
-                _logger.LogInformation("Trava não adquirida para {Telefone}. Requisição concorrente ignorada.",
-                    telefoneDoContato);
+                _logger.LogInformation("Lock não adquirido para {Wamid}", wamid);
                 return;
             }
 
             try
             {
+                if (!await _messageDeduplicationService.TryRegisterMessageAsync(wamid, TimeSpan.FromHours(1)))
+                {
+                    _logger.LogInformation("Mensagem duplicada {Wamid} ignorada para {Telefone}", wamid, telefoneDoContato);
+                    return;
+                }
+
                 switch (message.Type)
                 {
                     case "text":
@@ -151,20 +166,21 @@ namespace CRM.API.Controllers
                         await HandleAudioMessageAsync(message, contactPayload);
                         break;
                     default:
-                        _logger.LogInformation("Tipo de mensagem '{MessageType}' recebido para {Telefone} e ignorado.",
+                        _logger.LogInformation("Tipo {MessageType} recebido para {Telefone} e ignorado.",
                             message.Type, telefoneDoContato);
                         break;
                 }
             }
             catch (Exception e)
             {
-                throw new Exception($"Erro ao processar mensagem de {telefoneDoContato}: {e.Message}", e);
+                _logger.LogError(e, "Erro ao processar mensagem {Wamid} de {Telefone}", wamid, telefoneDoContato);
             }
             finally
             {
                 await _distributedLock.ReleaseLockAsync(lockKey);
             }
         }
+
 
         private async Task HandleTextMessageAsync(MessageObject message, ContactObject contactPayload)
         {
@@ -204,7 +220,7 @@ namespace CRM.API.Controllers
                 foreach (var chunk in SplitMessage(textoDaMensagem))
                 {
                     await _iniciarConversaHandler.HandleAsync(new IniciarConversaCommand(contatoId, chunk,
-                        nomeDoContato, Timestamp: dataHoraBrasil, IniciarComBot: isDeveloper));
+                        nomeDoContato, Timestamp: dataHoraBrasil, IniciarComBot: isDeveloper, Wamid: message.Id));
                 }
             }
         }

@@ -1,5 +1,5 @@
 ﻿using Conversations.Domain.Aggregates;
-using System;
+using Conversations.Domain.Entities;
 
 namespace Conversations.Application.Abstractions;
 
@@ -10,7 +10,6 @@ public interface IConversationRepository
     Task UpdateAsync(Conversa conversa, CancellationToken cancellationToken = default);
     Task<Conversa?> GetByIdWithMessagesAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Conversa?> FindActiveByContactIdAsync(Guid contactId, CancellationToken cancellationToken = default);
+    Task<Mensagem?> FindMessageByExternalIdAsync(string externalId, string texto,  CancellationToken cancellationToken = default);
     void MarkAsUnchanged(Conversa conversa);
-
-
 }

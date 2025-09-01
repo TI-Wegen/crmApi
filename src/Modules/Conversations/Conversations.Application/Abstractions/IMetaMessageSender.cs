@@ -8,6 +8,5 @@
         Task EnviarAudioAsync(string numeroDestino, string urlDoAudio);
         Task<string> EnviarTemplateAsync(string numeroDestino, string templateName, List<string> bodyParameters);
         Task EnviarPesquisaDeSatisfacaoAsync(string numeroDestino, Guid atendimentoId);
-
     }
 }

@@ -1,0 +1,17 @@
+----- ADD MIGRATION ------
+dotnet ef migrations add "MENSAGEM AQUI" \
+    --project src/Infrastructure/CRM.Infrastructure/CRM.Infrastructure.csproj \
+    --startup-project src/Api/CRM.API/CRM.API.csproj \
+    --context CRM.Infrastructure.Database.AppDbContext \
+    --configuration Release \
+    --framework net9.0 \
+    --output-dir Migrations
+
+
+--- UPDATE ---
+dotnet ef database update \
+    --project src/Infrastructure/CRM.Infrastructure/CRM.Infrastructure.csproj \
+    --startup-project src/Api/CRM.API/CRM.API.csproj \
+    --context CRM.Infrastructure.Database.AppDbContext \
+    --configuration Release \
+    --framework net9.0

@@ -6,6 +6,5 @@ namespace Conversations.Application.Abstractions
     {
         Task<BoletoDto?> GetBoletoAsync(int IdConta);
         Task<IEnumerable<BoletoDto>> GetBoletosAbertosAsync(string cpf);
-
     }
 }

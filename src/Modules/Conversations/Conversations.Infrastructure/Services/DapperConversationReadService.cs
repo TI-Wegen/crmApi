@@ -1,12 +1,11 @@
-﻿namespace Conversations.Infrastructure.Services;
-
+﻿using System.Data;
+using System.Text;
 using Conversations.Application.Abstractions;
 using Conversations.Application.Dtos;
 using Conversations.Application.UseCases.Queries;
 using Dapper;
-// Em Modules/Conversations/Infrastructure/Services/ (pode criar esta pasta)
-using System.Data;
-using System.Text;
+
+namespace Conversations.Infrastructure.Services;
 
 public class DapperConversationReadService : IConversationReadService
 {
@@ -35,7 +34,6 @@ public class DapperConversationReadService : IConversationReadService
                 ELSE false 
                 END AS SessaoWhatsappAtiva,
                 c.""SessaoFim"" AS SessaoWhatsappExpiraEm,
-                    -- Lógica da última mensagem permanece a mesma
                     (SELECT m.""Timestamp"" FROM ""Mensagens"" m WHERE m.""ConversaId"" = c.""Id"" ORDER BY m.""Timestamp"" DESC LIMIT 1) AS UltimaMensagemTimestamp,
                     (SELECT m.""Texto"" FROM ""Mensagens"" m WHERE m.""ConversaId"" = c.""Id"" ORDER BY m.""Timestamp"" DESC LIMIT 1) AS UltimaMensagemPreview
                 FROM ""Atendimentos"" a
@@ -144,12 +142,19 @@ public class DapperConversationReadService : IConversationReadService
         WHERE c.""Id"" = @ConversationId;
 
         -- Busca TODAS as mensagens da conversa
-        SELECT 
-            m.""Id"", m.""Texto"", m.""AnexoUrl"", m.""Timestamp"",
-            m.""RemetenteTipo"", m.""RemetenteAgenteId""
-        FROM ""Mensagens"" m
-        WHERE m.""ConversaId"" = @ConversationId
-        ORDER BY m.""Timestamp"" DESC;
+        SELECT *
+        FROM (
+                 SELECT
+                     m.*,
+                     ROW_NUMBER() OVER (
+                         PARTITION BY m.""Texto"", m.""ConversaId""
+                         ORDER BY m.""Timestamp"" DESC
+                         ) AS rn
+                 FROM ""Mensagens"" m
+                 WHERE m.""ConversaId"" = @ConversationId
+             ) t
+        WHERE t.rn = 1
+        ORDER BY t.""Timestamp"" DESC;
     ";
 
         using var multi = await _dbConnection.QueryMultipleAsync(sql, new { ConversationId = conversationId });

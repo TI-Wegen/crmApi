@@ -2,7 +2,6 @@
 using Conversations.Application.Abstractions;
 using CRM.Domain.DomainEvents;
 
-
 namespace Conversations.Application.UseCases.Events;
 
 public class ConversaResolvidaEventHandler : IDomainEventHandler<ConversaResolvidaEvent>
@@ -20,6 +19,7 @@ public class ConversaResolvidaEventHandler : IDomainEventHandler<ConversaResolvi
         _contactRepository = contactRepository;
         _metaSender = metaSender;
     }
+
     public async Task Handle(ConversaResolvidaEvent domainEvent, CancellationToken cancellationToken)
     {
         var conversa = await _conversationRepository.GetByIdAsync(domainEvent.ConversaId, cancellationToken);

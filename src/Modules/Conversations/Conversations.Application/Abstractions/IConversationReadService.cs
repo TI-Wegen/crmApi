@@ -9,8 +9,9 @@ public interface IConversationReadService
         GetAllConversationsQuery query,
         CancellationToken cancellationToken = default);
 
-    Task<ConversationSummaryDto?> GetSummaryByIdAsync(Guid conversationId, CancellationToken cancellationToken = default);
-    Task<ConversationDetailsDto?> GetConversationDetailsAsync(Guid conversationId, CancellationToken cancellationToken = default);
+    Task<ConversationSummaryDto?> GetSummaryByIdAsync(Guid conversationId,
+        CancellationToken cancellationToken = default);
 
-
+    Task<ConversationDetailsDto?> GetConversationDetailsAsync(Guid conversationId,
+        CancellationToken cancellationToken = default);
 }

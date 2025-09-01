@@ -13,6 +13,6 @@ public interface IBotSessionCache
 public record BotSessionState(
     Guid AtendimentoId,
     BotStatus Status,
-     DateTime LastActivityTimestamp,
+    DateTime LastActivityTimestamp,
     List<BoletoDto>? BoletosDisponiveis = null
 );

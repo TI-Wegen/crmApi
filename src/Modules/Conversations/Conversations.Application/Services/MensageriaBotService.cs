@@ -1,15 +1,12 @@
-﻿namespace Conversations.Application.Services;
-
+﻿using Conversations.Application.Abstractions;
 using Conversations.Application.Mappers;
+using Conversations.Domain.Entities;
+using Conversations.Domain.ValueObjects;
 using CRM.Application.Interfaces;
 using CRM.Domain.Common;
-using global::Conversations.Application.Abstractions;
-using global::Conversations.Domain.Entities;
-using global::Conversations.Domain.ValueObjects;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Templates.Domain.Repositories;
+
+namespace Conversations.Application.Services;
 
 public class MensageriaBotService : IMensageriaBotService
 {
@@ -18,7 +15,7 @@ public class MensageriaBotService : IMensageriaBotService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMetaMessageSender _metaSender;
 
-    private readonly ITemplateRepository _templateRepository; 
+    private readonly ITemplateRepository _templateRepository;
 
     private readonly IRealtimeNotifier _notifier;
 
@@ -32,7 +29,7 @@ public class MensageriaBotService : IMensageriaBotService
     {
         _atendimentoRepository = atendimentoRepository;
         _conversationRepository = conversationRepository;
-        _templateRepository = templateRepository; 
+        _templateRepository = templateRepository;
         _unitOfWork = unitOfWork;
         _metaSender = metaSender;
         _notifier = notifier;
@@ -40,31 +37,26 @@ public class MensageriaBotService : IMensageriaBotService
 
     public async Task EnviarEMensagemTextoAsync(Guid atendimentoId, string telefoneDestino, string texto)
     {
-        // 1. Busca o atendimento e a conversa associada.
         var atendimento = await _atendimentoRepository.GetByIdAsync(atendimentoId);
         if (atendimento is null) return;
 
         var conversa = await _conversationRepository.GetByIdAsync(atendimento.ConversaId);
         if (conversa is null) return;
 
-        // 2. Cria a entidade Mensagem para a resposta do bot.
         var remetente = Remetente.Agente(SystemGuids.SystemAgentId);
         var novaMensagem = new Mensagem(conversa.Id, atendimento.Id, texto, remetente, DateTime.UtcNow, null);
 
-        // 3. Adiciona a mensagem ao histórico da conversa.
         conversa.AdicionarMensagem(novaMensagem, atendimento.Id);
 
-        // 4. Salva a nova mensagem no banco de dados.
         await _unitOfWork.SaveChangesAsync();
 
-        // 5. Envia a mensagem para o cliente através da Meta.
         await _metaSender.EnviarMensagemTextoAsync(telefoneDestino, texto);
 
-        // 6. Notifica o frontend em tempo real.
         await _notifier.NotificarNovaMensagemAsync(conversa.Id.ToString(), novaMensagem.ToDto());
     }
 
-    public async Task EnviarEDocumentoAsync(Guid atendimentoId, string telefoneDestino, string urlDoDocumento, string nomeDoArquivo, string? legenda)
+    public async Task EnviarEDocumentoAsync(Guid atendimentoId, string telefoneDestino, string urlDoDocumento,
+        string nomeDoArquivo, string? legenda)
     {
         var atendimento = await _atendimentoRepository.GetByIdAsync(atendimentoId);
         if (atendimento is null) return;
@@ -72,26 +64,22 @@ public class MensageriaBotService : IMensageriaBotService
         var conversa = await _conversationRepository.GetByIdAsync(atendimento.ConversaId);
         if (conversa is null) return;
 
-        // 1. Cria a entidade Mensagem para o documento do bot
         var remetente = Remetente.Agente(SystemGuids.SystemAgentId);
-        // O "texto" da mensagem pode ser a legenda ou o nome do arquivo.
         var textoParaHistorico = legenda ?? nomeDoArquivo;
-        var novaMensagem = new Mensagem(conversa.Id, atendimento.Id, textoParaHistorico, remetente, DateTime.UtcNow, urlDoDocumento);
+        var novaMensagem = new Mensagem(conversa.Id, atendimento.Id, textoParaHistorico, remetente, DateTime.UtcNow,
+            urlDoDocumento);
 
-        // 2. Adiciona ao histórico da conversa
         conversa.AdicionarMensagem(novaMensagem, atendimento.Id);
 
-        // 3. Salva a nova mensagem no banco
         await _unitOfWork.SaveChangesAsync();
 
-        // 4. Envia o documento para o cliente através da Meta
         await _metaSender.EnviarDocumentoAsync(telefoneDestino, urlDoDocumento, nomeDoArquivo, legenda);
 
-        // 5. Notifica o frontend em tempo real
         await _notifier.NotificarNovaMensagemAsync(conversa.Id.ToString(), novaMensagem.ToDto());
     }
 
-    public async Task<string> EnviarETemplateAsync(Guid atendimentoId, string telefoneDestino, string templateName, List<string> bodyParameters)
+    public async Task<string> EnviarETemplateAsync(Guid atendimentoId, string telefoneDestino, string templateName,
+        List<string> bodyParameters)
     {
         var wamid = await _metaSender.EnviarTemplateAsync(telefoneDestino, templateName, bodyParameters);
         if (string.IsNullOrEmpty(wamid))
@@ -100,7 +88,7 @@ public class MensageriaBotService : IMensageriaBotService
         }
 
         var atendimento = await _atendimentoRepository.GetByIdAsync(atendimentoId);
-        if (atendimento is null) return wamid; 
+        if (atendimento is null) return wamid;
 
         var conversa = await _conversationRepository.GetByIdAsync(atendimento.ConversaId);
         if (conversa is null) return wamid;
@@ -113,7 +101,9 @@ public class MensageriaBotService : IMensageriaBotService
         {
             textoParaHistorico = ConstruirTextoDoTemplate(template.Body, bodyParameters);
         }
-        var novaMensagem = new Mensagem(conversa.Id, atendimento.Id, textoParaHistorico, remetente, DateTime.UtcNow, null);
+
+        var novaMensagem = new Mensagem(conversa.Id, atendimento.Id, textoParaHistorico, remetente, DateTime.UtcNow,
+            null);
 
         conversa.AdicionarMensagem(novaMensagem, atendimento.Id);
         await _unitOfWork.SaveChangesAsync();
@@ -130,6 +120,7 @@ public class MensageriaBotService : IMensageriaBotService
         {
             result = result.Replace($"{{{{{i + 1}}}}}", parameters[i]);
         }
+
         return result;
     }
 }

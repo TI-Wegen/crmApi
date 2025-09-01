@@ -76,6 +76,7 @@ public static class UseCaseConfigurations
     {
         services.AddHttpContextAccessor();
         services.AddScoped<IConversationReadService, DapperConversationReadService>();
+        services.AddScoped<IMessageDeduplicationService, RedisMessageDeduplicationService>();
         services.AddScoped<IUserContext, UserContext>();
         services.AddScoped<IBoletoService, BoletoService>();
         services.AddScoped<IMetaTemplateManager, MetaTemplateManager>();
