@@ -9,7 +9,10 @@ public record ConversationSummaryDto
     public string? AgenteNome { get; init; }
     public bool SessaoWhatsappAtiva { get; init; }
     public DateTime? SessaoWhatsappExpiraEm { get; init; }
-    public string Status { get; init; }
+    public Guid? TagId { get; init; }
+    public string Status { get; set; }
     public DateTime UltimaMensagemTimestamp { get; init; }
     public string UltimaMensagemPreview { get; init; }
+    public string? TagName { get; set; }
+    public string? TagColor { get; set; }
 }

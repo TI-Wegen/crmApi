@@ -25,6 +25,7 @@ public class AppDbContext : DbContext
     public DbSet<Contato> Contatos { get; set; }
     public DbSet<MessageTemplate> MessageTemplates { get; set; }
     public DbSet<Atendimento> Atendimentos { get; set; }
+    public DbSet<Tags.Domain.Aggregates.Tags> Tags { get; set; }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

@@ -45,8 +45,7 @@ public class AgenteConfiguration : IEntityTypeConfiguration<Agente>
             .HasColumnName("SetorIds")
             .HasConversion(converter)
             .Metadata.SetValueComparer(comparer);
-
-
+        
         builder.Property(a => a.Version).IsConcurrencyToken();
 
         builder.Ignore(a => a.DomainEvents);

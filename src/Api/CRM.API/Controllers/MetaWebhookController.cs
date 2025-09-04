@@ -133,13 +133,6 @@ namespace CRM.API.Controllers
                 return;
             }
 
-            var lockKey = $"lock:wamid:{wamid}";
-            if (!await _distributedLock.AcquireLockAsync(lockKey, TimeSpan.FromSeconds(30)))
-            {
-                _logger.LogInformation("Lock não adquirido para {Wamid}", wamid);
-                return;
-            }
-
             try
             {
                 if (!await _messageDeduplicationService.TryRegisterMessageAsync(wamid, TimeSpan.FromHours(1)))
@@ -174,10 +167,6 @@ namespace CRM.API.Controllers
             catch (Exception e)
             {
                 _logger.LogError(e, "Erro ao processar mensagem {Wamid} de {Telefone}", wamid, telefoneDoContato);
-            }
-            finally
-            {
-                await _distributedLock.ReleaseLockAsync(lockKey);
             }
         }
 

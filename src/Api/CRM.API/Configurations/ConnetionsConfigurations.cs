@@ -40,29 +40,28 @@ public static class ConnectionsConfigurations
     }
 
     private static IServiceCollection AddDbConnection(
-         this IServiceCollection services,
-         IConfiguration config)
+        this IServiceCollection services,
+        IConfiguration config)
     {
         var connectionString = config.GetConnectionString("DefaultConnection");
-        services.AddDbContext<AppDbContext>(
-            options => options.UseNpgsql(connectionString)
-             .LogTo(Console.WriteLine, LogLevel.Information)
-        .EnableSensitiveDataLogging());
+        services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString)
+            .LogTo(Console.WriteLine, LogLevel.Information)
+            .EnableSensitiveDataLogging());
 
         return services;
     }
 
     public static IServiceCollection AddHangFire(
-     this IServiceCollection services,
-         IConfiguration config)
+        this IServiceCollection services,
+        IConfiguration config)
     {
         var connectionString = config.GetConnectionString("DefaultConnection");
 
         services.AddHangfire(configuration => configuration
-    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-    .UseSimpleAssemblyNameTypeSerializer()
-    .UseRecommendedSerializerSettings()
-    .UsePostgreSqlStorage(c => c.UseNpgsqlConnection(connectionString)));
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UsePostgreSqlStorage(c => c.UseNpgsqlConnection(connectionString)));
 
         services.AddHangfireServer();
 
@@ -72,7 +71,7 @@ public static class ConnectionsConfigurations
 
     public static IServiceCollection AddFileStorage(
         this IServiceCollection services,
-     IConfiguration config)
+        IConfiguration config)
     {
         services.Configure<S3Settings>(config.GetSection("S3Config"));
         services.AddSingleton<IFileStorageService, S3FileStorageService>();
@@ -80,13 +79,14 @@ public static class ConnectionsConfigurations
     }
 
     public static IServiceCollection AddSignalRConnection(
-    this IServiceCollection services,
+        this IServiceCollection services,
         IConfiguration config)
     {
         services.AddSignalR();
         services.AddScoped<IRealtimeNotifier, SignalRNotifier>();
         return services;
     }
+
     public static IServiceCollection AddDapperConnection(
         this IServiceCollection services,
         IConfiguration config)
@@ -95,9 +95,10 @@ public static class ConnectionsConfigurations
         services.AddScoped<IDbConnection>(sp => new NpgsqlConnection(connectionString));
         return services;
     }
+
     private static IServiceCollection AddRedisConnection(
-      this IServiceCollection services,
-      IConfiguration config)
+        this IServiceCollection services,
+        IConfiguration config)
     {
         var redisConnectionString = config["RedisConnectionString"];
         if (string.IsNullOrEmpty(redisConnectionString))
@@ -127,68 +128,68 @@ public static class ConnectionsConfigurations
     }
 
     private static IServiceCollection AddHealtChecks(
-     this IServiceCollection services,
-     IConfiguration config)
+        this IServiceCollection services,
+        IConfiguration config)
     {
         services.AddHealthChecks()
-         // 1. Verifica a conexão com o banco de dados principal (PostgreSQL)
-         .AddNpgSql(
-             connectionString: config.GetConnectionString("DefaultConnection"),
-             name: "PostgreSQL Principal",
-             failureStatus: HealthStatus.Unhealthy, // Define o status em caso de falha
-             tags: new[] { "database", "critical" })
+            // 1. Verifica a conexão com o banco de dados principal (PostgreSQL)
+            .AddNpgSql(
+                connectionString: config.GetConnectionString("DefaultConnection"),
+                name: "PostgreSQL Principal",
+                failureStatus: HealthStatus.Unhealthy, // Define o status em caso de falha
+                tags: new[] { "database", "critical" })
 
-         // 2. Verifica a conexão com o banco de dados externo de boletos (MySQL)
-         .AddMySql(
-             connectionString: config.GetConnectionString("ExternalConnection"),
-             name: "MySQL Externo (Boletos)",
-             failureStatus: HealthStatus.Degraded, // Um status menos crítico, talvez
-             tags: new[] { "database", "external" })
+            // 2. Verifica a conexão com o banco de dados externo de boletos (MySQL)
+            .AddMySql(
+                connectionString: config.GetConnectionString("ExternalConnection"),
+                name: "MySQL Externo (Boletos)",
+                failureStatus: HealthStatus.Degraded, // Um status menos crítico, talvez
+                tags: new[] { "database", "external" })
 
-        // 3. Verifica a conexão com o Redis
-        .AddRedis(
-            sp => sp.GetRequiredService<IConnectionMultiplexer>(),
-            name: "Redis Cache",
-            failureStatus: HealthStatus.Unhealthy,
-            tags: new[] { "cache", "critical" })
+            // 3. Verifica a conexão com o Redis
+            .AddRedis(
+                sp => sp.GetRequiredService<IConnectionMultiplexer>(),
+                name: "Redis Cache",
+                failureStatus: HealthStatus.Unhealthy,
+                tags: new[] { "cache", "critical" })
 
-        // 4. Verifica se consegue se conectar e listar os buckets no S3
-        .AddS3(options =>
-        {
-            // Pega a seção de configuração do S3
-            var s3Config = config.GetSection("S3Config");
+            // 4. Verifica se consegue se conectar e listar os buckets no S3
+            .AddS3(options =>
+                {
+                    // Pega a seção de configuração do S3
+                    var s3Config = config.GetSection("S3Config");
 
-            // Atribui cada valor diretamente, lendo da configuração
-            options.AccessKey = s3Config["AccessKey"];
-            options.SecretKey = s3Config["SecretKey"];
-            options.BucketName = s3Config["BucketName"];
+                    // Atribui cada valor diretamente, lendo da configuração
+                    options.AccessKey = s3Config["AccessKey"];
+                    options.SecretKey = s3Config["SecretKey"];
+                    options.BucketName = s3Config["BucketName"];
 
-            options.S3Config = new AmazonS3Config
-            {
-                RegionEndpoint = RegionEndpoint.GetBySystemName(s3Config["Region"])
-            };
-        },
-         name: "AWS S3 Storage",
-         failureStatus: HealthStatus.Unhealthy,
-         tags: new[] { "storage", "critical" });
+                    options.S3Config = new AmazonS3Config
+                    {
+                        RegionEndpoint = RegionEndpoint.GetBySystemName(s3Config["Region"])
+                    };
+                },
+                name: "AWS S3 Storage",
+                failureStatus: HealthStatus.Unhealthy,
+                tags: new[] { "storage", "critical" });
 
 
         services
-    .AddHealthChecksUI(options =>
-    {
-        options.SetEvaluationTimeInSeconds(60); // Frequência de checagem
-        options.MaximumHistoryEntriesPerEndpoint(50);
-        options.AddHealthCheckEndpoint("API Wegen CRM", "/health"); // Nome e URL do health check
-    })
-    .AddInMemoryStorage();
+            .AddHealthChecksUI(options =>
+            {
+                options.SetEvaluationTimeInSeconds(60); // Frequência de checagem
+                options.MaximumHistoryEntriesPerEndpoint(50);
+                options.AddHealthCheckEndpoint("API Wegen CRM", "/health"); // Nome e URL do health check
+            })
+            .AddInMemoryStorage();
 
 
         return services;
     }
 
     public static IServiceCollection AddMetaConnection(
-    this IServiceCollection services,
-    IConfiguration config)
+        this IServiceCollection services,
+        IConfiguration config)
     {
         services.AddHttpClient("MetaApiClient", client =>
         {
@@ -206,9 +207,10 @@ public static class ConnectionsConfigurations
         services.AddScoped<IMetaMessageSender, MetaMessageSender>();
         return services;
     }
+
     private static IServiceCollection AddJwtBearer(
-      this IServiceCollection services,
-      IConfiguration config)
+        this IServiceCollection services,
+        IConfiguration config)
     {
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
@@ -253,5 +255,4 @@ public static class ConnectionsConfigurations
 
         return services;
     }
-
 }

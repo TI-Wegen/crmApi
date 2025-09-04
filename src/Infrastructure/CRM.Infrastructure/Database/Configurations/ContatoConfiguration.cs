@@ -17,17 +17,9 @@ public class ContatoConfiguration : IEntityTypeConfiguration<Contato>
 
         builder.Property(c => c.Status).HasConversion<string>().HasMaxLength(50);
 
-        builder.Property(c => c.WaId).IsRequired().HasMaxLength(50);
+        builder.Property(c => c.WaId).IsRequired(false).HasMaxLength(50);
         builder.HasIndex(c => c.WaId).IsUnique();
         builder.Property(c => c.AvatarUrl).HasMaxLength(1024);
-
-        builder.OwnsMany(c => c.Tags, tagsBuilder =>
-        {
-            tagsBuilder.ToTable("ContatoTags");
-            tagsBuilder.WithOwner().HasForeignKey("ContatoId");
-            tagsBuilder.HasKey("Id");
-            tagsBuilder.Property(t => t.Texto).IsRequired().HasMaxLength(50);
-        });
 
         var historicoNavigation = builder.Navigation(c => c.HistoricoStatus);
         historicoNavigation.UsePropertyAccessMode(PropertyAccessMode.Field);

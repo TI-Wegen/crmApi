@@ -56,13 +56,6 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
         var timestampUtc = DateTime.SpecifyKind(timestamp, DateTimeKind.Utc);
 
         var conversa = await _conversationRepository.FindActiveByContactIdAsync(command.ContatoId, cancellationToken);
-        
-        var mensagemExistente = await _conversationRepository.FindMessageByExternalIdAsync(command.Wamid, command.TextoDaMensagem, cancellationToken);
-        if (mensagemExistente is not null)
-        {
-            _logger.LogInformation("Mensagem {Wamid} já processada para conversa {ConversaId}", command.Wamid, conversa.Id);
-            return conversa.Id;
-        }
 
         try {
             if (conversa is not null)
@@ -72,17 +65,9 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
                 {
                     conversa.IniciarOuRenovarSessao(timestamp);
 
-                    if (atendimentoAtivo.Status == Domain.Enuns.ConversationStatus.AguardandoRespostaCliente)
-                    {
-                        atendimentoAtivo.RegistrarRespostaDoCliente();
-                        _logger.LogInformation("Cliente respondeu ao template. Atendimento {AtendimentoId} movido para EmAtendimento.", atendimentoAtivo.Id);
-
-                    }
-
                     var mensagemEmAndamento = new Mensagem(conversa.Id, atendimentoAtivo.Id, command.TextoDaMensagem, Remetente.Cliente(), timestampUtc, command.AnexoUrl, command.Wamid);
                     conversa.AdicionarMensagem(mensagemEmAndamento, atendimentoAtivo.Id);
                     await _unitOfWork.SaveChangesAsync(cancellationToken);
-
 
                     var messageDto = mensagemEmAndamento.ToDto();
                     await _readService.NotificarNovaMensagemAsync(conversa.Id.ToString(), messageDto);
@@ -121,8 +106,6 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-                var sessionState = new BotSessionState(novoAtendimento.Id, novoAtendimento.BotStatus, DateTime.UtcNow);
-                await _botSessionCache.SetStateAsync(contato.Telefone, sessionState, TimeSpan.FromHours(2));
                 var menuText = "Olá! Bem-vindo ao nosso atendimento. Digite o número da opção desejada:\n1- Segunda via de boleto\n2- Falar com o Comercial\n3- Falar com o Financeiro\n4- Encerrar atendimento";
                 await _mensageriaBotService.EnviarEMensagemTextoAsync(novoAtendimento.Id, contato.Telefone, menuText);
 
@@ -134,12 +117,13 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
                     ContatoTelefone = contato.Telefone,
 
                     AgenteNome = null,
-                    Status = novoAtendimento.Status.ToString(),
+                    TagId = novoAtendimento.TagsId,
+                    TagName = novoAtendimento?.Tag?.Nome ?? "",
 
                     UltimaMensagemTimestamp = primeiraMensagem.Timestamp,
                     UltimaMensagemPreview = primeiraMensagem.Texto,
 
-                    SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva(DateTime.UtcNow) ?? true,
+                    SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva() ?? true,
                     SessaoWhatsappExpiraEm = conversa.SessaoAtiva?.DataFim
                 };
                 await _readService.NotificarNovaConversaNaFilaAsync(summaryDto);
@@ -163,12 +147,13 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
                     ContatoTelefone = contato.Telefone,
 
                     AgenteNome = null,
-                    Status = novoAtendimento.Status.ToString(),
+                    TagId = novoAtendimento.TagsId,
+                    TagName = novoAtendimento.Tag?.Nome,
 
                     UltimaMensagemTimestamp = primeiraMensagem.Timestamp,
                     UltimaMensagemPreview = primeiraMensagem.Texto,
 
-                    SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva(DateTime.UtcNow) ?? true,
+                    SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva() ?? true,
                     SessaoWhatsappExpiraEm = conversa.SessaoAtiva?.DataFim
                 };
                 await _readService.NotificarNovaConversaNaFilaAsync(summaryDto);

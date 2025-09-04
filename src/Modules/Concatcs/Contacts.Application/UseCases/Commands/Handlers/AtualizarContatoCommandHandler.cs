@@ -30,7 +30,7 @@ public class AtualizarContatoCommandHandler : ICommandHandler<AtualizarContatoCo
             }
         }
 
-        contato.Atualizar(command.NovoNome, command.NovoTelefone, command.NovasTags);
+        contato.Atualizar(command.NovoNome, command.NovoTelefone, command.tag);
 
         await _contactRepository.UpdateAsync(contato);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

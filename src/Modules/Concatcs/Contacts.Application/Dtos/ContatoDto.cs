@@ -6,5 +6,5 @@ public record ContatoDto
     public string Nome { get; init; }
     public string Telefone { get; init; }
     public string Status { get; init; }
-    public IReadOnlyCollection<string> Tags { get; init; }
+    public string? Tags { get; init; }
 }

@@ -15,7 +15,6 @@ public class ConversationRepository : IConversationRepository
         _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
-
     public async Task AddAsync(Conversa conversa, CancellationToken cancellationToken = default)
     {
         await _context.Conversas.AddAsync(conversa, cancellationToken);

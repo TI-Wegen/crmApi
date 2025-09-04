@@ -34,7 +34,6 @@ public class ContactRepository : IContactRepository
     public Task<Contato?> GetByIdWithDetailsAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return _context.Contatos
-            .Include(c => c.Tags)
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
     }
     public async Task<IEnumerable<Contato>> GetAllAsync(int pageNumber, int pageSize, bool incluirInativos, CancellationToken cancellationToken = default)

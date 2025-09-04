@@ -13,7 +13,6 @@ public static class ContactMappers
             Nome = contato.Nome,
             Telefone = contato.Telefone,
             Status = contato.Status.ToString(),
-            Tags = contato.Tags.Select(tag => tag.Texto).ToList()
         };
     }
 }

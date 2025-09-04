@@ -20,7 +20,7 @@ var allowedOrigins = builder.Configuration
 
 if (allowedOrigins == null || !allowedOrigins.Any())
 {
-    throw new InvalidOperationException("Configuração de 'AllowedOrigins' para o CORS não encontrada ou vazia.");
+    throw new InvalidOperationException("Configuraï¿½ï¿½o de 'AllowedOrigins' para o CORS nï¿½o encontrada ou vazia.");
 }
 
 builder.Services.Configure<MetaSettings>(builder.Configuration.GetSection("MetaSettings"));

@@ -77,7 +77,7 @@ public class Conversa : Entity
 
     public void IniciarOuRenovarSessao(DateTime dataMensagem)
     {
-        if (SessaoAtiva is null || !SessaoAtiva.EstaAtiva(dataMensagem))
+        if (SessaoAtiva is null || !SessaoAtiva.EstaAtiva())
         {
             SessaoAtiva = SessaoWhatsapp.Iniciar(dataMensagem);
             TotalSessoesIniciadas++;

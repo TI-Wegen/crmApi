@@ -5,5 +5,5 @@ namespace Contacts.Application.UseCases.Commands;
 public record CriarContatoCommand(
     string Nome,
     string Telefone,
-    string WaId 
+    string? WaId 
 ) : ICommand;

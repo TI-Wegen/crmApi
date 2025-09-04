@@ -17,9 +17,10 @@ public static class ConversationMappers
             AtendimentoId = atendimentoAtivo?.Id,
             AgenteId = atendimentoAtivo?.AgenteId,
             SetorId = atendimentoAtivo?.SetorId,
+            TagId = atendimentoAtivo?.TagsId,
             Status = atendimentoAtivo?.Status.ToString() ?? "N/A",
             BotStatus = atendimentoAtivo?.BotStatus.ToString() ?? "N/A",
-            SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva(DateTime.UtcNow) ?? false,
+            SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva() ?? false,
             SessaoWhatsappExpiraEm = conversa.SessaoAtiva?.DataFim
         };
     }
@@ -46,6 +47,7 @@ public static class ConversationMappers
             ConversaId = atendimento.ConversaId,
             AgenteId = atendimento.AgenteId,
             SetorId = atendimento.SetorId,
+            TagId = atendimento.TagsId,
             Status = atendimento.Status.ToString(),
             BotStatus = atendimento.BotStatus.ToString(),
             DataFinalizacao = atendimento.DataFinalizacao,

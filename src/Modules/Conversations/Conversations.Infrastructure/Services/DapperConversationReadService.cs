@@ -16,78 +16,89 @@ public class DapperConversationReadService : IConversationReadService
         _dbConnection = dbConnection;
     }
 
-    public async Task<IEnumerable<ConversationSummaryDto>> GetAllSummariesAsync(
-        GetAllConversationsQuery query,
-        CancellationToken cancellationToken = default)
+public async Task<IEnumerable<ConversationSummaryDto>> GetAllSummariesAsync(
+    GetAllConversationsQuery query,
+    CancellationToken cancellationToken = default)
+{
+    var sqlBuilder = new StringBuilder();
+    sqlBuilder.Append(@"
+    SELECT DISTINCT ON (c.""Id"")
+                a.""Id"" AS AtendimentoId,
+                c.""Id"" AS Id,
+                co.""Nome"" AS ContatoNome,
+                co.""Telefone"" AS ContatoTelefone,
+                ag.""Nome"" AS AgenteNome,
+                a.""Status"",
+            CASE 
+            WHEN c.""SessaoFim"" > NOW() AT TIME ZONE 'UTC' THEN true 
+            ELSE false 
+            END AS SessaoWhatsappAtiva,
+            c.""SessaoFim"" AS SessaoWhatsappExpiraEm,
+                (SELECT m.""Timestamp"" FROM ""Mensagens"" m WHERE m.""ConversaId"" = c.""Id"" ORDER BY m.""Timestamp"" DESC LIMIT 1) AS UltimaMensagemTimestamp,
+                (SELECT m.""Texto"" FROM ""Mensagens"" m WHERE m.""ConversaId"" = c.""Id"" ORDER BY m.""Timestamp"" DESC LIMIT 1) AS UltimaMensagemPreview,
+            T.""Nome"" AS TagName,
+            T.""Id"" AS TagId,
+            T.""Cor"" AS TagColor
+            FROM ""Atendimentos"" a
+            LEFT JOIN ""Tags"" T on T.""Id"" = a.""TagsId""
+            INNER JOIN ""Conversas"" c ON a.""ConversaId"" = c.""Id""
+            INNER JOIN ""Contatos"" co ON c.""ContatoId"" = co.""Id""
+            LEFT JOIN ""Agentes"" ag ON a.""AgenteId"" = ag.""Id""
+    ");
+
+    var parameters = new DynamicParameters();
+    var whereClauses = new List<string>();
+
+    var activeStatuses = new[]
     {
-        var sqlBuilder = new StringBuilder();
-        sqlBuilder.Append(@"
-        SELECT DISTINCT ON (c.""Id"")
-                    a.""Id"" AS AtendimentoId,
-                    c.""Id"" AS Id,
-                    co.""Nome"" AS ContatoNome,
-                    co.""Telefone"" AS ContatoTelefone,
-                    ag.""Nome"" AS AgenteNome,
-                    a.""Status"",
-                CASE 
-                WHEN c.""SessaoFim"" > NOW() AT TIME ZONE 'UTC' THEN true 
-                ELSE false 
-                END AS SessaoWhatsappAtiva,
-                c.""SessaoFim"" AS SessaoWhatsappExpiraEm,
-                    (SELECT m.""Timestamp"" FROM ""Mensagens"" m WHERE m.""ConversaId"" = c.""Id"" ORDER BY m.""Timestamp"" DESC LIMIT 1) AS UltimaMensagemTimestamp,
-                    (SELECT m.""Texto"" FROM ""Mensagens"" m WHERE m.""ConversaId"" = c.""Id"" ORDER BY m.""Timestamp"" DESC LIMIT 1) AS UltimaMensagemPreview
-                FROM ""Atendimentos"" a
-                INNER JOIN ""Conversas"" c ON a.""ConversaId"" = c.""Id""
-                INNER JOIN ""Contatos"" co ON c.""ContatoId"" = co.""Id""
-                LEFT JOIN ""Agentes"" ag ON a.""AgenteId"" = ag.""Id""
-        ");
+        "EmAutoAtendimento", "AguardandoNaFila", "EmAtendimento", "Resolvida", "FechadoSemResposta",
+        "AguardandoRespostaCliente"
+    };
 
-        var parameters = new DynamicParameters();
-        var whereClauses = new List<string>();
+    whereClauses.Add(@"a.""Status"" = ANY(@ActiveStatuses)");
+    parameters.Add("ActiveStatuses", activeStatuses);
 
-        var activeStatuses = new[]
-        {
-            "EmAutoAtendimento", "AguardandoNaFila", "EmAtendimento", "Resolvida", "FechadoSemResposta",
-            "AguardandoRespostaCliente"
-        };
-
-        whereClauses.Add(@"a.""Status"" = ANY(@ActiveStatuses)");
-        parameters.Add("ActiveStatuses", activeStatuses);
-
-        if (query.Status.HasValue)
-        {
-            whereClauses.Add(@"a.""Status"" = @Status");
-            parameters.Add("Status", query.Status.ToString());
-        }
-
-        if (query.AgenteId.HasValue)
-        {
-            whereClauses.Add(@"a.""AgenteId"" = @AgenteId");
-            parameters.Add("AgenteId", query.AgenteId.Value);
-        }
-
-        if (query.SetorId.HasValue)
-        {
-            whereClauses.Add(@"a.""SetorId"" = @SetorId");
-            parameters.Add("SetorId", query.SetorId.Value);
-        }
-
-        if (whereClauses.Any())
-        {
-            sqlBuilder.Append(" WHERE ");
-            sqlBuilder.Append(string.Join(" AND ", whereClauses));
-        }
-
-        sqlBuilder.Append(" ORDER BY c.\"Id\", UltimaMensagemTimestamp DESC");
-        sqlBuilder.Append(" LIMIT @PageSize OFFSET @Offset");
-
-        parameters.Add("PageSize", query.PageSize);
-        parameters.Add("Offset", (query.PageNumber - 1) * query.PageSize);
-
-        return await _dbConnection.QueryAsync<ConversationSummaryDto>(
-            new CommandDefinition(sqlBuilder.ToString(), parameters, cancellationToken: cancellationToken)
-        );
+    if (query.Status.HasValue)
+    {
+        whereClauses.Add(@"a.""Status"" = @Status");
+        parameters.Add("Status", query.Status.ToString());
     }
+
+    if (query.AgenteId.HasValue)
+    {
+        whereClauses.Add(@"a.""AgenteId"" = @AgenteId");
+        parameters.Add("AgenteId", query.AgenteId.Value);
+    }
+    
+    if (query.TagId.HasValue)
+    {
+        whereClauses.Add(@"a.""TagsId"" = @TagId");
+        parameters.Add("TagId", query.TagId.Value);
+    }
+
+    if (query.SetorId.HasValue)
+    {
+        whereClauses.Add(@"a.""SetorId"" = @SetorId");
+        parameters.Add("SetorId", query.SetorId.Value);
+    }
+
+    if (whereClauses.Any())
+    {
+        sqlBuilder.Append(" WHERE ");
+        sqlBuilder.Append(string.Join(" AND ", whereClauses));
+    }
+
+    sqlBuilder.Append(" ORDER BY c.\"Id\", (SELECT m.\"Timestamp\" FROM \"Mensagens\" m WHERE m.\"ConversaId\" = c.\"Id\" ORDER BY m.\"Timestamp\" DESC LIMIT 1) DESC");
+    sqlBuilder.Append(" LIMIT @PageSize OFFSET @Offset");
+
+    parameters.Add("PageSize", query.PageSize);
+    parameters.Add("Offset", (query.PageNumber - 1) * query.PageSize);
+
+    return await _dbConnection.QueryAsync<ConversationSummaryDto>(
+        new CommandDefinition(sqlBuilder.ToString(), parameters, cancellationToken: cancellationToken)
+    );
+}
+
 
     public async Task<ConversationSummaryDto?> GetSummaryByIdAsync(Guid conversationId,
         CancellationToken cancellationToken = default)
@@ -129,6 +140,7 @@ public class DapperConversationReadService : IConversationReadService
         SELECT
             c.""Id"", c.""ContatoId"",
             co.""Nome"" AS ContatoNome, -- NOVO: Buscando o nome do contato
+            co.""Telefone"" AS ContatoTelefone, -- NOVO: Buscando o nome do contato
             a.""Id"" AS AtendimentoId, a.""AgenteId"", a.""SetorId"", a.""Status"", a.""BotStatus"",
           CASE 
                 WHEN c.""SessaoFim"" > NOW() AT TIME ZONE 'UTC' THEN true 

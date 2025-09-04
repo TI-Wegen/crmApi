@@ -3,12 +3,12 @@
 public record SessaoWhatsapp
 {
     public DateTime DataInicio { get; private init; }
-    public DateTime DataFim { get; private init; }
+    public DateTime? DataFim { get; private init; }
 
     private SessaoWhatsapp(DateTime dataInicio)
     {
         DataInicio = dataInicio;
-        DataFim = dataInicio.AddHours(24);
+        DataFim = null;
     }
 
     public static SessaoWhatsapp Iniciar(DateTime dataMensagem)
@@ -16,8 +16,8 @@ public record SessaoWhatsapp
         return new SessaoWhatsapp(dataMensagem);
     }
 
-    public bool EstaAtiva(DateTime dataAtual)
+    public bool EstaAtiva()
     {
-        return dataAtual < DataFim;
+        return DataFim != null;
     }
 }

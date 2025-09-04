@@ -40,7 +40,7 @@ public class CriarContatoCommandHandler : ICommandHandler<CriarContatoCommand, C
             throw new Exception($"Já existe um contato com o telefone '{command.Telefone}'.");
         }
         
-        var contato = Contato.Criar(command.Nome, command.Telefone, command.WaId);
+        var contato = Contato.Criar(command.Nome, command.Telefone, command.WaId ??  null);
         
         await _contactRepository.AddAsync(contato, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

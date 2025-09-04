@@ -26,6 +26,7 @@ using Conversations.Infrastructure.Jobs;
 using Conversations.Infrastructure.Repositories;
 using Conversations.Infrastructure.Services;
 using CRM.API.Services;
+using CRM.Application.Dto;
 using CRM.Application.Interfaces;
 using CRM.Domain.DomainEvents;
 using CRM.Infrastructure.Config.Meta;
@@ -33,6 +34,13 @@ using CRM.Infrastructure.Database.Configurations;
 using CRM.Infrastructure.Services;
 using Infrastructure.ExternalServices.Services;
 using Infrastructure.ExternalServices.Services.Meta;
+using Tags.Application.Dtos;
+using Tags.Application.UseCases.Commands;
+using Tags.Application.UseCases.Commands.Handler;
+using Tags.Application.UseCases.Queries;
+using Tags.Application.UseCases.Queries.Handler;
+using Tags.Domain.repository;
+using Tags.Infrastructure.Repository;
 using Templates.Application.Abstractions;
 using Templates.Application.Dtos;
 using Templates.Application.UseCases.Commands;
@@ -48,7 +56,6 @@ namespace CRM.API.Configurations;
 
 public static class UseCaseConfigurations
 {
-
     public static IServiceCollection AddUseCases(
         this IServiceCollection services)
     {
@@ -67,12 +74,13 @@ public static class UseCaseConfigurations
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<ITemplateRepository, TemplateRepository>();
         services.AddScoped<IAtendimentoRepository, AtendimentoRepository>();
+        services.AddScoped<ITagRepository, TagRepository>();
 
         return services;
     }
 
     private static IServiceCollection AddServicesConfiguration(
-      this IServiceCollection services)
+        this IServiceCollection services)
     {
         services.AddHttpContextAccessor();
         services.AddScoped<IConversationReadService, DapperConversationReadService>();
@@ -87,7 +95,7 @@ public static class UseCaseConfigurations
         services.AddScoped<IMessageBufferService, RedisMessageBufferService>();
         services.AddScoped<IMensageriaBotService, MensageriaBotService>();
         services.AddScoped<IMetaMediaService, MetaMediaService>();
-        services.AddScoped<IMetaContactService , MetaContactService>();
+        services.AddScoped<IMetaContactService, MetaContactService>();
         services.AddScoped<IBotSessionCache, RedisBotSessionCache>();
         services.AddScoped<IDistributedLock, RedisDistributedLock>();
 
@@ -96,15 +104,19 @@ public static class UseCaseConfigurations
     }
 
     private static IServiceCollection AddHandlers(
-    this IServiceCollection services)
+        this IServiceCollection services)
     {
         services.AddScoped<ICommandHandler<AtribuirAgenteCommand>, AtribuirAgenteCommandHandler>();
-        services.AddScoped<IQueryHandler<GetConversationByIdQuery, ConversationDetailsDto>, GetConversationByIdQueryHandler>();
+        services
+            .AddScoped<IQueryHandler<GetConversationByIdQuery, ConversationDetailsDto>,
+                GetConversationByIdQueryHandler>();
         services.AddScoped<ICommandHandler<IniciarConversaCommand, Guid>, IniciarConversaCommandHandler>();
         services.AddScoped<ICommandHandler<AdicionarMensagemCommand, MessageDto>, AdicionarMensagemCommandHandler>();
         services.AddScoped<ICommandHandler<ResolverAtendimentoCommand>, ResolverAtendimentoCommandHandler>();
         services.AddScoped<ICommandHandler<TransferirAtendimentoCommand>, TransferirAtendimentoCommandHandler>();
-        services.AddScoped<IQueryHandler<GetAllConversationsQuery, IEnumerable<ConversationSummaryDto>>, GetAllConversationsQueryHandler>();
+        services
+            .AddScoped<IQueryHandler<GetAllConversationsQuery, IEnumerable<ConversationSummaryDto>>,
+                GetAllConversationsQueryHandler>();
         services.AddScoped<ICommandHandler<ProcessarRespostaDoMenuCommand>, ProcessarRespostaDoMenuCommandHandler>();
         services.AddScoped<ICommandHandler<RegistrarAvaliacaoCommand>, RegistrarAvaliacaoCommandHandler>();
         services.AddScoped<IQueryHandler<GetActiveChatQuery, ActiveChatDto>, GetActiveChatQueryHandler>();
@@ -126,10 +138,19 @@ public static class UseCaseConfigurations
         services.AddScoped<ICommandHandler<EnviarTemplateCommand>, EnviarTemplateCommandHandler>();
         services.AddScoped<ICommandHandler<RegistrarMensagemEnviadaCommand>, RegistrarMensagemEnviadaCommandHandler>();
         services.AddScoped<ICommandHandler<AtualizarAvatarContatoCommand>, AtualizarAvatarContatoCommandHandler>();
-        
+        services.AddScoped<ICommandHandler<AddTagCommand>, AddTagCommandHandler>();
+
         services.AddScoped<ICommandHandler<CriarTemplateCommand, TemplateDto>, CriarTemplateCommandHandler>();
-        services.AddScoped<IQueryHandler<GetAllTemplatesQuery, IEnumerable<TemplateDto>>, GetAllTemplatesQueryHandler>();
+        services
+            .AddScoped<IQueryHandler<GetAllTemplatesQuery, IEnumerable<TemplateDto>>, GetAllTemplatesQueryHandler>();
         services.AddScoped<ICommandHandler<AtualizarStatusTemplateCommand>, AtualizarStatusTemplateCommandHandler>();
+
+        services.AddScoped<ICommandHandler<CriarTagCommand, TagDto>, CriarTagHandler>();
+        services.AddScoped<ICommandHandler<AtualizarTagCommand, TagDto>, AtualizarTagHandler>();
+        services.AddScoped<ICommandHandler<InativarTagCommand, TagDto>, InativarTagHandler>();
+
+        services.AddScoped<IQueryHandler<GetAllTagsQuery, PaginationDto<TagDto>>, GetAllTagsQueryHandler>();
+        services.AddScoped<IQueryHandler<GetTagByIdQuery, TagDto>, GetTagsByIdQueryHandler>();
 
         return services;
     }

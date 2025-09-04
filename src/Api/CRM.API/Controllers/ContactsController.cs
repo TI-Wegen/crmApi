@@ -16,21 +16,19 @@ namespace CRM.API.Controllers;
 public class ContactsController : ControllerBase
 {
     private readonly ICommandHandler<CriarContatoCommand, ContatoDto> _criarContatoHandler;
-    private readonly IQueryHandler<GetContactByIdQuery, ContatoDto> _getContactByIdHandler; 
+    private readonly IQueryHandler<GetContactByIdQuery, ContatoDto> _getContactByIdHandler;
     private readonly IQueryHandler<GetAllContactsQuery, IEnumerable<ContatoDto>> _getAllContactsHandler;
-    private readonly ICommandHandler<AtualizarContatoCommand> _atualizarContatoHandler; 
-    private readonly ICommandHandler<InativarContatoCommand> _inativarContatoHandler; 
-    private readonly ICommandHandler<EnviarTemplateCommand> _enviarTemplateHandler; 
-
-
+    private readonly ICommandHandler<AtualizarContatoCommand> _atualizarContatoHandler;
+    private readonly ICommandHandler<InativarContatoCommand> _inativarContatoHandler;
+    private readonly ICommandHandler<EnviarTemplateCommand> _enviarTemplateHandler;
     public ContactsController(
-                ICommandHandler<CriarContatoCommand, ContatoDto> criarContatoHandler,
-                IQueryHandler<GetContactByIdQuery, ContatoDto> getContactByIdHandler,
-                IQueryHandler<GetAllContactsQuery, IEnumerable<ContatoDto>> getAllContactsHandler,
-                ICommandHandler<AtualizarContatoCommand> atualizarContatoHandler,
-                ICommandHandler<InativarContatoCommand> inativarContatoHandler,
-                ICommandHandler<EnviarTemplateCommand> enviarTemplateHandler
-                )
+        ICommandHandler<CriarContatoCommand, ContatoDto> criarContatoHandler,
+        IQueryHandler<GetContactByIdQuery, ContatoDto> getContactByIdHandler,
+        IQueryHandler<GetAllContactsQuery, IEnumerable<ContatoDto>> getAllContactsHandler,
+        ICommandHandler<AtualizarContatoCommand> atualizarContatoHandler,
+        ICommandHandler<InativarContatoCommand> inativarContatoHandler,
+        ICommandHandler<EnviarTemplateCommand> enviarTemplateHandler
+    )
     {
         _criarContatoHandler = criarContatoHandler;
         _getContactByIdHandler = getContactByIdHandler;
@@ -72,6 +70,7 @@ public class ContactsController : ControllerBase
             return NotFound(new { message = ex.Message });
         }
     }
+
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<ContatoDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
@@ -92,13 +91,13 @@ public class ContactsController : ControllerBase
             var command = new AtualizarContatoCommand(id, request.Nome, request.Telefone, request.Tags);
             await _atualizarContatoHandler.HandleAsync(command);
 
-            return NoContent(); 
+            return NoContent();
         }
         catch (NotFoundException ex)
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex) 
+        catch (Exception ex)
         {
             return BadRequest(new { message = ex.Message });
         }
@@ -132,7 +131,7 @@ public class ContactsController : ControllerBase
     public async Task<IActionResult> SendTemplate(Guid id, [FromBody] SendTemplateRequest request)
     {
         var command = new EnviarTemplateCommand(id, request.TemplateName, request.BodyParameters);
-        await _enviarTemplateHandler.HandleAsync(command); 
+        await _enviarTemplateHandler.HandleAsync(command);
 
         return Accepted();
     }

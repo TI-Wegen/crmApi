@@ -167,7 +167,6 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("WaId")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
@@ -240,6 +239,9 @@ namespace CRM.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("TagsId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("Version")
                         .IsConcurrencyToken()
                         .HasColumnType("uuid");
@@ -247,6 +249,8 @@ namespace CRM.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ConversaId");
+
+                    b.HasIndex("TagsId");
 
                     b.ToTable("Atendimentos", (string)null);
                 });
@@ -318,6 +322,43 @@ namespace CRM.Infrastructure.Migrations
                     b.HasIndex("ConversaId");
 
                     b.ToTable("Mensagens", (string)null);
+                });
+
+            modelBuilder.Entity("Tags.Domain.Aggregates.Tags", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Cor")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Descricao")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)");
+
+                    b.Property<string>("Nome")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("Version")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Nome")
+                        .IsUnique();
+
+                    b.ToTable("Tags", (string)null);
                 });
 
             modelBuilder.Entity("Templates.Domain.Aggregates.MessageTemplate", b =>
@@ -408,37 +449,6 @@ namespace CRM.Infrastructure.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Contacts.Domain.Aggregates.Contato", b =>
-                {
-                    b.OwnsMany("Contacts.Domain.ValueObjects.Tag", "Tags", b1 =>
-                        {
-                            b1.Property<int>("Id")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("integer");
-
-                            NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b1.Property<int>("Id"));
-
-                            b1.Property<Guid>("ContatoId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<string>("Texto")
-                                .IsRequired()
-                                .HasMaxLength(50)
-                                .HasColumnType("character varying(50)");
-
-                            b1.HasKey("Id");
-
-                            b1.HasIndex("ContatoId");
-
-                            b1.ToTable("ContatoTags", (string)null);
-
-                            b1.WithOwner()
-                                .HasForeignKey("ContatoId");
-                        });
-
-                    b.Navigation("Tags");
-                });
-
             modelBuilder.Entity("Contacts.Domain.Entities.HistoricoStatus", b =>
                 {
                     b.HasOne("Contacts.Domain.Aggregates.Contato", null)
@@ -454,6 +464,10 @@ namespace CRM.Infrastructure.Migrations
                         .HasForeignKey("ConversaId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Tags.Domain.Aggregates.Tags", "Tag")
+                        .WithMany()
+                        .HasForeignKey("TagsId");
 
                     b.OwnsOne("Conversations.Domain.ValueObjects.Avaliacao", "Avaliacao", b1 =>
                         {
@@ -478,6 +492,8 @@ namespace CRM.Infrastructure.Migrations
                         });
 
                     b.Navigation("Avaliacao");
+
+                    b.Navigation("Tag");
                 });
 
             modelBuilder.Entity("Conversations.Domain.Aggregates.Conversa", b =>
@@ -487,7 +503,7 @@ namespace CRM.Infrastructure.Migrations
                             b1.Property<Guid>("ConversaId")
                                 .HasColumnType("uuid");
 
-                            b1.Property<DateTime>("DataFim")
+                            b1.Property<DateTime?>("DataFim")
                                 .HasColumnType("timestamp with time zone")
                                 .HasColumnName("SessaoFim");
 

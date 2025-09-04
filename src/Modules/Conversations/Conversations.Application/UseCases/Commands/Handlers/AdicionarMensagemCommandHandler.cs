@@ -1,6 +1,4 @@
-﻿namespace Conversations.Application.UseCases.Commands.Handlers;
-
-using Contacts.Domain.Repository;
+﻿using Contacts.Domain.Repository;
 using Conversations.Application.Abstractions;
 using Conversations.Application.Dtos;
 using Conversations.Application.Mappers;
@@ -11,7 +9,8 @@ using Conversations.Domain.ValueObjects;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 using CRM.Domain.Exceptions;
-using Microsoft.EntityFrameworkCore;
+
+namespace Conversations.Application.UseCases.Commands.Handlers;
 
 public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagemCommand, MessageDto>
 {
@@ -67,17 +66,16 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
             throw new DomainException("Remetente inválido. Deve ser 'Agente'");
 
         string? anexoUrl = null;
-        if (conversa.SessaoAtiva is null || !conversa.SessaoAtiva.EstaAtiva(DateTime.UtcNow))
+        if (conversa.SessaoAtiva is null || !conversa.SessaoAtiva.EstaAtiva())
             throw new DomainException(
-                "A janela de 24 horas para respostas livres está fechada. Use um Template de Mensagem para iniciar uma nova conversa.");
+                "A janela está fechada. Use um Template de Mensagem para iniciar uma nova conversa.");
 
         var agenteId = _userContext.GetCurrentUserId();
         if (agenteId is null)
             throw new UnauthorizedAccessException("Não foi possível identificar o agente autenticado.");
 
-
         if (atendimento.Status == ConversationStatus.AguardandoNaFila) atendimento.AtribuirAgente(agenteId.Value);
-
+        
         if (command.AnexoStream is not null)
         {
             var nomeUnicoAnexo = $"{Guid.NewGuid()}-{command.AnexoNome}";
@@ -121,12 +119,14 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
             ContatoTelefone = contato.Telefone,
 
             AgenteNome = null,
+            TagId = atendimento.TagsId,
+            TagName = atendimento.Tag?.Nome ?? "",
             Status = atendimento.Status.ToString(),
 
             UltimaMensagemTimestamp = novaMensagem.Timestamp,
             UltimaMensagemPreview = novaMensagem.Texto,
 
-            SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva(DateTime.UtcNow) ?? true,
+            SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva() ?? true,
             SessaoWhatsappExpiraEm = conversa.SessaoAtiva?.DataFim
         };
         await _notifier.NotificarNovaConversaNaFilaAsync(summaryDto);

@@ -7,11 +7,10 @@ using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 using CRM.Domain.Exceptions;
 using CRM.Infrastructure.Config.Meta;
-using Google.Protobuf.WellKnownTypes;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CRM.API.Controllers;
+
 //[Authorize]
 [Route("api/[controller]")]
 [ApiController]
@@ -23,7 +22,11 @@ public class ConversationsController : ControllerBase
     private readonly ICommandHandler<AdicionarMensagemCommand, MessageDto> _adicionarMensagemHandler;
     private readonly ICommandHandler<ResolverAtendimentoCommand> _resolverAtendimentoHandler;
     private readonly ICommandHandler<TransferirAtendimentoCommand> _transferirAtendimentoHandler;
-    private readonly IQueryHandler<GetAllConversationsQuery, IEnumerable<ConversationSummaryDto>> _getAllConversationsHandler;
+    private readonly ICommandHandler<AddTagCommand> _addTagAtendimentoHandler;
+
+    private readonly IQueryHandler<GetAllConversationsQuery, IEnumerable<ConversationSummaryDto>>
+        _getAllConversationsHandler;
+
     private readonly IQueryHandler<GetActiveChatQuery, ActiveChatDto> _getActiveChatHandler;
     private readonly ICommandHandler<EnviarTemplateCommand> _enviarTemplateHandler;
 
@@ -35,8 +38,9 @@ public class ConversationsController : ControllerBase
         ICommandHandler<TransferirAtendimentoCommand> transferirAtendimentoHandler,
         IQueryHandler<GetAllConversationsQuery, IEnumerable<ConversationSummaryDto>> getAllConversationsHandler,
         IQueryHandler<GetActiveChatQuery, ActiveChatDto> getActiveChatHandler,
-        ICommandHandler<EnviarTemplateCommand> enviarTemplateHandler
-        )
+        ICommandHandler<EnviarTemplateCommand> enviarTemplateHandler,
+        ICommandHandler<AddTagCommand> addTagAtendimentoHandler
+    )
     {
         _atribuirAgenteHandler = atribuirAgenteHandler;
         _getByIdHandler = getByIdHandler;
@@ -47,6 +51,7 @@ public class ConversationsController : ControllerBase
         _getAllConversationsHandler = getAllConversationsHandler;
         _getActiveChatHandler = getActiveChatHandler;
         _enviarTemplateHandler = enviarTemplateHandler;
+        _addTagAtendimentoHandler = addTagAtendimentoHandler;
     }
 
     [HttpGet("{id:guid}", Name = "GetConversationById")]
@@ -74,10 +79,9 @@ public class ConversationsController : ControllerBase
     {
         try
         {
-         
             var command = new AtribuirAgenteCommand(id, request.AgenteId);
             await _atribuirAgenteHandler.HandleAsync(command);
-            return NoContent(); 
+            return NoContent();
         }
         catch (NotFoundException ex)
         {
@@ -104,9 +108,9 @@ public class ConversationsController : ControllerBase
                 timestamp,
                 null,
                 null,
-                  request.Anexo?.OpenReadStream(),
-                  request.Anexo?.FileName,
-                  request.Anexo?.ContentType);
+                request.Anexo?.OpenReadStream(),
+                request.Anexo?.FileName,
+                request.Anexo?.ContentType);
 
             var novaConversaId = await _iniciarConversaHandler.HandleAsync(command);
 
@@ -123,10 +127,10 @@ public class ConversationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> AdicionarMensagem(
-    [FromRoute] Guid id,
-    [FromForm] AdicionarMensagemRequest request)
+        [FromRoute] Guid id,
+        [FromForm] AdicionarMensagemRequest request)
     {
-        if (!System.Enum.TryParse<RemetenteTipo>(request.RemetenteTipo, true, out var remetenteTipo))
+        if (!Enum.TryParse<RemetenteTipo>(request.RemetenteTipo, true, out var remetenteTipo))
         {
             return BadRequest("RemetenteTipo inválido. Use 'Agente' ou 'Cliente'.");
         }
@@ -159,7 +163,6 @@ public class ConversationsController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
-
 
     [HttpPatch("{id:guid}/resolver")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -218,7 +221,7 @@ public class ConversationsController : ControllerBase
     public async Task<IActionResult> GetActiveChat(Guid id)
     {
         var query = new GetActiveChatQuery(id);
-        var chatData = await _getActiveChatHandler.HandleAsync(query); 
+        var chatData = await _getActiveChatHandler.HandleAsync(query);
         return Ok(chatData);
     }
 
@@ -233,6 +236,16 @@ public class ConversationsController : ControllerBase
 
         return Accepted();
     }
+    
+    [HttpPost("{contactId:guid}/AddTag")]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> AdicionarTag(Guid contactId, [FromBody] AddTagRequest request)
+    {
+        var command = new AddTagCommand(contactId, request.TagId);
+        await _addTagAtendimentoHandler.HandleAsync(command);
 
-
+        return Accepted();
+    }
 }

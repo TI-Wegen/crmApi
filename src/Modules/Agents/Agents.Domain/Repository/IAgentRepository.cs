@@ -11,5 +11,5 @@ public interface IAgentRepository
     Task<Setor?> GetSetorByNomeAsync(string nome, CancellationToken cancellationToken = default);
     Task<Setor?> GetSetorByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task UpdateAsync(Agente agente, CancellationToken cancellationToken = default);
-Task <IEnumerable <Setor>>  GetSetoresAsync(CancellationToken cancellationToken = default);
+    Task <IEnumerable <Setor>>  GetSetoresAsync(CancellationToken cancellationToken = default);
 }

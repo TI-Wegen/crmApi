@@ -9,5 +9,6 @@ public record GetAllConversationsQuery(
     int PageSize = 1000,
     ConversationStatus? Status = null,
     Guid? AgenteId = null,
-    Guid? SetorId = null
+    Guid? SetorId = null,
+    Guid? TagId = null
 ) : IQuery<IEnumerable<ConversationSummaryDto>>;
