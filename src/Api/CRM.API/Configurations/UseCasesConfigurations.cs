@@ -128,6 +128,9 @@ public static class UseCaseConfigurations
         services.AddScoped<ICommandHandler<InativarAgenteCommand>, InativarAgenteCommandHandler>();
         services.AddScoped<IQueryHandler<LoginQuery, string>, LoginQueryHandler>();
         services.AddScoped<IQueryHandler<GetSetoresQuery, IEnumerable<SetorDto>>, GetSetoresQueryHandler>();
+        services
+            .AddScoped<IQueryHandler<GetConversationByContactQuery, ConversationDetailsDto>,
+                GetConversationByContactQueryHandler>();
 
         services.AddScoped<ICommandHandler<CriarContatoCommand, ContatoDto>, CriarContatoCommandHandler>();
         services.AddScoped<IQueryHandler<GetContactByIdQuery, ContatoDto>, GetContactByIdQueryHandler>();

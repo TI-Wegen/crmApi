@@ -8,20 +8,24 @@ namespace Conversations.Application.UseCases.Queries.Handlers;
 
 public class GetConversationByIdQueryHandler : IQueryHandler<GetConversationByIdQuery, ConversationDetailsDto>
 {
-
     private readonly IConversationReadService _readService;
 
 
     public GetConversationByIdQueryHandler(
         IConversationReadService readService)
     {
-
         _readService = readService;
     }
 
-    public async Task<ConversationDetailsDto> HandleAsync(GetConversationByIdQuery query, CancellationToken cancellationToken)
+    public async Task<ConversationDetailsDto> HandleAsync(
+        GetConversationByIdQuery query, 
+        CancellationToken cancellationToken)
     {
-        var conversationDetails = await _readService.GetConversationDetailsAsync(query.ConversaId, cancellationToken);
+        var conversationDetails = await _readService.GetConversationDetailsAsync(
+            query.ConversaId, 
+            query.PageNumber,
+            query.PageSize, 
+            cancellationToken);
 
         if (conversationDetails is null)
         {

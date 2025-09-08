@@ -18,6 +18,7 @@ public class ConversationsController : ControllerBase
 {
     private readonly ICommandHandler<AtribuirAgenteCommand> _atribuirAgenteHandler;
     private readonly IQueryHandler<GetConversationByIdQuery, ConversationDetailsDto> _getByIdHandler;
+    private readonly IQueryHandler<GetConversationByContactQuery, ConversationDetailsDto> _getByContactIdHandler;
     private readonly ICommandHandler<IniciarConversaCommand, Guid> _iniciarConversaHandler;
     private readonly ICommandHandler<AdicionarMensagemCommand, MessageDto> _adicionarMensagemHandler;
     private readonly ICommandHandler<ResolverAtendimentoCommand> _resolverAtendimentoHandler;
@@ -39,7 +40,8 @@ public class ConversationsController : ControllerBase
         IQueryHandler<GetAllConversationsQuery, IEnumerable<ConversationSummaryDto>> getAllConversationsHandler,
         IQueryHandler<GetActiveChatQuery, ActiveChatDto> getActiveChatHandler,
         ICommandHandler<EnviarTemplateCommand> enviarTemplateHandler,
-        ICommandHandler<AddTagCommand> addTagAtendimentoHandler
+        ICommandHandler<AddTagCommand> addTagAtendimentoHandler,
+        IQueryHandler<GetConversationByContactQuery, ConversationDetailsDto> getByContactIdHandler
     )
     {
         _atribuirAgenteHandler = atribuirAgenteHandler;
@@ -52,16 +54,22 @@ public class ConversationsController : ControllerBase
         _getActiveChatHandler = getActiveChatHandler;
         _enviarTemplateHandler = enviarTemplateHandler;
         _addTagAtendimentoHandler = addTagAtendimentoHandler;
+        _getByContactIdHandler = getByContactIdHandler;
     }
 
     [HttpGet("{id:guid}", Name = "GetConversationById")]
     [ProducesResponseType(typeof(ConversationDetailsDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<IActionResult> GetById(
+        Guid id,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20)
     {
         try
         {
-            var query = new GetConversationByIdQuery(id);
+            var safePageSize = Math.Min(pageSize, 100);
+
+            var query = new GetConversationByIdQuery(id, pageNumber, safePageSize);
             var conversation = await _getByIdHandler.HandleAsync(query);
             return Ok(conversation);
         }
@@ -70,6 +78,29 @@ public class ConversationsController : ControllerBase
             return NotFound(new { message = ex.Message });
         }
     }
+
+    [HttpGet("{id:guid}/Contact", Name = "GetContactByContact")]
+    [ProducesResponseType(typeof(ConversationDetailsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetByContact(
+        Guid id,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20)
+    {
+        try
+        {
+            var safePageSize = Math.Min(pageSize, 100);
+
+            var query = new GetConversationByContactQuery(id, pageNumber, safePageSize);
+            var conversation = await _getByContactIdHandler.HandleAsync(query);
+            return Ok(conversation);
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
 
     [HttpPatch("{id:guid}/atribuir-agente")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -236,7 +267,7 @@ public class ConversationsController : ControllerBase
 
         return Accepted();
     }
-    
+
     [HttpPost("{contactId:guid}/AddTag")]
     [ProducesResponseType(StatusCodes.Status202Accepted)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

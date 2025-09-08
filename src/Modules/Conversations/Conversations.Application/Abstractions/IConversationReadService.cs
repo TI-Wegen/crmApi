@@ -13,5 +13,12 @@ public interface IConversationReadService
         CancellationToken cancellationToken = default);
 
     Task<ConversationDetailsDto?> GetConversationDetailsAsync(Guid conversationId,
+        int pageNumber = 1,
+        int pageSize = 20,
+        CancellationToken cancellationToken = default);
+    
+    Task<ConversationDetailsDto?> GetConversationDetailsByContactAsync(Guid contactId,
+        int pageNumber = 1,
+        int pageSize = 20,
         CancellationToken cancellationToken = default);
 }
