@@ -49,18 +49,17 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         var timestampUtc = DateTime.SpecifyKind(timestamp, DateTimeKind.Utc);
         var fusoHorarioBrasil = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
         var timestampBrasilia = TimeZoneInfo.ConvertTimeFromUtc(timestampUtc, fusoHorarioBrasil);
-
-
+        
         var conversa = await _conversationRepository.GetByIdAsync(command.ConversaId, cancellationToken);
         if (conversa is null)
             throw new NotFoundException($"Conversa com o Id '{command.ConversaId}' não encontrada.");
+        
         var atendimento = await _atendimentoRepository.FindActiveByConversaIdAsync(conversa.Id, cancellationToken);
         if (atendimento is null)
         {
             atendimento = Atendimento.Iniciar(conversa.Id);
             await _atendimentoRepository.AddAsync(atendimento, cancellationToken);
         }
-
 
         if (command.RemetenteTipo != RemetenteTipo.Agente)
             throw new DomainException("Remetente inválido. Deve ser 'Agente'");
@@ -91,7 +90,6 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
 
         conversa.AdicionarMensagem(novaMensagem, atendimento.Id);
 
-
         var contato = await _contactRepository.GetByIdAsync(conversa.ContatoId, cancellationToken);
         if (contato is not null)
         {
@@ -112,7 +110,7 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         await _notifier.NotificarNovaMensagemAsync(conversa.Id.ToString(), messageDto);
 
         var summaryDto = new ConversationSummaryDto
-        {
+            {
             Id = conversa.Id,
             AtendimentoId = novaMensagem.Id,
             ContatoNome = contato.Nome,

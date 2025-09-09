@@ -1,9 +1,9 @@
-﻿namespace Conversations.Application.UseCases.Commands.Handlers;
-
-using Contacts.Domain.Repository;
+﻿using Contacts.Domain.Repository;
 using Conversations.Application.Abstractions;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
+
+namespace Conversations.Application.UseCases.Commands.Handlers;
 
 public class ResolverAtendimentoCommandHandler : ICommandHandler<ResolverAtendimentoCommand>
 {
@@ -14,14 +14,13 @@ public class ResolverAtendimentoCommandHandler : ICommandHandler<ResolverAtendim
     private readonly IUserContext _userContext;
     private readonly IBotSessionCache _botSessionCache;
 
-    public ResolverAtendimentoCommandHandler(IAtendimentoRepository atendimentoRepository, 
+    public ResolverAtendimentoCommandHandler(IAtendimentoRepository atendimentoRepository,
         IUnitOfWork unitOfWork,
         IUserContext userContext,
         IBotSessionCache botSessionCache,
         IContactRepository contactRepository,
         IConversationRepository conversationRepository
-
-        )
+    )
     {
         _atendimentoRepository = atendimentoRepository;
         _unitOfWork = unitOfWork;
@@ -30,7 +29,8 @@ public class ResolverAtendimentoCommandHandler : ICommandHandler<ResolverAtendim
         _contactRepository = contactRepository;
         _conversationRepository = conversationRepository;
     }
-      public async Task HandleAsync(ResolverAtendimentoCommand command, CancellationToken cancellationToken)
+
+    public async Task HandleAsync(ResolverAtendimentoCommand command, CancellationToken cancellationToken)
     {
         var atendimento = await _atendimentoRepository.GetByIdAsync(command.AtendimentoId, cancellationToken);
         if (atendimento is null)
@@ -44,11 +44,11 @@ public class ResolverAtendimentoCommandHandler : ICommandHandler<ResolverAtendim
             throw new UnauthorizedAccessException("Usuário não está autenticado ou não possui um agente associado.");
         }
 
-
         atendimento.Resolver(agenteIdLogado);
 
         var conversa = await _conversationRepository.GetByIdAsync(atendimento.ConversaId, cancellationToken);
-        if (conversa is null) throw new NotFoundException($"Conversa com o Id '{atendimento.ConversaId}' não encontrada.");
+        if (conversa is null)
+            throw new NotFoundException($"Conversa com o Id '{atendimento.ConversaId}' não encontrada.");
 
         var contato = await _contactRepository.GetByIdAsync(conversa.ContatoId, cancellationToken);
         if (contato is null) throw new NotFoundException($"Contato com o Id '{conversa.ContatoId}' não encontrado.");

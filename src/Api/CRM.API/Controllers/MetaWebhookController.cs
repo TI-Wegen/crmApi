@@ -49,7 +49,7 @@ namespace CRM.API.Controllers
             IFileStorageService fileStorageService,
             IMessageDeduplicationService messageDeduplicationService,
             ILogger<MetaWebhookController> logger)
-
+    
         {
             _metaSettings = metaSettings.Value;
             _criarContatoHandler = criarContatoHandler;
@@ -169,7 +169,6 @@ namespace CRM.API.Controllers
                 _logger.LogError(e, "Erro ao processar mensagem {Wamid} de {Telefone}", wamid, telefoneDoContato);
             }
         }
-
 
         private async Task HandleTextMessageAsync(MessageObject message, ContactObject contactPayload)
         {

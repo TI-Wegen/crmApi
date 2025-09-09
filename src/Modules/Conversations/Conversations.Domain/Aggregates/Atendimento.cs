@@ -33,6 +33,7 @@ public class Atendimento : Entity
         atendimento.AddDomainEvent(new AtendimentoIniciadoEvent(atendimento.Id, conversaId));
         return atendimento;
     }
+    
     public static Atendimento IniciarEmFila(Guid conversaId, Guid setorId)
     {
         var atendimento = new Atendimento
@@ -45,6 +46,7 @@ public class Atendimento : Entity
         atendimento.AddDomainEvent(new AtendimentoIniciadoEvent(atendimento.Id, conversaId));
         return atendimento;
     }
+    
     public void IniciarTransferenciaParaFila(Guid setorId)
     {
         if (Status != ConversationStatus.EmAutoAtendimento)
@@ -54,6 +56,7 @@ public class Atendimento : Entity
         BotStatus = BotStatus.Nenhum;
         SetorId = setorId;
     }
+    
     public void AtribuirAgente(Guid? agenteId)
     {
         if (Status != ConversationStatus.AguardandoRespostaCliente && Status != ConversationStatus.AguardandoNaFila)
@@ -62,6 +65,7 @@ public class Atendimento : Entity
         Status = ConversationStatus.EmAtendimento;
         AgenteId = agenteId;
     }
+    
     public void Resolver(Guid? agenteIdResolvedor)
     {
         if (Status is ConversationStatus.Resolvida)
@@ -73,24 +77,28 @@ public class Atendimento : Entity
         AgenteId = agenteIdResolvedor;
         AddDomainEvent(new AtendimentoResolvidoEvent(this.Id, this.AgenteId, DateTime.UtcNow));
     }
+    
     public void AdicionarAvaliacao(Avaliacao novaAvaliacao)
     {
         if (Status != ConversationStatus.Resolvida)
             throw new DomainException("Apenas atendimentos resolvidos podem ser avaliados.");
         Avaliacao = novaAvaliacao;
     }
+    
     public void AguardarEscolhaDeBoleto()
     {
         if (Status != ConversationStatus.EmAutoAtendimento || BotStatus != BotStatus.AguardandoCpfParaBoleto)
             throw new DomainException("Não é possível aguardar a escolha de um boleto neste estado.");
         BotStatus = BotStatus.AguardandoEscolhaDeBoleto;
     }
+    
     public void AguardarCpf()
     {
         if (Status != ConversationStatus.EmAutoAtendimento)
             throw new DomainException("A conversa deve estar em autoatendimento para aguardar CPF.");
         BotStatus = BotStatus.AguardandoCpfParaBoleto;
     }
+    
     public static Atendimento IniciarProativamente(Guid conversaId, Guid agenteId)
     {
         var atendimento = new Atendimento

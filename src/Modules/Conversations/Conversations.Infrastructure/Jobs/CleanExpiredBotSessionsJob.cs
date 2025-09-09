@@ -35,8 +35,28 @@ public class CleanExpiredBotSessionsJob
     {
         _logger.LogInformation("Iniciando Job de limpeza de sessões de bot expiradas...");
 
+        var atendimentosNoBot = await _atendimentoRepository.GetAtendimentosEmAutoAtendimentoAsync();
         int sessoesExpiradas = 0;
-        
+
+        foreach (var atendimento in atendimentosNoBot)
+        {
+            var conversa = await _conversationRepository.GetByIdAsync(atendimento.ConversaId);
+            if (conversa is null) continue;
+
+            var contato = await _contactRepository.GetByIdAsync(conversa.ContatoId);
+            if (contato is null) continue;
+
+            var sessionState = await _botSessionCache.GetStateAsync(contato.Telefone);
+
+            if (sessionState is null)
+            {
+                _logger.LogInformation("Sessão para o atendimento {AtendimentoId} expirou. Resolvendo...",
+                    atendimento.Id);
+
+                atendimento.Resolver(SystemGuids.SystemAgentId);
+                sessoesExpiradas++;
+            }
+        }
 
         if (sessoesExpiradas > 0)
         {
