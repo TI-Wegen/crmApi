@@ -63,7 +63,7 @@ public class ConversationsController : ControllerBase
     public async Task<IActionResult> GetById(
         Guid id,
         [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 20)
+        [FromQuery] int pageSize = 100)
     {
         try
         {

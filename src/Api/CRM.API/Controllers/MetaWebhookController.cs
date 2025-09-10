@@ -397,7 +397,7 @@ namespace CRM.API.Controllers
             if (contactPayload is null) return;
 
             var command = new AtualizarAvatarContatoCommand(contactPayload.WaId);
-            await _atualizarAvatarHandler.HandleAsync(command); // Injete o novo handler
+            await _atualizarAvatarHandler.HandleAsync(command);
         }
 
         private TemplateStatus? ParseTemplateStatus(string? eventName)
@@ -406,7 +406,6 @@ namespace CRM.API.Controllers
             {
                 "APPROVED" => TemplateStatus.Aprovado,
                 "REJECTED" => TemplateStatus.Rejeitado,
-                // Adicione outros status como "PENDING" ou "PAUSED" se necessário
                 _ => null
             };
         }

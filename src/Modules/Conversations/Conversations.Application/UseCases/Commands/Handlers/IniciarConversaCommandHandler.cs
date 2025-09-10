@@ -54,10 +54,10 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
     {
         var timestamp = DateTime.UtcNow;
         var timestampUtc = DateTime.SpecifyKind(timestamp, DateTimeKind.Utc);
-
-        var conversa = await _conversationRepository.FindActiveByContactIdAsync(command.ContatoId, cancellationToken);
-
+        
         try {
+            var conversa = await _conversationRepository.FindActiveByContactIdAsync(command.ContatoId, cancellationToken);
+        
             if (conversa is not null)
             {
                 var atendimentoAtivo = await _atendimentoRepository.FindActiveByConversaIdAsync(conversa.Id, cancellationToken);
@@ -82,8 +82,7 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
                 await _conversationRepository.AddAsync(conversa, cancellationToken);
             }
             conversa.IniciarOuRenovarSessao(timestampUtc);
-
-
+            
             var contato = await _contactRepository.GetByIdAsync(conversa.ContatoId);
             if (contato is null) return conversa.Id;
 
@@ -159,8 +158,6 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
                 await _readService.NotificarNovaConversaNaFilaAsync(summaryDto);
             }
             return conversa.Id;
-
-
         }
         catch (Exception ex)
         {

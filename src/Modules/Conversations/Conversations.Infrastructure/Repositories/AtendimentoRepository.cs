@@ -26,7 +26,7 @@ public class AtendimentoRepository : IAtendimentoRepository
         return await _context.Atendimentos
             .FirstOrDefaultAsync(a =>
                     a.ConversaId == conversaId &&
-                    !inactiveStatuses.Contains(a.Status),
+                    !inactiveStatuses.Contains(a.Status) || a.DataFinalizacao == null,
                 cancellationToken);
     }
     public async Task<Atendimento?> GetByIdAsync(Guid atendimentoId, CancellationToken cancellationToken = default)

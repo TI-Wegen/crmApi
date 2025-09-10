@@ -28,7 +28,8 @@ public class Atendimento : Entity
         {
             ConversaId = conversaId,
             Status = ConversationStatus.EmAutoAtendimento,
-            BotStatus = BotStatus.AguardandoOpcaoMenuPrincipal
+            BotStatus = BotStatus.AguardandoOpcaoMenuPrincipal,
+            DataFinalizacao = null
         };
         atendimento.AddDomainEvent(new AtendimentoIniciadoEvent(atendimento.Id, conversaId));
         return atendimento;
