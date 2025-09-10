@@ -135,12 +135,6 @@ namespace CRM.API.Controllers
 
             try
             {
-                if (!await _messageDeduplicationService.TryRegisterMessageAsync(wamid, TimeSpan.FromHours(1)))
-                {
-                    _logger.LogInformation("Mensagem duplicada {Wamid} ignorada para {Telefone}", wamid, telefoneDoContato);
-                    return;
-                }
-
                 switch (message.Type)
                 {
                     case "text":

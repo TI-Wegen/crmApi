@@ -34,7 +34,7 @@ public class CriarContatoCommandHandler : ICommandHandler<CriarContatoCommand, C
 
     public async Task<ContatoDto> HandleAsync(CriarContatoCommand command, CancellationToken cancellationToken)
     {
-        var existingContact = await _contactRepository.GetByTelefoneAsync(command.Telefone, cancellationToken);
+         var existingContact = await _contactRepository.GetByTelefoneAsync(command.Telefone, cancellationToken);
         if (existingContact is not null)
         {
             throw new Exception($"Já existe um contato com o telefone '{command.Telefone}'.");
