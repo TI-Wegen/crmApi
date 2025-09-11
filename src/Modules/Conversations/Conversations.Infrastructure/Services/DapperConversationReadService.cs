@@ -41,7 +41,7 @@ public class DapperConversationReadService : IConversationReadService
             T.""Cor"" AS TagColor
             FROM ""Atendimentos"" a
             INNER JOIN ""Conversas"" c ON a.""ConversaId"" = c.""Id""
-            LEFT JOIN ""Tags"" T on T.""Id"" = T.""TagsId""
+            LEFT JOIN ""Tags"" T on T.""Id"" = c.""TagsId""
             INNER JOIN ""Contatos"" co ON c.""ContatoId"" = co.""Id""
             LEFT JOIN ""Agentes"" ag ON a.""AgenteId"" = ag.""Id""
     ");
@@ -72,7 +72,7 @@ public class DapperConversationReadService : IConversationReadService
 
         if (query.TagId.HasValue)
         {
-            whereClauses.Add(@"T.""TagsId"" = @TagId");
+            whereClauses.Add(@"c.""TagsId"" = @TagId");
             parameters.Add("TagId", query.TagId.Value);
         }
 
