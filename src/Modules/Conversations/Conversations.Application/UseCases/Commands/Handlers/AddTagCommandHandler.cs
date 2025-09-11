@@ -6,15 +6,15 @@ namespace Conversations.Application.UseCases.Commands.Handlers;
 public class AddTagCommandHandler : ICommandHandler<AddTagCommand>
 {
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IAtendimentoRepository _atendimentoRepository;
+    private readonly IConversationRepository _conversationRepository;
 
-    public AddTagCommandHandler(IAtendimentoRepository atendimentoRepository, IUnitOfWork unitOfWork)
+    public AddTagCommandHandler(IConversationRepository conversationRepository, IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
-        _atendimentoRepository = atendimentoRepository;
+        _conversationRepository = conversationRepository;
     }
     public Task HandleAsync(AddTagCommand command, CancellationToken cancellationToken = default)
     {
-        return _atendimentoRepository.AddTagAtendimento(command.ContactId, command.TagId, cancellationToken);
+        return _conversationRepository.AddTagAtendimento(command.ContactId, command.TagId, cancellationToken);
     }
 }

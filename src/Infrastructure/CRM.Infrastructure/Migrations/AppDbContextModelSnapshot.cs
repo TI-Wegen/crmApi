@@ -239,9 +239,6 @@ namespace CRM.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("TagsId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("Version")
                         .IsConcurrencyToken()
                         .HasColumnType("uuid");
@@ -249,8 +246,6 @@ namespace CRM.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ConversaId");
-
-                    b.HasIndex("TagsId");
 
                     b.ToTable("Atendimentos", (string)null);
                 });
@@ -271,6 +266,9 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("TagsId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("TotalSessoesIniciadas")
                         .HasColumnType("integer");
 
@@ -279,6 +277,8 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TagsId");
 
                     b.ToTable("Conversas", (string)null);
                 });
@@ -465,10 +465,6 @@ namespace CRM.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Tags.Domain.Aggregates.Tags", "Tag")
-                        .WithMany()
-                        .HasForeignKey("TagsId");
-
                     b.OwnsOne("Conversations.Domain.ValueObjects.Avaliacao", "Avaliacao", b1 =>
                         {
                             b1.Property<Guid>("AtendimentoId")
@@ -492,12 +488,14 @@ namespace CRM.Infrastructure.Migrations
                         });
 
                     b.Navigation("Avaliacao");
-
-                    b.Navigation("Tag");
                 });
 
             modelBuilder.Entity("Conversations.Domain.Aggregates.Conversa", b =>
                 {
+                    b.HasOne("Tags.Domain.Aggregates.Tags", "Tag")
+                        .WithMany()
+                        .HasForeignKey("TagsId");
+
                     b.OwnsOne("Conversations.Domain.ValueObjects.SessaoWhatsapp", "SessaoAtiva", b1 =>
                         {
                             b1.Property<Guid>("ConversaId")
@@ -520,6 +518,8 @@ namespace CRM.Infrastructure.Migrations
                         });
 
                     b.Navigation("SessaoAtiva");
+
+                    b.Navigation("Tag");
                 });
 
             modelBuilder.Entity("Conversations.Domain.Entities.Mensagem", b =>

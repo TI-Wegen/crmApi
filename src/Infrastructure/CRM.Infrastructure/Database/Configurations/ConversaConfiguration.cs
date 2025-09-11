@@ -15,6 +15,11 @@ public class ConversaConfiguration : IEntityTypeConfiguration<Conversa>
         var navigation = builder.Navigation(c => c.Mensagens);
         navigation.UsePropertyAccessMode(PropertyAccessMode.Field);
         navigation.HasField("_mensagens");
+        
+        builder.HasOne(a => a.Tag)
+            .WithMany()
+            .HasForeignKey(a => a.TagsId)
+            .IsRequired(false); 
 
         builder.Ignore(c => c.DomainEvents);
 

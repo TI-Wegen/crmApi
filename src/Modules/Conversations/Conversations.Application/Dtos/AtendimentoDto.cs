@@ -6,7 +6,6 @@ public class AtendimentoDto
     public Guid ConversaId { get; init; }
     public Guid? AgenteId { get; init; }
     public Guid? SetorId { get; init; }
-    public Guid? TagId { get; init; }
     public string Status { get; set; }
     public string BotStatus { get; init; }
     public DateTime? DataFinalizacao { get; init; }

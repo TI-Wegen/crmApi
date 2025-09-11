@@ -58,4 +58,18 @@ public class ConversationRepository : IConversationRepository
     {
         _context.Entry(conversa).State = EntityState.Unchanged;
     }
+
+    public Task AddTagAtendimento(Guid contactId, Guid tagId, CancellationToken cancellationToken)
+    {
+        var atendimento = _context.Conversas.FirstOrDefault(x => x.ContatoId == contactId);
+
+        if (atendimento is null)
+        {
+            throw new Exception("Conversa não enocntrado");
+        }
+        
+        atendimento.TagsId = tagId;
+        
+        return _context.SaveChangesAsync(cancellationToken);
+    }
 }

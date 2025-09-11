@@ -69,17 +69,4 @@ public class AtendimentoRepository : IAtendimentoRepository
             .Where(a => botStatuses.Contains(a.Status))
             .ToListAsync(cancellationToken);
     }
-    public Task AddTagAtendimento(Guid contactId, Guid tagId, CancellationToken cancellationToken)
-    {
-        var atendimento = _context.Atendimentos.FirstOrDefault(x => x.ConversaId == contactId);
-
-        if (atendimento is null)
-        {
-            throw new Exception("Atendimmento não enocntrado");
-        }
-        
-        atendimento.TagsId = tagId;
-        
-        return _context.SaveChangesAsync(cancellationToken);
-    }
 }

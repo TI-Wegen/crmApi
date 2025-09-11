@@ -16,7 +16,5 @@ namespace Conversations.Application.Abstractions
 
         Task<IEnumerable<Atendimento>> GetLastTwoByConversaIdAsync(Guid conversaId,
             CancellationToken cancellationToken = default);
-
-        Task AddTagAtendimento(Guid contactId, Guid tagId, CancellationToken cancellationToken);
     }
 }

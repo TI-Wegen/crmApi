@@ -15,11 +15,6 @@ public class AtendimentoConfiguration : IEntityTypeConfiguration<Atendimento>
             .WithMany()
             .HasForeignKey(a => a.ConversaId)
             .IsRequired();
-        
-        builder.HasOne(a => a.Tag)
-            .WithMany()
-            .HasForeignKey(a => a.TagsId)
-            .IsRequired(false); 
 
         builder.Property(a => a.Status).HasConversion<string>().IsRequired();
         builder.Property(a => a.BotStatus).HasConversion<string>().IsRequired();

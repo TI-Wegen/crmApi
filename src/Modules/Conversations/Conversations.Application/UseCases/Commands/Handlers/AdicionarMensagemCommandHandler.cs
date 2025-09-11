@@ -117,8 +117,8 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
             ContatoTelefone = contato.Telefone,
 
             AgenteNome = null,
-            TagId = atendimento.TagsId,
-            TagName = atendimento.Tag?.Nome ?? "",
+            TagId = conversa.TagsId,
+            TagName = conversa.Tag?.Nome ?? "",
             Status = atendimento.Status.ToString(),
 
             UltimaMensagemTimestamp = novaMensagem.Timestamp,

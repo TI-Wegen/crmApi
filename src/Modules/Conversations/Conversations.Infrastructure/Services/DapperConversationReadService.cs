@@ -40,8 +40,8 @@ public class DapperConversationReadService : IConversationReadService
             T.""Id"" AS TagId,
             T.""Cor"" AS TagColor
             FROM ""Atendimentos"" a
-            LEFT JOIN ""Tags"" T on T.""Id"" = a.""TagsId""
             INNER JOIN ""Conversas"" c ON a.""ConversaId"" = c.""Id""
+            LEFT JOIN ""Tags"" T on T.""Id"" = T.""TagsId""
             INNER JOIN ""Contatos"" co ON c.""ContatoId"" = co.""Id""
             LEFT JOIN ""Agentes"" ag ON a.""AgenteId"" = ag.""Id""
     ");
@@ -72,7 +72,7 @@ public class DapperConversationReadService : IConversationReadService
 
         if (query.TagId.HasValue)
         {
-            whereClauses.Add(@"a.""TagsId"" = @TagId");
+            whereClauses.Add(@"T.""TagsId"" = @TagId");
             parameters.Add("TagId", query.TagId.Value);
         }
 
@@ -99,7 +99,6 @@ public class DapperConversationReadService : IConversationReadService
             new CommandDefinition(sqlBuilder.ToString(), parameters, cancellationToken: cancellationToken)
         );
     }
-
 
     public async Task<ConversationSummaryDto?> GetSummaryByIdAsync(Guid conversationId,
         CancellationToken cancellationToken = default)
@@ -155,7 +154,6 @@ public class DapperConversationReadService : IConversationReadService
         var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
 
         var sql = @"
-        -- Busca os detalhes da Conversa, Contato e do Atendimento Ativo
         SELECT
             c.""Id"", c.""ContatoId"",
             co.""Nome"" AS ContatoNome,
@@ -172,7 +170,6 @@ public class DapperConversationReadService : IConversationReadService
             AND a.""Status"" IN ('EmAutoAtendimento', 'AguardandoNaFila', 'EmAtendimento', 'AguardandoRespostaCliente')
         WHERE c.""Id"" = @ConversationId;
 
-        -- Busca mensagens da conversa com paginação
         SELECT *
         FROM (
                  SELECT

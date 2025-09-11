@@ -12,8 +12,6 @@ public class Atendimento : Entity
     public Guid? AgenteId { get; private set; }
     public Guid? SetorId { get; private set; }
     public ConversationStatus Status { get; private set; }
-    public Guid? TagsId { get; set; }
-    public Tags.Domain.Aggregates.Tags? Tag { get; set; }
     public BotStatus BotStatus { get; private set; }
     public Avaliacao? Avaliacao { get; private set; }
     public DateTime? DataFinalizacao { get; private set; }

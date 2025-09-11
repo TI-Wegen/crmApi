@@ -114,14 +114,11 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
                     AtendimentoId = novoAtendimento.Id,
                     ContatoNome = contato.Nome,
                     ContatoTelefone = contato.Telefone,
-
                     AgenteNome = null,
-                    TagId = novoAtendimento.TagsId,
-                    TagName = novoAtendimento?.Tag?.Nome ?? "",
-
+                    TagId = conversa.TagsId,
+                    TagName = conversa?.Tag?.Nome ?? "",
                     UltimaMensagemTimestamp = primeiraMensagem.Timestamp,
                     UltimaMensagemPreview = primeiraMensagem.Texto,
-
                     SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva() ?? true,
                     SessaoWhatsappExpiraEm = conversa.SessaoAtiva?.DataFim
                 };
@@ -146,8 +143,8 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
                     ContatoTelefone = contato.Telefone,
 
                     AgenteNome = null,
-                    TagId = novoAtendimento.TagsId,
-                    TagName = novoAtendimento.Tag?.Nome,
+                    TagId = conversa.TagsId,
+                    TagName = conversa.Tag?.Nome,
 
                     UltimaMensagemTimestamp = primeiraMensagem.Timestamp,
                     UltimaMensagemPreview = primeiraMensagem.Texto,

@@ -18,6 +18,9 @@ public class Conversa : Entity
     public IReadOnlyCollection<ConversaTag> Tags => _tags.AsReadOnly();
     public SessaoWhatsapp? SessaoAtiva { get; private set; }
     public int TotalSessoesIniciadas { get; private set; }
+    
+    public Guid? TagsId { get; set; }
+    public Tags.Domain.Aggregates.Tags? Tag { get; set; }
 
     private Conversa()
     {
