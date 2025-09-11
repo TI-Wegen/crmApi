@@ -42,7 +42,6 @@ public class Atendimento : Entity
             BotStatus = BotStatus.Nenhum,
             SetorId = setorId
         };
-        atendimento.AddDomainEvent(new AtendimentoIniciadoEvent(atendimento.Id, conversaId));
         return atendimento;
     }
     

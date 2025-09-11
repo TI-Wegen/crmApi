@@ -128,7 +128,10 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
             else
             {
                 var setorAdmin = await _agentRepository.GetSetorByNomeAsync(SetorNomeExtensions.ToDbValue(SetorNome.Admin));
+                
                 var novoAtendimento = Atendimento.IniciarEmFila(conversa.Id, setorAdmin.Id);
+                await _atendimentoRepository.AddAsync(novoAtendimento, cancellationToken);
+                
                 var primeiraMensagem = new Mensagem(conversa.Id, novoAtendimento.Id, command.TextoDaMensagem, Remetente.Cliente(), timestampUtc, command.AnexoUrl);
                 primeiraMensagem.SetAtendimentoId(novoAtendimento.Id);
                 conversa.AdicionarMensagem(primeiraMensagem, novoAtendimento.Id);
@@ -141,14 +144,11 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
                     AtendimentoId = novoAtendimento.Id,
                     ContatoNome = contato.Nome,
                     ContatoTelefone = contato.Telefone,
-
                     AgenteNome = null,
                     TagId = conversa.TagsId,
                     TagName = conversa.Tag?.Nome,
-
                     UltimaMensagemTimestamp = primeiraMensagem.Timestamp,
                     UltimaMensagemPreview = primeiraMensagem.Texto,
-
                     SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva() ?? true,
                     SessaoWhatsappExpiraEm = conversa.SessaoAtiva?.DataFim
                 };

@@ -28,7 +28,11 @@ public class DapperConversationReadService : IConversationReadService
                 co.""Nome"" AS ContatoNome,
                 co.""Telefone"" AS ContatoTelefone,
                 ag.""Nome"" AS AgenteNome,
-                a.""Status"",
+                (SELECT a2.""Status""
+                             FROM ""Atendimentos"" a2
+                             WHERE a2.""ConversaId"" = c.""Id""
+                             ORDER BY a2.""CreatedAt"" DESC
+                             LIMIT 1) as status ,
             CASE 
             WHEN c.""SessaoFim"" > NOW() AT TIME ZONE 'UTC' THEN true 
             ELSE false 
