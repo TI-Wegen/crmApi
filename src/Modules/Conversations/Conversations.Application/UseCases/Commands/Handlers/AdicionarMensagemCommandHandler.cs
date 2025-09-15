@@ -65,7 +65,7 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
             throw new DomainException("Remetente inválido. Deve ser 'Agente'");
 
         string? anexoUrl = null;
-        if (conversa.SessaoAtiva is null || !conversa.SessaoAtiva.EstaAtiva())
+        if (conversa.SessaoAtiva is null || !conversa.SessaoAtiva.EstaAtiva(conversa.SessaoAtiva.DataInicio))
             throw new DomainException(
                 "A janela está fechada. Use um Template de Mensagem para iniciar uma nova conversa.");
 
@@ -124,7 +124,7 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
             UltimaMensagemTimestamp = novaMensagem.Timestamp,
             UltimaMensagemPreview = novaMensagem.Texto,
 
-            SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva() ?? true,
+            SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva(conversa.SessaoAtiva.DataInicio) ?? true,
             SessaoWhatsappExpiraEm = conversa.SessaoAtiva?.DataFim
         };
         await _notifier.NotificarNovaConversaNaFilaAsync(summaryDto);

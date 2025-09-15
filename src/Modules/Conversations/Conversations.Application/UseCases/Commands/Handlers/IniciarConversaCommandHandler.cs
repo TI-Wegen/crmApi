@@ -119,7 +119,7 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
                     TagName = conversa?.Tag?.Nome ?? "",
                     UltimaMensagemTimestamp = primeiraMensagem.Timestamp,
                     UltimaMensagemPreview = primeiraMensagem.Texto,
-                    SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva() ?? true,
+                    SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva(conversa.SessaoAtiva.DataInicio) ?? true,
                     SessaoWhatsappExpiraEm = conversa.SessaoAtiva?.DataFim
                 };
                 await _readService.NotificarNovaConversaNaFilaAsync(summaryDto);
@@ -149,7 +149,7 @@ public class IniciarConversaCommandHandler : ICommandHandler<IniciarConversaComm
                     TagName = conversa.Tag?.Nome,
                     UltimaMensagemTimestamp = primeiraMensagem.Timestamp,
                     UltimaMensagemPreview = primeiraMensagem.Texto,
-                    SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva() ?? true,
+                    SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva(conversa.SessaoAtiva.DataInicio) ?? true,
                     SessaoWhatsappExpiraEm = conversa.SessaoAtiva?.DataFim
                 };
                 await _readService.NotificarNovaConversaNaFilaAsync(summaryDto);

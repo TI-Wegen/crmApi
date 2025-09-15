@@ -20,7 +20,7 @@ public static class ConversationMappers
             TagId = conversa?.TagsId,
             Status = atendimentoAtivo?.Status.ToString() ?? "N/A",
             BotStatus = atendimentoAtivo?.BotStatus.ToString() ?? "N/A",
-            SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva() ?? false,
+            SessaoWhatsappAtiva = conversa.SessaoAtiva?.EstaAtiva(conversa.SessaoAtiva.DataInicio) ?? false,
             SessaoWhatsappExpiraEm = conversa.SessaoAtiva?.DataFim
         };
     }
