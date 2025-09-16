@@ -12,7 +12,6 @@ public class MetaMessageSender : IMetaMessageSender
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly MetaSettings _metaSettings;
-
     private static readonly JsonSerializerOptions _jsonOptions = new()
         { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
@@ -21,8 +20,7 @@ public class MetaMessageSender : IMetaMessageSender
         _httpClientFactory = httpClientFactory;
         _metaSettings = metaSettings.Value;
     }
-
-    public async Task EnviarMensagemTextoAsync(string numeroDestino, string textoMensagem)
+    public async Task<string> EnviarMensagemTextoAsync(string numeroDestino, string textoMensagem)
     {
         var httpClient = _httpClientFactory.CreateClient("MetaApiClient");
 
@@ -47,8 +45,13 @@ public class MetaMessageSender : IMetaMessageSender
         }
 
         Console.WriteLine("--> Mensagem enviada com sucesso pela API da Meta!");
-    }
+        var responseContent = await response.Content.ReadAsStringAsync();
 
+        using var jsonDoc = JsonDocument.Parse(responseContent);
+        var messageId = jsonDoc.RootElement.GetProperty("messages")[0].GetProperty("id").GetString();
+
+        return messageId ?? string.Empty;
+    }
     public async Task EnviarDocumentoAsync(string numeroDestino, string urlDoDocumento, string nomeDoArquivo,
         string? legenda)
     {
@@ -74,7 +77,6 @@ public class MetaMessageSender : IMetaMessageSender
 
         Console.WriteLine($"--> Resposta de SUCESSO da Meta: {responseContent}");
     }
-
     public async Task EnviarImagemAsync(string numeroDestino, string urlDaImagem, string? legenda)
     {
         var httpClient = _httpClientFactory.CreateClient("MetaApiClient");
@@ -100,7 +102,6 @@ public class MetaMessageSender : IMetaMessageSender
 
         Console.WriteLine("--> Imagem enviada com sucesso pela API da Meta!");
     }
-
     public async Task EnviarAudioAsync(string numeroDestino, string urlDoAudio)
     {
         var httpClient = _httpClientFactory.CreateClient("MetaApiClient");
@@ -125,7 +126,6 @@ public class MetaMessageSender : IMetaMessageSender
 
         Console.WriteLine("--> Áudio enviado com sucesso pela API da Meta!");
     }
-
     public async Task<string> EnviarTemplateAsync(string numeroDestino, string templateName,
         List<string> bodyParameters)
     {
@@ -155,7 +155,6 @@ public class MetaMessageSender : IMetaMessageSender
 
         return messageId ?? string.Empty;
     }
-
     public async Task EnviarPesquisaDeSatisfacaoAsync(string numeroDestino, Guid atendimentoId)
     {
         var httpClient = _httpClientFactory.CreateClient("MetaApiClient");

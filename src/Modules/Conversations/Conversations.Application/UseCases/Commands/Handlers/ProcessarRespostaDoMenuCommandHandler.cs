@@ -155,9 +155,6 @@ public class ProcessarRespostaDoMenuCommandHandler : ICommandHandler<ProcessarRe
         {
             atendimento.AguardarEscolhaDeBoleto(); 
 
-            var conversa = await _conversationRepository.GetByIdAsync(atendimento.ConversaId);
-            conversa.AdicionarTag(ConversaTag.Inadimplente);
-
             var sb = new StringBuilder("Identifiquei que há pendências em seu nome. Por favor, selecione uma opção:\n");
             sb.AppendLine("0 - Enviar todos os boletos"); 
             for (int i = 0; i < boletosVencidos.Count; i++)

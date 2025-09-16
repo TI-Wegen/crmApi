@@ -75,6 +75,7 @@ public static class UseCaseConfigurations
         services.AddScoped<ITemplateRepository, TemplateRepository>();
         services.AddScoped<IAtendimentoRepository, AtendimentoRepository>();
         services.AddScoped<ITagRepository, TagRepository>();
+        services.AddScoped<IMensagemRepository, MensagemRepository>();
 
         return services;
     }
@@ -147,6 +148,7 @@ public static class UseCaseConfigurations
         services
             .AddScoped<IQueryHandler<GetAllTemplatesQuery, IEnumerable<TemplateDto>>, GetAllTemplatesQueryHandler>();
         services.AddScoped<ICommandHandler<AtualizarStatusTemplateCommand>, AtualizarStatusTemplateCommandHandler>();
+        services.AddScoped<ICommandHandler<AdicionaReacaoMensagemCommand>, AdicionaReacaoMensagemCommandHandler>();
 
         services.AddScoped<ICommandHandler<CriarTagCommand, TagDto>, CriarTagHandler>();
         services.AddScoped<ICommandHandler<AtualizarTagCommand, TagDto>, AtualizarTagHandler>();

@@ -44,9 +44,21 @@ public static class ConnectionsConfigurations
         IConfiguration config)
     {
         var connectionString = config.GetConnectionString("DefaultConnection");
-        services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString)
-            .LogTo(Console.WriteLine, LogLevel.Information)
-            .EnableSensitiveDataLogging());
+
+        services.AddDbContext<AppDbContext>(options => 
+            options.UseNpgsql(connectionString, npgsqlOptions =>
+                {
+                    npgsqlOptions.CommandTimeout(60);
+                    npgsqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 5,                
+                        maxRetryDelay: TimeSpan.FromSeconds(10),
+                        errorCodesToAdd: null             
+                    );
+                })
+                .LogTo(Console.WriteLine, LogLevel.Information)
+                .EnableSensitiveDataLogging()
+        );
+
 
         return services;
     }

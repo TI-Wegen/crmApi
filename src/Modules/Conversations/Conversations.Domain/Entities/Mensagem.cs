@@ -10,10 +10,11 @@ public class Mensagem : Entity
     public Guid AtendimentoId { get; private set; }
     public string? Texto { get; private set; }
     public string? MessageId { get; private set; }
-    public string? ExternalId { get; private set; } 
+    public string? ExternalId { get; set; } 
     public string? AnexoUrl { get; private set; }
     public DateTime Timestamp { get; private set; }
     public Remetente Remetente { get; private set; }
+    public string? ReacaoMensagem { get; private set; }
     
     public Mensagem(Guid conversaId, Guid atendimentoId, string? texto, Remetente remetente, DateTime timestamp,
         string? anexoUrl = null, string? externalId = null)
@@ -34,13 +35,6 @@ public class Mensagem : Entity
     {
     }
 
-    public void AdicionarMessageId(string messageId)
-    {
-        if (string.IsNullOrWhiteSpace(messageId))
-            throw new DomainException("O MessageId não pode ser nulo ou vazio.");
-        MessageId = messageId;
-    }
-
     public void SetConversaId(Guid conversaId)
     {
         ConversaId = conversaId;
@@ -49,5 +43,10 @@ public class Mensagem : Entity
     public void SetAtendimentoId(Guid atendimentoId)
     {
         AtendimentoId = atendimentoId;
+    }
+    
+    public void SetReacaoMensagem(string reacaoMensagem)
+    {
+        ReacaoMensagem = reacaoMensagem;
     }
 }

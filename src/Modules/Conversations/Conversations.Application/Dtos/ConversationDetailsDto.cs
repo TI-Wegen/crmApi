@@ -37,6 +37,7 @@ public record MessageDto
     public string RemetenteTipo { get; init; } = string.Empty;
     public Guid? RemetenteAgenteId { get; init; }
     public string? Wamid { get; set; }
+    public string? ReacaoMensagem { get; set; }
 }
 
 public record MessageWithConversationIdDto : MessageDto

@@ -38,7 +38,6 @@ public class ConversationRepository : IConversationRepository
         return Task.CompletedTask;
     }
 
-
     public Task<Conversa?> FindActiveByContactIdAsync(Guid contactId, CancellationToken cancellationToken = default)
     {
         return _context.Conversas
@@ -48,28 +47,23 @@ public class ConversationRepository : IConversationRepository
                 cancellationToken);
     }
 
-    public Task<Mensagem?> FindMessageByExternalIdAsync(string externalId, string texto, CancellationToken cancellationToken = default)
-    {
-        return _context.Set<Mensagem>()
-            .FirstOrDefaultAsync(m => m.ExternalId == externalId && m.Texto == texto, cancellationToken);
-    }
-
     public void MarkAsUnchanged(Conversa conversa)
     {
         _context.Entry(conversa).State = EntityState.Unchanged;
     }
 
-    public Task AddTagAtendimento(Guid contactId, Guid tagId, CancellationToken cancellationToken)
+    public async Task AddTagAtendimento(Guid contactId, Guid tagId, CancellationToken cancellationToken)
     {
-        var atendimento = _context.Conversas.FirstOrDefault(x => x.ContatoId == contactId);
+        var atendimento = await _context.Conversas
+            .FirstOrDefaultAsync(x => x.ContatoId == contactId, cancellationToken);
 
         if (atendimento is null)
         {
-            throw new Exception("Conversa não enocntrado");
+            throw new Exception("Conversa não encontrada");
         }
-        
+
         atendimento.TagsId = tagId;
-        
-        return _context.SaveChangesAsync(cancellationToken);
+
+        await _context.SaveChangesAsync(cancellationToken);
     }
 }

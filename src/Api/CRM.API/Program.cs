@@ -8,8 +8,6 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddHttpClient();
@@ -52,7 +50,6 @@ var app = builder.Build();
 
 app.UseCors("DefaultCorsPolicy");
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -84,6 +81,6 @@ app.MapHub<ConversationHub>("/conversationHub");
 RecurringJob.AddOrUpdate<CleanExpiredBotSessionsJob>(
     recurringJobId: "clean-expired-bot-sessions",
     methodCall: job => job.Executar(),
-    cronExpression: "*/5 * * * *"); // A cada 5 minutos
+    cronExpression: "*/5 * * * *");
 
 app.Run();

@@ -82,6 +82,13 @@ public record MessageObject
     [JsonPropertyName("audio")] public MediaObject? Audio { get; set; }
 
     [JsonPropertyName("interactive")] public InteractiveReplyPayload? Interactive { get; set; }
+    [JsonPropertyName("reaction")] public ReactionObject? Reaction { get; set; }
+}
+
+public record ReactionObject
+{
+    [JsonPropertyName("message_id")] public string MessageId { get; set; }
+    [JsonPropertyName("emoji")] public string Emoji { get; set; }
 }
 
 public record TextObject

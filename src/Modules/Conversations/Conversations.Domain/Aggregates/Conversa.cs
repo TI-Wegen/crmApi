@@ -13,9 +13,6 @@ public class Conversa : Entity
 
     private readonly List<Mensagem> _mensagens = new();
     public IReadOnlyCollection<Mensagem> Mensagens => _mensagens.AsReadOnly();
-
-    private readonly List<ConversaTag> _tags = new();
-    public IReadOnlyCollection<ConversaTag> Tags => _tags.AsReadOnly();
     public SessaoWhatsapp? SessaoAtiva { get; private set; }
     public int TotalSessoesIniciadas { get; private set; }
     
@@ -53,22 +50,6 @@ public class Conversa : Entity
             throw new DomainException("A mensagem não pertence a este atendimento.");
         _mensagens.Add(novaMensagem);
         AddDomainEvent(new MensagemAdicionadaEvent(this.Id, novaMensagem.Id, novaMensagem.Texto, DateTime.UtcNow));
-    }
-
-    public void AdicionarTag(ConversaTag tag)
-    {
-        if (!_tags.Contains(tag))
-        {
-            _tags.Add(tag);
-        }
-    }
-
-    public void RemoverTag(ConversaTag tag)
-    {
-        if (_tags.Contains(tag))
-        {
-            _tags.Remove(tag);
-        }
     }
 
     public void SetConversaId(Guid conversaId)

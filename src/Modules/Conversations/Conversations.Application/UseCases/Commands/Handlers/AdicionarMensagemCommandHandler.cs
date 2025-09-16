@@ -88,8 +88,6 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         var novaMensagem = new Mensagem(conversa.Id, atendimento.Id, command.Texto, remetente,
             timestamp: timestampCompatível, anexoUrl);
 
-        conversa.AdicionarMensagem(novaMensagem, atendimento.Id);
-
         var contato = await _contactRepository.GetByIdAsync(conversa.ContatoId, cancellationToken);
         if (contato is not null)
         {
@@ -100,10 +98,11 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
             }
             else
             {
-                await _metaSender.EnviarMensagemTextoAsync(contato.Telefone, command.Texto);
+                novaMensagem.ExternalId = await _metaSender.EnviarMensagemTextoAsync(contato.Telefone, command.Texto);
             }
         }
-
+        
+        conversa.AdicionarMensagem(novaMensagem, atendimento.Id);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         var messageDto = novaMensagem.ToDto();

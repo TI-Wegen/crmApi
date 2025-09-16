@@ -26,9 +26,7 @@ namespace CRM.API.Controllers
         private readonly ICommandHandler<AtualizarStatusTemplateCommand> _atualizarStatusHandler;
         private readonly ICommandHandler<RegistrarAvaliacaoCommand> _registrarAvaliacaoHandler;
         private readonly ICommandHandler<AtualizarAvatarContatoCommand> _atualizarAvatarHandler;
-        private readonly IDistributedLock _distributedLock;
-        private readonly IMessageDeduplicationService _messageDeduplicationService;
-        private readonly IMessageBufferService _messageBuffer;
+        private readonly ICommandHandler<AdicionaReacaoMensagemCommand> _adicionaReacaoMensagemCommand;
         private readonly IMetaMediaService _metaMediaService;
         private readonly IFileStorageService _fileStorageService;
         private readonly ILogger<MetaWebhookController> _logger;
@@ -43,11 +41,9 @@ namespace CRM.API.Controllers
             ICommandHandler<ProcessarRespostaDoMenuCommand> processarRespostaHandler,
             ICommandHandler<AtualizarStatusTemplateCommand> atualizarStatusHandler,
             ICommandHandler<RegistrarAvaliacaoCommand> registrarAvaliacaoHandler,
-            IDistributedLock distributedLock,
-            IMessageBufferService messageBuffer,
+            ICommandHandler<AdicionaReacaoMensagemCommand> adicionaReacaoMensagemCommand,
             IMetaMediaService metaMediaService,
             IFileStorageService fileStorageService,
-            IMessageDeduplicationService messageDeduplicationService,
             ILogger<MetaWebhookController> logger)
     
         {
@@ -59,11 +55,9 @@ namespace CRM.API.Controllers
             _processarRespostaHandler = processarRespostaHandler;
             _atualizarStatusHandler = atualizarStatusHandler;
             _registrarAvaliacaoHandler = registrarAvaliacaoHandler;
-            _distributedLock = distributedLock;
-            _messageBuffer = messageBuffer;
+            _adicionaReacaoMensagemCommand = adicionaReacaoMensagemCommand;
             _metaMediaService = metaMediaService;
             _fileStorageService = fileStorageService;
-            _messageDeduplicationService = messageDeduplicationService;
             _logger = logger;
         }
 
@@ -152,6 +146,9 @@ namespace CRM.API.Controllers
                     case "audio":
                         await HandleAudioMessageAsync(message, contactPayload);
                         break;
+                    case "reaction":
+                        await HandleReactionMessageAsync(message, contactPayload);
+                        break;
                     default:
                         _logger.LogInformation("Tipo {MessageType} recebido para {Telefone} e ignorado.",
                             message.Type, telefoneDoContato);
@@ -164,6 +161,40 @@ namespace CRM.API.Controllers
             }
         }
 
+        private async Task HandleReactionMessageAsync(MessageObject message, ContactObject contactPayload)
+        {
+            var telefoneDoContato = message.From;
+            var nomeDoContato = contactPayload.Profile.Name;
+            var waIdDoContato = contactPayload.WaId;
+            ContatoDto novoContatoDto;
+            Guid contatoId;
+            
+            var isDeveloper = _metaSettings.DeveloperPhoneNumbers.Contains(telefoneDoContato);
+            var botSession = isDeveloper ? await _botSessionCache.GetStateAsync(telefoneDoContato) : null;
+
+            var contatoDto =
+                await _getContactByTelefoneHandler.HandleAsync(new GetContactByTelefoneQuery(telefoneDoContato));
+            if (contatoDto is null)
+            {
+                novoContatoDto =
+                    await _criarContatoHandler.HandleAsync(new CriarContatoCommand(nomeDoContato, telefoneDoContato,
+                        waIdDoContato));
+                contatoId = novoContatoDto.Id;
+            }
+            else
+            {
+                contatoId = contatoDto.Id;
+            }
+
+            if (botSession is null)
+            {
+                _adicionaReacaoMensagemCommand.HandleAsync(new AdicionaReacaoMensagemCommand(
+                        message.Reaction.Emoji,
+                        message.Reaction.MessageId
+                    ));
+            }
+        }
+        
         private async Task HandleTextMessageAsync(MessageObject message, ContactObject contactPayload)
         {
             var telefoneDoContato = message.From;

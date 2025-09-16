@@ -308,6 +308,9 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("MessageId");
 
+                    b.Property<string>("ReacaoMensagem")
+                        .HasColumnType("text");
+
                     b.Property<string>("Texto")
                         .HasColumnType("text");
 
@@ -501,7 +504,7 @@ namespace CRM.Infrastructure.Migrations
                             b1.Property<Guid>("ConversaId")
                                 .HasColumnType("uuid");
 
-                            b1.Property<DateTime?>("DataFim")
+                            b1.Property<DateTime>("DataFim")
                                 .HasColumnType("timestamp with time zone")
                                 .HasColumnName("SessaoFim");
 
