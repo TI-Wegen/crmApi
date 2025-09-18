@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Dashboard.Application\Dashboard.Application.csproj" />
+      <ProjectReference Include="..\Dashboard.Domain\Dashboard.Domain.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="Dapper">
+        <HintPath>..\..\..\.nuget\packages\dapper\2.1.66\lib\net8.0\Dapper.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+</Project>
