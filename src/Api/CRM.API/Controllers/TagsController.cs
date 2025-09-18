@@ -1,3 +1,4 @@
+using CRM.API.Controllers.Base;
 using CRM.Application.Dto;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
@@ -9,9 +10,7 @@ using Tags.Application.UseCases.Queries;
 
 namespace CRM.API.Controllers;
 
-[Route("api/[controller]")]
-[ApiController]
-public class TagsController : ControllerBase
+public class TagsController : BaseController
 {
     private readonly ICommandHandler<CriarTagCommand, TagDto> _criarTagHandler;
     private readonly ICommandHandler<AtualizarTagCommand, TagDto> _atualizarTagHandler;

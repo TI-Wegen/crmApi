@@ -1,6 +1,7 @@
 ﻿using Agents.Application.Dtos;
 using Agents.Application.UseCases.Commands;
 using Agents.Application.UseCases.Queries;
+using CRM.API.Controllers.Base;
 using CRM.API.Dtos;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
@@ -9,9 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CRM.API.Controllers;
 
-[Route("api/[controller]")]
-[ApiController]
-public class AgentsController : ControllerBase
+public class AgentsController : BaseController
 {
     private readonly ICommandHandler<CriarAgenteCommand, AgenteDto> _criarAgenteHandler;
     private readonly ICommandHandler<AtualizarAgenteCommand> _atualizarAgenteHandler;

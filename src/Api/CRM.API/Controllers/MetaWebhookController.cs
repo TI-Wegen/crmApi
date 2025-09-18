@@ -3,6 +3,7 @@ using Contacts.Application.UseCases.Commands;
 using Contacts.Application.UseCases.Commands.Queries;
 using Conversations.Application.Abstractions;
 using Conversations.Application.UseCases.Commands;
+using CRM.API.Controllers.Base;
 using CRM.API.Services;
 using CRM.Application.Interfaces;
 using CRM.Infrastructure.Config.Meta;
@@ -13,9 +14,7 @@ using Templates.Domain.Enuns;
 
 namespace CRM.API.Controllers
 {
-    [Route("webhooks/[controller]")]
-    [ApiController]
-    public class MetaWebhookController : ControllerBase
+    public class MetaWebhookController : BaseController
     {
         private readonly MetaSettings _metaSettings;
         private readonly ICommandHandler<CriarContatoCommand, ContatoDto> _criarContatoHandler;

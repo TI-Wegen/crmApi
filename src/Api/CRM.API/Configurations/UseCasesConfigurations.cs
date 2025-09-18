@@ -32,6 +32,11 @@ using CRM.Domain.DomainEvents;
 using CRM.Infrastructure.Config.Meta;
 using CRM.Infrastructure.Database.Configurations;
 using CRM.Infrastructure.Services;
+using Dashboard.Application.UseCases.Queries;
+using Dashboard.Application.UseCases.Queries.Handler;
+using Dashboard.Domain.Dtos;
+using Dashboard.Domain.Repository;
+using Dashboard.Infrastructure.Repository;
 using Infrastructure.ExternalServices.Services;
 using Infrastructure.ExternalServices.Services.Meta;
 using Tags.Application.Dtos;
@@ -76,6 +81,7 @@ public static class UseCaseConfigurations
         services.AddScoped<IAtendimentoRepository, AtendimentoRepository>();
         services.AddScoped<ITagRepository, TagRepository>();
         services.AddScoped<IMensagemRepository, MensagemRepository>();
+        services.AddScoped<IDashboardRepository, DashboardRepository>();
 
         return services;
     }
@@ -153,6 +159,9 @@ public static class UseCaseConfigurations
         services.AddScoped<ICommandHandler<CriarTagCommand, TagDto>, CriarTagHandler>();
         services.AddScoped<ICommandHandler<AtualizarTagCommand, TagDto>, AtualizarTagHandler>();
         services.AddScoped<ICommandHandler<InativarTagCommand, TagDto>, InativarTagHandler>();
+        
+        services.AddScoped<IQueryHandler<DashboardFullQuery, DashboardFullResponseQuery>, DashboardFullQueryHandler>();
+        services.AddScoped<IQueryHandler<DashboardPersonalQuery, DashboardPersonalResponseQuery>, DashboardPersonalQueryHandler>();
 
         services.AddScoped<IQueryHandler<GetAllTagsQuery, PaginationDto<TagDto>>, GetAllTagsQueryHandler>();
         services.AddScoped<IQueryHandler<GetTagByIdQuery, TagDto>, GetTagsByIdQueryHandler>();

@@ -2,6 +2,7 @@
 using Contacts.Application.UseCases.Commands;
 using Contacts.Application.UseCases.Commands.Queries;
 using Conversations.Application.UseCases.Commands;
+using CRM.API.Controllers.Base;
 using CRM.API.Dtos;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
@@ -11,9 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CRM.API.Controllers;
 
-[Route("api/[controller]")]
-[ApiController]
-public class ContactsController : ControllerBase
+public class ContactsController : BaseController
 {
     private readonly ICommandHandler<CriarContatoCommand, ContatoDto> _criarContatoHandler;
     private readonly IQueryHandler<GetContactByIdQuery, ContatoDto> _getContactByIdHandler;

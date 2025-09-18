@@ -1,4 +1,5 @@
-﻿using CRM.Application.Interfaces;
+﻿using CRM.API.Controllers.Base;
+using CRM.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Templates.Application.Dtos;
 using Templates.Application.UseCases.Commands;
@@ -6,9 +7,7 @@ using Templates.Application.UseCases.Queries;
 
 namespace CRM.API.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class TemplatesController : ControllerBase
+    public class TemplatesController : BaseController
     {
         private readonly ICommandHandler<CriarTemplateCommand, TemplateDto> _criarTemplateHandler;
         private readonly IQueryHandler<GetAllTemplatesQuery, IEnumerable<TemplateDto>> _getAllTemplatesHandler;

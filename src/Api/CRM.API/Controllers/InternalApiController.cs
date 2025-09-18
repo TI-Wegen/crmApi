@@ -1,4 +1,5 @@
 ﻿using Conversations.Application.UseCases.Commands;
+using CRM.API.Controllers.Base;
 using CRM.API.Filters;
 using CRM.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -6,9 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CRM.API.Controllers
 {
     [ApiKeyAuth]
-    [Route("api/[controller]")]
-    [ApiController]
-    public class InternalApiController : ControllerBase
+    public class InternalApiController : BaseController
     {
         private readonly ICommandHandler<RegistrarMensagemEnviadaCommand> _handler;
 
