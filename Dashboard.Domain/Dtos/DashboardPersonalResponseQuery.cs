@@ -1,9 +1,9 @@
 namespace Dashboard.Domain.Dtos;
 
 public record DashboardPersonalResponseQuery(
-    int ConversasResolvidas,
-    int ConversasAtivas,
-    int MediaAvaliacao,
-    int ConversasPendentes,
-    int ConversasEmAndamento
+    long ConversasResolvidas,
+    long ConversasAtivas,
+    decimal MediaAvaliacao,
+    long ConversasPendentes,
+    long ConversasEmAndamento
 );

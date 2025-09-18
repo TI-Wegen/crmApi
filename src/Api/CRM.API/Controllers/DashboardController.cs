@@ -36,11 +36,11 @@ public class DashboardController : BaseController
     }
 
     [HttpGet("{id:guid}/Personal")]
-    public async Task<IActionResult> GetPersonalDashbboard(DashboardPersonalQuery dashboardPersonalQuery)
+    public async Task<IActionResult> GetPersonalDashbboard(Guid id)
     {
         try
         {
-            var response = await _dashboardPersonalResponseQuery.HandleAsync(dashboardPersonalQuery);
+            var response = await _dashboardPersonalResponseQuery.HandleAsync(new DashboardPersonalQuery(id));
             return Ok(response);
         }
         catch (UnauthorizedAccessException ex)
