@@ -117,14 +117,13 @@ public static class ConnectionsConfigurations
         {
             throw new InvalidOperationException("A connection string 'RedisConnectionString' não foi encontrada.");
         }
-
-        // 🔧 Usa Uri para fazer parsing correto de todos os campos (host, porta, user, senha)
+        
         var uri = new Uri(redisConnectionString);
 
         var redisConfig = new ConfigurationOptions
         {
             EndPoints = { { uri.Host, uri.Port } },
-            Ssl = uri.Scheme == "rediss", // só ativa SSL se for rediss://
+            Ssl = uri.Scheme == "rediss",
             User = uri.UserInfo.Split(':')[0],
             Password = uri.UserInfo.Split(':')[1],
             AbortOnConnectFail = false,
@@ -132,8 +131,7 @@ public static class ConnectionsConfigurations
             SslProtocols = System.Security.Authentication.SslProtocols.Tls12 |
                            System.Security.Authentication.SslProtocols.Tls13
         };
-
-        // 👇 Injeta como singleton no DI
+        
         services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConfig));
 
         return services;
@@ -144,34 +142,28 @@ public static class ConnectionsConfigurations
         IConfiguration config)
     {
         services.AddHealthChecks()
-            // 1. Verifica a conexão com o banco de dados principal (PostgreSQL)
             .AddNpgSql(
                 connectionString: config.GetConnectionString("DefaultConnection"),
                 name: "PostgreSQL Principal",
-                failureStatus: HealthStatus.Unhealthy, // Define o status em caso de falha
+                failureStatus: HealthStatus.Unhealthy,
                 tags: new[] { "database", "critical" })
-
-            // 2. Verifica a conexão com o banco de dados externo de boletos (MySQL)
+                
             .AddMySql(
                 connectionString: config.GetConnectionString("ExternalConnection"),
                 name: "MySQL Externo (Boletos)",
-                failureStatus: HealthStatus.Degraded, // Um status menos crítico, talvez
+                failureStatus: HealthStatus.Degraded,
                 tags: new[] { "database", "external" })
-
-            // 3. Verifica a conexão com o Redis
+                
             .AddRedis(
                 sp => sp.GetRequiredService<IConnectionMultiplexer>(),
                 name: "Redis Cache",
                 failureStatus: HealthStatus.Unhealthy,
                 tags: new[] { "cache", "critical" })
-
-            // 4. Verifica se consegue se conectar e listar os buckets no S3
+                
             .AddS3(options =>
                 {
-                    // Pega a seção de configuração do S3
                     var s3Config = config.GetSection("S3Config");
-
-                    // Atribui cada valor diretamente, lendo da configuração
+                    
                     options.AccessKey = s3Config["AccessKey"];
                     options.SecretKey = s3Config["SecretKey"];
                     options.BucketName = s3Config["BucketName"];
@@ -189,9 +181,9 @@ public static class ConnectionsConfigurations
         services
             .AddHealthChecksUI(options =>
             {
-                options.SetEvaluationTimeInSeconds(60); // Frequência de checagem
+                options.SetEvaluationTimeInSeconds(60);
                 options.MaximumHistoryEntriesPerEndpoint(50);
-                options.AddHealthCheckEndpoint("API Wegen CRM", "/health"); // Nome e URL do health check
+                options.AddHealthCheckEndpoint("API Wegen CRM", "/health");
             })
             .AddInMemoryStorage();
 
@@ -205,14 +197,10 @@ public static class ConnectionsConfigurations
     {
         services.AddHttpClient("MetaApiClient", client =>
         {
-            // Lê as configurações do appsettings.json
             var metaSettings = config.GetSection("MetaSettings").Get<MetaSettings>();
-
-            // 1. Define a URL base para todas as chamadas feitas com este cliente
+            
             client.BaseAddress = new Uri(metaSettings.BaseUrl);
-
-            // 2. AQUI ESTÁ A INJEÇÃO DO TOKEN!
-            // Define o cabeçalho de autorização PADRÃO para todas as chamadas
+            
             client.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", metaSettings.AccessToken);
         });
@@ -238,28 +226,23 @@ public static class ConnectionsConfigurations
                     ValidAudience = config["JwtSettings:Audience"]
                 };
                 options.MapInboundClaims = false;
-
-                // ---- BLOCO ADICIONADO PARA O SIGNALR ----
+                
                 options.Events = new JwtBearerEvents
                 {
                     OnMessageReceived = context =>
                     {
-                        // Tenta ler o token da query string
                         var accessToken = context.Request.Query["access_token"];
-
-                        // Se a requisição for para um hub SignalR
+                        
                         var path = context.HttpContext.Request.Path;
                         if (!string.IsNullOrEmpty(accessToken) &&
-                            (path.StartsWithSegments("/conversationHub"))) // Adicione outros hubs se necessário
+                            (path.StartsWithSegments("/conversationHub")))
                         {
-                            // Atribui o token ao contexto para validação
                             context.Token = accessToken;
                         }
 
                         return Task.CompletedTask;
                     }
                 };
-                // ---- FIM DO BLOCO ADICIONADO ----
             });
 
         services.AddAuthorization();

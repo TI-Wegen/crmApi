@@ -1,7 +1,6 @@
 using Conversations.Infrastructure.Jobs;
 using CRM.API.Configurations;
 using CRM.API.Hubs;
-using CRM.Domain.Exceptions;
 using CRM.Infrastructure.Config.Meta;
 using Hangfire;
 using HealthChecks.UI.Client;
@@ -12,8 +11,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddHttpClient();
-builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-builder.Services.AddProblemDetails();
 
 var allowedOrigins = builder.Configuration
     .GetSection("CorsSettings:AllowedOrigins")
@@ -48,17 +45,16 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-app.UseExceptionHandler();
+app.UseGlobalExceptionMiddleware();
 
 app.UseCors("DefaultCorsPolicy");
+
+app.UseWebSockets();
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/openapi/v1.json", "CRM API");
-    });
+    app.UseSwaggerUI(options => { options.SwaggerEndpoint("/openapi/v1.json", "CRM API"); });
 }
 
 app.UseHealthChecks("/health", new HealthCheckOptions

@@ -1,8 +1,9 @@
-﻿using CRM.API.FilterException;
+﻿using System.Text;
+using CRM.API.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
 
 namespace CRM.API.Configurations;
 
@@ -12,8 +13,12 @@ public static class ApiServiceExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddControllers(options =>
-            options.Filters.Add(typeof(ApiGlobalExceptionFilter)));
+        services.AddControllers();
+        
+        services.Configure<ApiBehaviorOptions>(options =>
+        {
+            options.SuppressModelStateInvalidFilter = true;
+        });
 
         services.AddSwaggerDocumentation();
         services.AddJwtAuthentication(configuration);
@@ -21,16 +26,13 @@ public static class ApiServiceExtensions
         services.AddEndpointsApiExplorer();
         return services;
     }
-    
+
     private static IServiceCollection AddSwaggerDocumentation(this IServiceCollection services)
     {
-        services.AddSwaggerGen(c =>
-        {
-            c.SwaggerDoc("v1", new OpenApiInfo { Title = "CRM.API", Version = "v1.0.0" });
-        });
+        services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo { Title = "CRM.API", Version = "v1.0.0" }); });
         return services;
     }
-    
+
     private static IServiceCollection AddJwtAuthentication(
         this IServiceCollection services,
         IConfiguration config)
@@ -53,17 +55,11 @@ public static class ApiServiceExtensions
             });
         return services;
     }
-    
-    public static WebApplication UseApiDocumentation(this WebApplication app)
+
+    public static WebApplication UseGlobalExceptionMiddleware(this WebApplication app)
     {
-        if (app.Environment.IsDevelopment())
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "CRM.API v1.0.0");
-            });
-        }
+        app.UseMiddleware<ResponseWrapperMiddleware>();
+
         return app;
     }
 }
