@@ -9,12 +9,9 @@ public class Agente : Entity
     public string Nome { get; private set; }
     public string Email { get; private set; }
     public string PasswordHash { get; private set; }
-
     public AgenteStatus Status { get; private set; }
     public CargaDeTrabalho CargaDeTrabalho { get; private set; }
-
-    private readonly List<Guid> _setorIds = new();
-    public IReadOnlyCollection<Guid> SetorIds => _setorIds.AsReadOnly();
+    public Guid SetorId { get; private set; }
 
     private Agente() { }
 
@@ -33,42 +30,12 @@ public class Agente : Entity
         };
     }
 
-    public void AlterarStatus(AgenteStatus novoStatus)
-    {
-        Status = novoStatus;
-    }
-
-    public void AtribuirASetor(Guid setorId)
-    {
-        if (setorId == Guid.Empty) return;
-        if (!_setorIds.Contains(setorId))
-        {
-            _setorIds.Add(setorId);
-        }
-    }
-
-    public void IncrementarCarga()
-    {
-        CargaDeTrabalho = CargaDeTrabalho.Incrementar();
-    }
-
-    public void DecrementarCarga()
-    {
-        CargaDeTrabalho = CargaDeTrabalho.Decrementar();
-    }
-
     public void Atualizar(string novoNome, List<Guid> novosSetorIds)
     {
         if (string.IsNullOrWhiteSpace(novoNome))
             throw new DomainException("O nome do agente não pode ser vazio.");
 
         Nome = novoNome;
-
-        _setorIds.Clear();
-        foreach (var setorId in novosSetorIds ?? new List<Guid>())
-        {
-            AtribuirASetor(setorId);
-        }
     }
 
     public void Inativar()
@@ -94,5 +61,10 @@ public class Agente : Entity
     public bool VerificarSenha(string senha)
     {
         return BCrypt.Net.BCrypt.Verify(senha, this.PasswordHash);
+    }
+
+    public void AtribuirSetor(Guid setorId)
+    {
+        SetorId = setorId;
     }
 }

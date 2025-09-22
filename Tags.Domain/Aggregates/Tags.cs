@@ -1,3 +1,4 @@
+using Agents.Domain.Aggregates;
 using CRM.Domain.DomainEvents;
 using Tags.Domain.Enum;
 
@@ -9,19 +10,20 @@ public class Tags : Entity
     public string Cor { get; set; }
     public string? Descricao { get; set; }
     public TagsStatus Status { get; set; }
+    public Guid AgenteId { get; set; }
 
     private Tags()
     {
-        
     }
 
-    public static Tags Criar(string nome, string cor, string descricao)
+    public static Tags Criar(string nome, string cor, string descricao, Guid agentId)
     {
         var tags = new Tags
         {
             Nome = nome,
             Cor = cor,
-            Descricao = descricao
+            Descricao = descricao,
+            AgenteId = agentId
         };
         return tags;
     }

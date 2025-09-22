@@ -3,6 +3,7 @@ using System;
 using CRM.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CRM.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250922133551_Add agent id in tag")]
+    partial class Addagentidintag
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -45,9 +48,6 @@ namespace CRM.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("SetorId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -57,14 +57,30 @@ namespace CRM.Infrastructure.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("_setorIds")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("SetorIds");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.HasIndex("SetorId");
-
                     b.ToTable("Agentes", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000001"),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "sistema@crm.local",
+                            Nome = "Sistema",
+                            PasswordHash = "$2a$11$fH.d2sB7aY.s.1b2a3c4d5e6f7g8h9i0j",
+                            Status = "Offline",
+                            Version = new Guid("00000000-0000-0000-0000-000000000001"),
+                            _setorIds = ""
+                        });
                 });
 
             modelBuilder.Entity("Agents.Domain.Aggregates.Setor", b =>
@@ -320,7 +336,7 @@ namespace CRM.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("AgenteId")
+                    b.Property<Guid?>("AgenteId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Cor")
@@ -416,12 +432,6 @@ namespace CRM.Infrastructure.Migrations
 
             modelBuilder.Entity("Agents.Domain.Aggregates.Agente", b =>
                 {
-                    b.HasOne("Agents.Domain.Aggregates.Setor", null)
-                        .WithMany()
-                        .HasForeignKey("SetorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.OwnsOne("CargaDeTrabalho", "CargaDeTrabalho", b1 =>
                         {
                             b1.Property<Guid>("AgenteId")
@@ -561,9 +571,7 @@ namespace CRM.Infrastructure.Migrations
                 {
                     b.HasOne("Agents.Domain.Aggregates.Agente", null)
                         .WithMany()
-                        .HasForeignKey("AgenteId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("AgenteId");
                 });
 
             modelBuilder.Entity("Contacts.Domain.Aggregates.Contato", b =>

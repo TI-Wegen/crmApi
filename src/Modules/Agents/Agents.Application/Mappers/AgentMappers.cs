@@ -13,7 +13,7 @@ public static class AgentMappers
             Email = agente.Email,
             Status = agente.Status.ToString(),
             CargaDeTrabalho = agente.CargaDeTrabalho.Valor,
-            SetorIds = agente.SetorIds
+            SetorId = agente.SetorId
         };
     }
 }

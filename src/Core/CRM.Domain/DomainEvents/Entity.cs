@@ -22,7 +22,3 @@ public abstract class Entity
         _domainEvents.Clear();
     }
 }
-
-public interface IDomainEvent
-{
-}

@@ -1,6 +1,7 @@
 using Conversations.Infrastructure.Jobs;
 using CRM.API.Configurations;
 using CRM.API.Hubs;
+using CRM.Domain.Exceptions;
 using CRM.Infrastructure.Config.Meta;
 using Hangfire;
 using HealthChecks.UI.Client;
@@ -11,6 +12,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddHttpClient();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 var allowedOrigins = builder.Configuration
     .GetSection("CorsSettings:AllowedOrigins")
@@ -18,7 +21,7 @@ var allowedOrigins = builder.Configuration
 
 if (allowedOrigins == null || !allowedOrigins.Any())
 {
-    throw new InvalidOperationException("Configura��o de 'AllowedOrigins' para o CORS n�o encontrada ou vazia.");
+    throw new InvalidOperationException("Configuração de 'AllowedOrigins' para o CORS não encontrada ou vazia.");
 }
 
 builder.Services.Configure<MetaSettings>(builder.Configuration.GetSection("MetaSettings"));
@@ -26,7 +29,6 @@ builder.Services.Configure<MetaSettings>(builder.Configuration.GetSection("MetaS
 builder.Services
     .AddAppConnections(builder.Configuration)
     .AddUseCases();
-
 
 builder.Services.AddCors(options =>
 {
@@ -44,9 +46,9 @@ builder.Services.AddCors(options =>
     });
 });
 
-
-
 var app = builder.Build();
+
+app.UseExceptionHandler();
 
 app.UseCors("DefaultCorsPolicy");
 
@@ -58,6 +60,7 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/openapi/v1.json", "CRM API");
     });
 }
+
 app.UseHealthChecks("/health", new HealthCheckOptions
 {
     Predicate = _ => true,
@@ -69,6 +72,7 @@ app.UseHealthChecksUI(options =>
     options.UIPath = "/monitor";
     options.ApiPath = "/monitor-api";
 });
+
 app.UseHangfireDashboard("/hangfire");
 
 app.UseAuthentication();
@@ -78,9 +82,13 @@ app.MapControllers();
 
 app.MapHub<ConversationHub>("/conversationHub");
 
-RecurringJob.AddOrUpdate<CleanExpiredBotSessionsJob>(
-    recurringJobId: "clean-expired-bot-sessions",
-    methodCall: job => job.Executar(),
-    cronExpression: "*/5 * * * *");
+app.Lifetime.ApplicationStarted.Register(() =>
+{
+    using var scope = app.Services.CreateScope();
+    RecurringJob.AddOrUpdate<CleanExpiredBotSessionsJob>(
+        recurringJobId: "clean-expired-bot-sessions",
+        methodCall: job => job.Executar(),
+        cronExpression: "*/5 * * * *");
+});
 
 app.Run();

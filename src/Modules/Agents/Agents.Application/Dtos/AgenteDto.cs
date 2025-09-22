@@ -7,5 +7,5 @@ public record AgenteDto
     public string Email { get; init; }
     public string Status { get; init; }
     public int CargaDeTrabalho { get; init; }
-    public IReadOnlyCollection<Guid> SetorIds { get; init; }
+    public Guid? SetorId { get; init; }
 }

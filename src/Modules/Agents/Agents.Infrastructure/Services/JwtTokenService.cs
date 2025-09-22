@@ -24,7 +24,7 @@ public class JwtTokenService : ITokenService
 
     public async Task<string> GerarToken(Agente agente)
     {
-        var setor = await _agentRepository.GetSetorByIdAsync(agente.SetorIds.FirstOrDefault(), CancellationToken.None);
+        var setor = await _agentRepository.GetSetorByIdAsync(agente.SetorId, CancellationToken.None);
 
         var claims = new List<Claim>
         {

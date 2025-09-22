@@ -3,6 +3,7 @@ using System;
 using CRM.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CRM.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250922161938_add setor id")]
+    partial class addsetorid
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -45,7 +48,7 @@ namespace CRM.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("SetorId")
+                    b.Property<Guid?>("SetorId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Status")
@@ -65,6 +68,18 @@ namespace CRM.Infrastructure.Migrations
                     b.HasIndex("SetorId");
 
                     b.ToTable("Agentes", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000001"),
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "sistema@crm.local",
+                            Nome = "Sistema",
+                            PasswordHash = "$2a$11$fH.d2sB7aY.s.1b2a3c4d5e6f7g8h9i0j",
+                            Status = "Offline",
+                            Version = new Guid("00000000-0000-0000-0000-000000000001")
+                        });
                 });
 
             modelBuilder.Entity("Agents.Domain.Aggregates.Setor", b =>
@@ -418,9 +433,7 @@ namespace CRM.Infrastructure.Migrations
                 {
                     b.HasOne("Agents.Domain.Aggregates.Setor", null)
                         .WithMany()
-                        .HasForeignKey("SetorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("SetorId");
 
                     b.OwnsOne("CargaDeTrabalho", "CargaDeTrabalho", b1 =>
                         {

@@ -45,10 +45,7 @@ public class AppDbContext : DbContext
 
         var result = await base.SaveChangesAsync(cancellationToken);
 
-        if (_dispatcher is not null)
-        {
-            await _dispatcher.DispatchAndClearEvents(entitiesWithEvents);
-        }
+        await _dispatcher.DispatchAndClearEvents(entitiesWithEvents);
 
         return result;
     }

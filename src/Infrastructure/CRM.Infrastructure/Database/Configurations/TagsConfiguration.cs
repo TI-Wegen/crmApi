@@ -1,3 +1,4 @@
+using Agents.Domain.Aggregates;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -12,6 +13,11 @@ public class TagsConfiguration : IEntityTypeConfiguration<Tags.Domain.Aggregates
         
         builder.Property(a => a.Nome).IsRequired().HasMaxLength(150);
         builder.HasIndex(a => a.Nome).IsUnique();
+        
+        builder.HasOne<Agente>()
+            .WithMany()
+            .HasForeignKey(a => a.AgenteId)
+            .IsRequired();
 
         builder.Property(a => a.Descricao).HasMaxLength(250);
         

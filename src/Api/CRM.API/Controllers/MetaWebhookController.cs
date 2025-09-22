@@ -16,6 +16,8 @@ namespace CRM.API.Controllers
 {
     public class MetaWebhookController : BaseController
     {
+        #region Campos e Construtor
+
         private readonly MetaSettings _metaSettings;
         private readonly ICommandHandler<CriarContatoCommand, ContatoDto> _criarContatoHandler;
         private readonly ICommandHandler<IniciarConversaCommand, Guid> _iniciarConversaHandler;
@@ -59,6 +61,10 @@ namespace CRM.API.Controllers
             _fileStorageService = fileStorageService;
             _logger = logger;
         }
+
+        #endregion
+
+        #region Endpoints do Webhook
 
         [HttpGet]
         public IActionResult VerifyWebhook
@@ -110,6 +116,10 @@ namespace CRM.API.Controllers
             return Ok();
         }
 
+        #endregion
+
+        #region Manipulação de Eventos do Webhook
+
         private async Task HandleMessageEvent(ValueObject value)
         {
             var message = value?.Messages?.FirstOrDefault();
@@ -159,6 +169,33 @@ namespace CRM.API.Controllers
                 _logger.LogError(e, "Erro ao processar mensagem {Wamid} de {Telefone}", wamid, telefoneDoContato);
             }
         }
+
+        private async Task HandleTemplateStatusUpdate(ValueObject value)
+        {
+            var novoStatus = ParseTemplateStatus(value.Event);
+            if (novoStatus.HasValue && !string.IsNullOrEmpty(value.MessageTemplateName))
+            {
+                var command = new AtualizarStatusTemplateCommand(
+                    value.MessageTemplateName,
+                    novoStatus.Value,
+                    value.Reason
+                );
+                await _atualizarStatusHandler.HandleAsync(command);
+            }
+        }
+
+        private async Task HandleProfileUpdate(ValueObject value)
+        {
+            var contactPayload = value?.Contacts?.FirstOrDefault();
+            if (contactPayload is null) return;
+
+            var command = new AtualizarAvatarContatoCommand(contactPayload.WaId);
+            await _atualizarAvatarHandler.HandleAsync(command);
+        }
+
+        #endregion
+
+        #region Manipulação de Mensagens por Tipo
 
         private async Task HandleReactionMessageAsync(MessageObject message, ContactObject contactPayload)
         {
@@ -235,47 +272,6 @@ namespace CRM.API.Controllers
                         nomeDoContato, Timestamp: dataHoraBrasil, IniciarComBot: isDeveloper, Wamid: message.Id));
                 }
             }
-        }
-
-        private IEnumerable<string> SplitMessage(string message, int chunkSize = 4000)
-        {
-            if (string.IsNullOrEmpty(message))
-                yield break;
-
-            for (int i = 0; i < message.Length; i += chunkSize)
-                yield return message.Substring(i, Math.Min(chunkSize, message.Length - i));
-        }
-
-        private async Task HandleAudioMessageAsync(MessageObject message, ContactObject contactPayload)
-        {
-            var mediaFile = await _metaMediaService.DownloadMediaAsync(message.Audio.Id);
-            if (mediaFile is null)
-            {
-                _logger.LogError("Falha ao baixar a mídia com ID {MediaId} da Meta.", message.Audio.Id);
-                return;
-            }
-
-            var anexoUrl =
-                await _fileStorageService.UploadAsync(mediaFile.Content, mediaFile.FileName, mediaFile.MimeType);
-
-            var textoParaProcessar = WebhookMessageParser.ParseMessage(message);
-
-            var telefoneDoContato = message.From;
-            var nomeDoContato = contactPayload.Profile.Name;
-            var waIdDoContato = contactPayload.WaId;
-            var dataHoraBrasil = ConvertTimestampBR(message.Timestamp);
-
-            var isDeveloper = _metaSettings.DeveloperPhoneNumbers.Any() &&
-                              _metaSettings.DeveloperPhoneNumbers.Contains(telefoneDoContato);
-
-            await IniciarNovoFluxoDeAtendimento(telefoneDoContato,
-                nomeDoContato,
-                textoParaProcessar,
-                dataHoraBrasil,
-                anexoUrl,
-                isDeveloper,
-                waIdDoContato
-            );
         }
 
         private async Task HandleInteractiveMessageAsync(MessageObject message, ContactObject contactPayload)
@@ -373,6 +369,42 @@ namespace CRM.API.Controllers
                 anexoUrl, isDeveloper, waIdDoContato);
         }
 
+        private async Task HandleAudioMessageAsync(MessageObject message, ContactObject contactPayload)
+        {
+            var mediaFile = await _metaMediaService.DownloadMediaAsync(message.Audio.Id);
+            if (mediaFile is null)
+            {
+                _logger.LogError("Falha ao baixar a mídia com ID {MediaId} da Meta.", message.Audio.Id);
+                return;
+            }
+
+            var anexoUrl =
+                await _fileStorageService.UploadAsync(mediaFile.Content, mediaFile.FileName, mediaFile.MimeType);
+
+            var textoParaProcessar = WebhookMessageParser.ParseMessage(message);
+
+            var telefoneDoContato = message.From;
+            var nomeDoContato = contactPayload.Profile.Name;
+            var waIdDoContato = contactPayload.WaId;
+            var dataHoraBrasil = ConvertTimestampBR(message.Timestamp);
+
+            var isDeveloper = _metaSettings.DeveloperPhoneNumbers.Any() &&
+                              _metaSettings.DeveloperPhoneNumbers.Contains(telefoneDoContato);
+
+            await IniciarNovoFluxoDeAtendimento(telefoneDoContato,
+                nomeDoContato,
+                textoParaProcessar,
+                dataHoraBrasil,
+                anexoUrl,
+                isDeveloper,
+                waIdDoContato
+            );
+        }
+
+        #endregion
+
+        #region Métodos Auxiliares
+
         private async Task IniciarNovoFluxoDeAtendimento(string telefoneDoContato, string nomeDoContato,
             string textoDaMensagem, DateTime timestamp, string? anexoUrl, bool isDeveloper, string waId)
         {
@@ -401,27 +433,13 @@ namespace CRM.API.Controllers
             await _iniciarConversaHandler.HandleAsync(iniciarConversaCommand);
         }
 
-        private async Task HandleTemplateStatusUpdate(ValueObject value)
+        private IEnumerable<string> SplitMessage(string message, int chunkSize = 4000)
         {
-            var novoStatus = ParseTemplateStatus(value.Event);
-            if (novoStatus.HasValue && !string.IsNullOrEmpty(value.MessageTemplateName))
-            {
-                var command = new AtualizarStatusTemplateCommand(
-                    value.MessageTemplateName,
-                    novoStatus.Value,
-                    value.Reason
-                );
-                await _atualizarStatusHandler.HandleAsync(command);
-            }
-        }
+            if (string.IsNullOrEmpty(message))
+                yield break;
 
-        private async Task HandleProfileUpdate(ValueObject value)
-        {
-            var contactPayload = value?.Contacts?.FirstOrDefault();
-            if (contactPayload is null) return;
-
-            var command = new AtualizarAvatarContatoCommand(contactPayload.WaId);
-            await _atualizarAvatarHandler.HandleAsync(command);
+            for (int i = 0; i < message.Length; i += chunkSize)
+                yield return message.Substring(i, Math.Min(chunkSize, message.Length - i));
         }
 
         private TemplateStatus? ParseTemplateStatus(string? eventName)
@@ -444,5 +462,7 @@ namespace CRM.API.Controllers
 
             return dataHoraBrasil;
         }
+
+        #endregion
     }
 }

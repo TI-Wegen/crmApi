@@ -41,27 +41,13 @@ public class AgenteConfiguration : IEntityTypeConfiguration<Agente>
             c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
             c => c.ToList());
 
-        builder.Property<List<Guid>>("_setorIds")
-            .HasColumnName("SetorIds")
-            .HasConversion(converter)
-            .Metadata.SetValueComparer(comparer);
+        builder.HasOne<Setor>()
+            .WithMany()
+            .HasForeignKey(a => a.SetorId)
+            .IsRequired();
         
         builder.Property(a => a.Version).IsConcurrencyToken();
 
         builder.Ignore(a => a.DomainEvents);
-
-        builder.HasData(
-            new
-            {
-                Id = SystemGuids.SystemAgentId,
-                Nome = "Sistema",
-                Email = "sistema@crm.local",
-                Status = AgenteStatus.Offline,
-                PasswordHash = "$2a$11$fH.d2sB7aY.s.1b2a3c4d5e6f7g8h9i0j",
-                Version = Guid.Parse("00000000-0000-0000-0000-000000000001"),
-                _setorIds = new List<Guid>(),
-                CreatedAt = DateTime.SpecifyKind(new DateTime(2024, 01, 01, 0, 0, 0), DateTimeKind.Utc)
-            }
-        );
     }
 }
