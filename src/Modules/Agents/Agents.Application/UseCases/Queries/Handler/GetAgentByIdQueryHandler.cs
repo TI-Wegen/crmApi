@@ -1,4 +1,4 @@
-﻿using Agents.Application.Repository;
+﻿using Agents.Application.Repositories;
 
 namespace Agents.Application.UseCases.Queries.Handler;
 

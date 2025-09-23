@@ -1,5 +1,5 @@
 ﻿using Contacts.Application.Dtos;
-using Contacts.Domain.Aggregates;
+using Contacts.Domain.Entities;
 
 namespace Contacts.Application.Mappers;
 

@@ -1,4 +1,4 @@
-﻿using Conversations.Application.Repository;
+﻿using Conversations.Application.Repositories;
 using Conversations.Domain.ValueObjects;
 using CRM.Application.Interfaces;
 

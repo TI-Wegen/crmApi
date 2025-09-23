@@ -1,10 +1,9 @@
 ﻿using CRM.Application.Interfaces;
 using CRM.Domain.Exceptions;
-using Templates.Application.Abstractions;
 using Templates.Application.Dtos;
 using Templates.Application.Mappers;
-using Templates.Domain.Aggregates;
-using Templates.Domain.Repositories;
+using Templates.Application.Repositories;
+using Templates.Domain.Entities;
 
 namespace Templates.Application.UseCases.Commands.Handler;
 

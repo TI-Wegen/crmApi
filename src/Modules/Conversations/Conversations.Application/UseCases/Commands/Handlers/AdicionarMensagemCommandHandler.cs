@@ -1,7 +1,7 @@
-﻿using Contacts.Domain.Repository;
+﻿using Contacts.Application.Repositories;
 using Conversations.Application.Dtos;
 using Conversations.Application.Mappers;
-using Conversations.Application.Repository;
+using Conversations.Application.Repositories;
 using Conversations.Domain.Entities;
 using Conversations.Domain.Enuns;
 using Conversations.Domain.ValueObjects;
@@ -48,11 +48,11 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         var timestampUtc = DateTime.SpecifyKind(timestamp, DateTimeKind.Utc);
         var fusoHorarioBrasil = TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time");
         var timestampBrasilia = TimeZoneInfo.ConvertTimeFromUtc(timestampUtc, fusoHorarioBrasil);
-        
+
         var conversa = await _conversationRepository.GetByIdAsync(command.ConversaId, cancellationToken);
         if (conversa is null)
             throw new NotFoundException($"Conversa com o Id '{command.ConversaId}' não encontrada.");
-        
+
         var atendimento = await _atendimentoRepository.FindActiveByConversaIdAsync(conversa.Id, cancellationToken);
         if (atendimento is null)
         {
@@ -73,7 +73,7 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
             throw new UnauthorizedAccessException("Não foi possível identificar o agente autenticado.");
 
         if (atendimento.Status == ConversationStatus.AguardandoNaFila) atendimento.AtribuirAgente(agenteId.Value);
-        
+
         if (command.AnexoStream is not null)
         {
             var nomeUnicoAnexo = $"{Guid.NewGuid()}-{command.AnexoNome}";
@@ -100,7 +100,7 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
                 novaMensagem.ExternalId = await _metaSender.EnviarMensagemTextoAsync(contato.Telefone, command.Texto);
             }
         }
-        
+
         conversa.AdicionarMensagem(novaMensagem, atendimento.Id);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -108,7 +108,7 @@ public class AdicionarMensagemCommandHandler : ICommandHandler<AdicionarMensagem
         await _notifier.NotificarNovaMensagemAsync(conversa.Id.ToString(), messageDto);
 
         var summaryDto = new ConversationSummaryDto
-            {
+        {
             Id = conversa.Id,
             AtendimentoId = novaMensagem.Id,
             ContatoNome = contato.Nome,

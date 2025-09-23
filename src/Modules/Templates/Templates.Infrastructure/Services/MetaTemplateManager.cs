@@ -3,8 +3,8 @@ using System.Text.Json;
 using CRM.Infrastructure.Config.Meta;
 using CRM.Infrastructure.Config.Meta.Dtos;
 using Microsoft.Extensions.Options;
-using Templates.Application.Abstractions;
-using Templates.Domain.Aggregates;
+using Templates.Application.Repositories;
+using Templates.Domain.Entities;
 
 namespace Templates.Infrastructure.Services;
 

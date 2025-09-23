@@ -1,7 +1,7 @@
 ﻿using CRM.Application.Interfaces;
 using Templates.Application.Dtos;
 using Templates.Application.Mappers;
-using Templates.Domain.Repositories;
+using Templates.Application.Repositories;
 
 namespace Templates.Application.UseCases.Queries.Handler;
 

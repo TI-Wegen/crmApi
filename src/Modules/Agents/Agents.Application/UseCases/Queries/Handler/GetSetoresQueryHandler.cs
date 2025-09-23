@@ -1,5 +1,5 @@
 ﻿using Agents.Application.Dtos;
-using Agents.Application.Repository;
+using Agents.Application.Repositories;
 using CRM.Application.Interfaces;
 
 namespace Agents.Application.UseCases.Queries.Handler;

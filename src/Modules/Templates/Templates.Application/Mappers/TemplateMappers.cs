@@ -1,5 +1,5 @@
 ﻿using Templates.Application.Dtos;
-using Templates.Domain.Aggregates;
+using Templates.Domain.Entities;
 
 namespace Templates.Application.Mappers;
 

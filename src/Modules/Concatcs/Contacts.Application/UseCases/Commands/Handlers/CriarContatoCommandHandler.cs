@@ -1,8 +1,8 @@
 ﻿using Contacts.Application.Abstractions;
 using Contacts.Application.Dtos;
 using Contacts.Application.Mappers;
-using Contacts.Domain.Aggregates;
-using Contacts.Domain.Repository;
+using Contacts.Application.Repositories;
+using Contacts.Domain.Entities;
 using CRM.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 

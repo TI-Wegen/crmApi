@@ -1,6 +1,5 @@
-﻿using Agents.Domain.Aggregates;
-using Contacts.Domain.Repository;
-using Conversations.Application.Repository;
+﻿using Contacts.Application.Repositories;
+using Conversations.Application.Repositories;
 using Conversations.Domain.Entities;
 using Conversations.Domain.Events;
 using CRM.Application.Exceptions;
@@ -28,7 +27,7 @@ public class EnviarTemplateCommandHandler : ICommandHandler<EnviarTemplateComman
         IUnitOfWork unitOfWork,
         IUserContext userContext,
         IConversationRepository conversationRepository
-        )
+    )
     {
         _contactRepository = contactRepository;
         _metaSender = metaSender;
@@ -39,13 +38,14 @@ public class EnviarTemplateCommandHandler : ICommandHandler<EnviarTemplateComman
         _userContext = userContext;
         _conversationRepository = conversationRepository;
     }
+
     public async Task HandleAsync(EnviarTemplateCommand command, CancellationToken cancellationToken)
     {
         var agenteId = _userContext.GetCurrentUserId() ??
-            throw new UnauthorizedAccessException("Agente não autenticado.");
+                       throw new UnauthorizedAccessException("Agente não autenticado.");
 
         var contato = await _contactRepository.GetByIdAsync(command.ContatoId, cancellationToken) ??
-            throw new NotFoundException($"Contato com o ID {command.ContatoId} não encontrado.");
+                      throw new NotFoundException($"Contato com o ID {command.ContatoId} não encontrado.");
 
         var conversa = await _conversationRepository.FindActiveByContactIdAsync(contato.Id, cancellationToken);
         if (conversa is null)

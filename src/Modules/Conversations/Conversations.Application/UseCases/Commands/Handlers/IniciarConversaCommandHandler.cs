@@ -1,9 +1,9 @@
-﻿using Agents.Application.Repository;
+﻿using Agents.Application.Repositories;
 using Agents.Domain.Enuns;
-using Contacts.Domain.Repository;
+using Contacts.Application.Repositories;
 using Conversations.Application.Dtos;
 using Conversations.Application.Mappers;
-using Conversations.Application.Repository;
+using Conversations.Application.Repositories;
 using Conversations.Application.Services;
 using Conversations.Domain.Entities;
 using Conversations.Domain.ValueObjects;

@@ -17,7 +17,7 @@ using Npgsql;
 using StackExchange.Redis;
 using System.Data;
 using System.Text;
-using Conversations.Application.Repository;
+using Conversations.Application.Repositories;
 
 namespace CRM.API.Configurations;
 

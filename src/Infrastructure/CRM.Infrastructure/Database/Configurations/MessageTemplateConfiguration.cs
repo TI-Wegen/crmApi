@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Templates.Domain.Aggregates;
+using Templates.Domain.Entities;
 using Templates.Domain.Enuns;
 
 namespace CRM.Infrastructure.Database.Configurations;

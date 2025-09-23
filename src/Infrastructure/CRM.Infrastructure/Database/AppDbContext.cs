@@ -1,9 +1,9 @@
 ﻿using Agents.Domain.Aggregates;
-using Contacts.Domain.Aggregates;
+using Contacts.Domain.Entities;
 using Conversations.Domain.Entities;
 using CRM.Domain.DomainEvents;
 using Microsoft.EntityFrameworkCore;
-using Templates.Domain.Aggregates;
+using Templates.Domain.Entities;
 
 namespace CRM.Infrastructure.Database;
 

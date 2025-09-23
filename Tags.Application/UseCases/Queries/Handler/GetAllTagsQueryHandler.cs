@@ -1,7 +1,7 @@
 using CRM.Application.Dto;
 using CRM.Application.Interfaces;
 using Tags.Application.Dtos;
-using Tags.Application.repository;
+using Tags.Application.repositories;
 
 namespace Tags.Application.UseCases.Queries.Handler;
 

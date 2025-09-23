@@ -1,4 +1,4 @@
-using Conversations.Application.Repository;
+using Conversations.Application.Repositories;
 using Conversations.Domain.Entities;
 using CRM.Application.Interfaces;
 

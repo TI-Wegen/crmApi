@@ -1,5 +1,5 @@
-﻿using Contacts.Domain.Repository;
-using Conversations.Application.Repository;
+﻿using Contacts.Application.Repositories;
+using Conversations.Application.Repositories;
 using CRM.Domain.DomainEvents;
 
 namespace Conversations.Application.UseCases.Events;

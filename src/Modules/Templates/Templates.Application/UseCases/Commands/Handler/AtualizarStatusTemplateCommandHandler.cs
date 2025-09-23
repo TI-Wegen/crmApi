@@ -1,7 +1,8 @@
-﻿namespace Templates.Application.UseCases.Commands.Handler;
+﻿using Templates.Application.Repositories;
+
+namespace Templates.Application.UseCases.Commands.Handler;
 
 using CRM.Application.Interfaces;
-using Templates.Domain.Repositories;
 
 public class AtualizarStatusTemplateCommandHandler : ICommandHandler<AtualizarStatusTemplateCommand>
 {

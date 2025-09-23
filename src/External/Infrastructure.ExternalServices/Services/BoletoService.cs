@@ -1,5 +1,5 @@
 ﻿using Conversations.Application.Dtos;
-using Conversations.Application.Repository;
+using Conversations.Application.Repositories;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
@@ -25,7 +25,7 @@ public class BoletoService : IBoletoService
          	    SELECT 
                     tblboleto.idFatura, 
                     tblboleto.dataVencimento, 
-                    tblboleto.pdfboleto,
+                    tblboleto.pdfboleto,ll
                     tblboleto.statusBoleto
                 FROM 
                     tblboleto

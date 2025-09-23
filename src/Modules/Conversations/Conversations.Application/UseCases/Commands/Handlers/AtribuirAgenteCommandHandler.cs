@@ -1,4 +1,4 @@
-﻿using Conversations.Application.Repository;
+﻿using Conversations.Application.Repositories;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 

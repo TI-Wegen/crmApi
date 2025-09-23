@@ -1,4 +1,4 @@
-﻿using Contacts.Domain.Repository;
+﻿using Contacts.Application.Repositories;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 

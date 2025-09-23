@@ -1,10 +1,10 @@
 ﻿using Conversations.Application.Mappers;
-using Conversations.Application.Repository;
+using Conversations.Application.Repositories;
 using Conversations.Domain.Entities;
 using Conversations.Domain.ValueObjects;
 using CRM.Application.Interfaces;
 using CRM.Domain.Common;
-using Templates.Domain.Repositories;
+using Templates.Application.Repositories;
 
 namespace Conversations.Application.Services;
 

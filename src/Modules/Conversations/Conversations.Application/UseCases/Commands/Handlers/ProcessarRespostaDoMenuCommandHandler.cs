@@ -1,7 +1,7 @@
 ﻿using System.Text;
-using Agents.Application.Repository;
+using Agents.Application.Repositories;
 using Conversations.Application.Dtos;
-using Conversations.Application.Repository;
+using Conversations.Application.Repositories;
 using Conversations.Domain.Entities;
 using Conversations.Domain.Enuns;
 using Conversations.Domain.ValueObjects;

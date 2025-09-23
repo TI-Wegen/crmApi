@@ -1,7 +1,7 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Agents.Application.Repository;
+using Agents.Application.Repositories;
 using Agents.Domain.Aggregates;
 using CRM.Application.Interfaces;
 using Microsoft.Extensions.Configuration;

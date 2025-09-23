@@ -1,6 +1,4 @@
-﻿
-using Conversations.Application.Repository;
-using Conversations.Application.Services;
+﻿using Conversations.Application.Services;
 using CRM.Application.Interfaces;
 
 

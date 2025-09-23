@@ -1,7 +1,7 @@
 ﻿using Contacts.Application.Dtos;
 using Contacts.Application.Mappers;
+using Contacts.Application.Repositories;
 using Contacts.Application.UseCases.Commands.Queries;
-using Contacts.Domain.Repository;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 

@@ -1,4 +1,4 @@
-﻿using Conversations.Application.Repository;
+﻿using Conversations.Application.Repositories;
 
 namespace Conversations.Infrastructure.Services;
 

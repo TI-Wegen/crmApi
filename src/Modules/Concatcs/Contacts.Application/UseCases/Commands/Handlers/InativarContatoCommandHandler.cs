@@ -1,6 +1,7 @@
-﻿namespace Contacts.Application.UseCases.Commands.Handlers;
+﻿using Contacts.Application.Repositories;
 
-using Contacts.Domain.Repository;
+namespace Contacts.Application.UseCases.Commands.Handlers;
+
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 

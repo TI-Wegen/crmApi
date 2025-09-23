@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Conversations.Application.Repository;
+using Conversations.Application.Repositories;
 
 namespace Conversations.Infrastructure.Services;
 

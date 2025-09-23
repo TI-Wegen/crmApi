@@ -1,6 +1,6 @@
 ﻿using Contacts.Application.Dtos;
 using Contacts.Application.Mappers;
-using Contacts.Domain.Repository;
+using Contacts.Application.Repositories;
 using CRM.Application.Interfaces;
 
 namespace Contacts.Application.UseCases.Commands.Queries.Handlers;
