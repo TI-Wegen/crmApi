@@ -8,9 +8,14 @@ using System.Text.Json.Serialization;
 
 namespace Infrastructure.ExternalServices.Services.Meta;
 
-public record MetaContactProfileDto([property: JsonPropertyName("profile_picture_url")] string ProfilePictureUrl);
-public record ContactCheckResult([property: JsonPropertyName("input")] string Input, [property: JsonPropertyName("status")] string Status, [property: JsonPropertyName("wa_id")] string WaId);
+public record MetaContactProfileDto(
+    [property: JsonPropertyName("profile_picture_url")]
+    string ProfilePictureUrl);
 
+public record ContactCheckResult(
+    [property: JsonPropertyName("input")] string Input,
+    [property: JsonPropertyName("status")] string Status,
+    [property: JsonPropertyName("wa_id")] string WaId);
 
 public class MetaContactService : IMetaContactService
 {

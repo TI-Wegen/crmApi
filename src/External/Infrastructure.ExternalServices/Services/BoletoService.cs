@@ -1,12 +1,10 @@
 ﻿using Conversations.Application.Dtos;
+using Conversations.Application.Repository;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
-using System.Data;
-using Conversations.Application.Repository;
 
 namespace Infrastructure.ExternalServices.Services;
-
 
 public class BoletoService : IBoletoService
 {
@@ -15,7 +13,8 @@ public class BoletoService : IBoletoService
     public BoletoService(IConfiguration configuration)
     {
         _connectionString = configuration.GetConnectionString("ExternalConnection")
-            ?? throw new ArgumentNullException(nameof(configuration), "A connection string 'BoletoConnection' não foi encontrada.");
+                            ?? throw new ArgumentNullException(nameof(configuration),
+                                "A connection string 'BoletoConnection' não foi encontrada.");
     }
 
     public async Task<BoletoDto?> GetBoletoAsync(int contaId)
@@ -45,7 +44,7 @@ public class BoletoService : IBoletoService
             Console.WriteLine(e.ToString());
             Console.WriteLine("--- FIM DO ERRO ---");
 
-            throw; 
+            throw;
         }
     }
 
