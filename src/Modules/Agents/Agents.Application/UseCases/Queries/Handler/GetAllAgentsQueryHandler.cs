@@ -1,12 +1,9 @@
-﻿using Agents.Application.Repositories;
+﻿using Agents.Application.Dtos;
+using Agents.Application.Mappers;
+using Agents.Application.Repositories;
+using CRM.Application.Interfaces;
 
 namespace Agents.Application.UseCases.Queries.Handler;
-
-// Em Modules/Agents/Application/UseCases/Queries/Handlers/
-using Agents.Application.Dtos;
-using Agents.Application.Mappers;
-using Agents.Application.UseCases.Queries;
-using CRM.Application.Interfaces;
 
 public class GetAllAgentsQueryHandler : IQueryHandler<GetAllAgentsQuery, IEnumerable<AgenteDto>>
 {
@@ -19,7 +16,8 @@ public class GetAllAgentsQueryHandler : IQueryHandler<GetAllAgentsQuery, IEnumer
 
     public async Task<IEnumerable<AgenteDto>> HandleAsync(GetAllAgentsQuery query, CancellationToken cancellationToken)
     {
-        var agentes = await _agentRepository.GetAllAsync(query.PageNumber, query.PageSize, false, cancellationToken);
+        var agentes =
+            await _agentRepository.FilterAsync(query.PageNumber, query.PageSize, false, null, cancellationToken);
 
         return agentes.Select(agente => agente.ToDto());
     }

@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
 builder.Services.AddHttpClient();
 
 var allowedOrigins = builder.Configuration
@@ -50,17 +49,6 @@ app.UseGlobalExceptionMiddleware();
 app.UseCors("DefaultCorsPolicy");
 
 app.UseWebSockets();
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "CRM.API v1");
-        c.RoutePrefix = string.Empty; // Abre direto na raiz (http://localhost:5000/)
-    });
-}
-
 
 app.UseHealthChecks("/health", new HealthCheckOptions
 {

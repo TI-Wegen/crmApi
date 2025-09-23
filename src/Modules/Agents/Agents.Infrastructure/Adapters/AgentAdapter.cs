@@ -1,4 +1,5 @@
-﻿using Agents.Application.Repositories;
+﻿using System.Linq.Expressions;
+using Agents.Application.Repositories;
 using Agents.Domain.Aggregates;
 using Agents.Domain.Enuns;
 using CRM.Infrastructure.Database;
@@ -20,17 +21,8 @@ public class AgentAdapter : IAgentRepository
         await _context.Agentes.AddAsync(agente, cancellationToken);
     }
 
-    public Task<Agente?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
-    {
-        return _context.Agentes.FirstOrDefaultAsync(a => a.Email == email, cancellationToken);
-    }
-
-    public Task<Agente?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return _context.Agentes.FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
-    }
-
-    public async Task<IEnumerable<Agente>> GetAllAsync(int pageNumber, int pageSize, bool incluirInativos,
+    public async Task<IEnumerable<Agente>> FilterAsync(int pageNumber, int pageSize, bool incluirInativos,
+        Expression<Func<Agente, bool>>? condition = null,
         CancellationToken cancellationToken = default)
     {
         var query = _context.Agentes.AsQueryable();
@@ -40,11 +32,21 @@ public class AgentAdapter : IAgentRepository
             query = query.Where(a => a.Status != AgenteStatus.Inativo);
         }
 
+        if (condition != null)
+        {
+            query = query.Where(condition);
+        }
+
         return await query
-            .OrderBy(a => a.Nome)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
+    }
+
+
+    public Task<Agente?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return _context.Agentes.FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
     }
 
     public async Task UpdateAsync(Agente agente, CancellationToken cancellationToken = default)

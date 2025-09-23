@@ -1,11 +1,10 @@
-﻿using Agents.Application.Repositories;
-
-namespace Agents.Application.UseCases.Commands.Handlers;
-
-using Agents.Application.Dtos;
-using Agents.Application.Mappers; 
+﻿using Agents.Application.Dtos;
+using Agents.Application.Mappers;
+using Agents.Application.Repositories;
 using Agents.Domain.Aggregates;
 using CRM.Application.Interfaces;
+
+namespace Agents.Application.UseCases.Commands.Handlers;
 
 public class CriarAgenteCommandHandler : ICommandHandler<CriarAgenteCommand, AgenteDto>
 {
@@ -20,8 +19,10 @@ public class CriarAgenteCommandHandler : ICommandHandler<CriarAgenteCommand, Age
 
     public async Task<AgenteDto> HandleAsync(CriarAgenteCommand command, CancellationToken cancellationToken)
     {
-        var existingAgent = await _agentRepository.GetByEmailAsync(command.Email, cancellationToken);
-        if (existingAgent is not null)
+        var existingAgent =
+            await _agentRepository.FilterAsync(1, 1, false, (x) => x.Email == command.Email, cancellationToken);
+
+        if (existingAgent.Any())
         {
             throw new Exception($"Já existe um agente com o e-mail '{command.Email}'.");
         }

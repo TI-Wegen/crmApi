@@ -1,7 +1,5 @@
 using System.Text;
 using System.Text.Json;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace CRM.API.Middlewares;
 
@@ -9,20 +7,20 @@ public class ResponseWrapperMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ResponseWrapperMiddleware> _logger;
-    
+
     private readonly HashSet<int> _excludedStatusCodes = new()
     {
         204,
-        304 
+        304
     };
-    
+
     private static readonly Dictionary<int, string> StatusCodeMessages = new()
     {
         { 200, "Operação realizada com sucesso" },
         { 201, "Recurso criado com sucesso" },
         { 202, "Solicitação aceita para processamento" },
         { 204, "Operação realizada sem conteúdo de retorno" },
-            
+
         { 400, "Solicitação inválida" },
         { 401, "Não autorizado" },
         { 403, "Acesso proibido" },
@@ -32,7 +30,7 @@ public class ResponseWrapperMiddleware
         { 410, "Recurso não está mais disponível" },
         { 422, "Erro de validação" },
         { 429, "Muitas solicitações" },
-            
+
         { 500, "Erro interno do servidor" },
         { 501, "Funcionalidade não implementada" },
         { 502, "Gateway inválido" },
@@ -63,7 +61,7 @@ public class ResponseWrapperMiddleware
             await _next(context);
 
             var statusCode = context.Response.StatusCode;
-            
+
             if (_excludedStatusCodes.Contains(statusCode))
             {
                 await CopyResponseToOriginalStream(responseBody, originalBodyStream);
@@ -94,8 +92,10 @@ public class ResponseWrapperMiddleware
         if (context.WebSockets.IsWebSocketRequest)
             return true;
 
-        return path.StartsWith("/swagger") ||
-               path.StartsWith("/health") ||
+        if (path.StartsWith("/swagger") || path.StartsWith("/swagger-ui") || path.StartsWith("/api-docs"))
+            return true;
+
+        return path.StartsWith("/health") ||
                path.StartsWith("/metrics") ||
                context.Request.Headers.ContainsKey("X-Skip-Response-Wrapper") ||
                context.Response.ContentType?.StartsWith("text/html") == true ||
@@ -106,7 +106,7 @@ public class ResponseWrapperMiddleware
     private object CreateResponseWrapper(int statusCode, string bodyText)
     {
         object? data = null;
-        
+
         if (!string.IsNullOrWhiteSpace(bodyText))
         {
             data = TryParseJson(bodyText);
@@ -120,7 +120,8 @@ public class ResponseWrapperMiddleware
             403 => CreateErrorResponse(statusCode, "Você não tem permissão para acessar este recurso", data),
             404 => CreateErrorResponse(statusCode, "O recurso solicitado não foi encontrado", data),
             409 => CreateErrorResponse(statusCode, "Conflito: o recurso não pode ser processado no estado atual", data),
-            429 => CreateErrorResponse(statusCode, "Limite de requisições excedido. Tente novamente em alguns minutos", data),
+            429 => CreateErrorResponse(statusCode, "Limite de requisições excedido. Tente novamente em alguns minutos",
+                data),
             >= 400 and < 500 => CreateClientErrorResponse(statusCode, data),
             >= 500 => CreateServerErrorResponse(statusCode, data),
             _ => CreateGenericResponse(statusCode, data)
@@ -130,7 +131,7 @@ public class ResponseWrapperMiddleware
     private object CreateSuccessResponse(int statusCode, object? data)
     {
         var message = StatusCodeMessages.GetValueOrDefault(statusCode, "Operação realizada com sucesso");
-        
+
         return new
         {
             success = true,
@@ -183,8 +184,8 @@ public class ResponseWrapperMiddleware
     private object CreateServerErrorResponse(int statusCode, object? data)
     {
         var message = StatusCodeMessages.GetValueOrDefault(statusCode, "Erro interno do servidor");
-        
-        var errors = IsProduction() 
+
+        var errors = IsProduction()
             ? new { detail = "Ocorreu um erro interno. Entre em contato com o suporte." }
             : ExtractErrorsFromData(data);
 
@@ -215,7 +216,7 @@ public class ResponseWrapperMiddleware
     private object CreateGenericResponse(int statusCode, object? data)
     {
         var isSuccess = statusCode < 400;
-        var message = StatusCodeMessages.GetValueOrDefault(statusCode, 
+        var message = StatusCodeMessages.GetValueOrDefault(statusCode,
             isSuccess ? "Operação processada" : "Erro no processamento");
 
         var response = new
@@ -225,10 +226,14 @@ public class ResponseWrapperMiddleware
             statusCode,
             timestamp = DateTimeOffset.UtcNow
         };
-        
-        return isSuccess 
+
+        return isSuccess
             ? (object)new { response.success, response.message, data, response.statusCode, response.timestamp }
-            : new { response.success, response.message, errors = ExtractErrorsFromData(data), response.statusCode, response.timestamp };
+            : new
+            {
+                response.success, response.message, errors = ExtractErrorsFromData(data), response.statusCode,
+                response.timestamp
+            };
     }
 
     private object? TryParseJson(string bodyText)
@@ -254,7 +259,7 @@ public class ResponseWrapperMiddleware
         {
             if (jsonElement.TryGetProperty("detail", out var detailElement))
                 return new { detail = detailElement.GetString() };
-            
+
             if (jsonElement.TryGetProperty("message", out var messageElement))
                 return new { detail = messageElement.GetString() };
 
@@ -279,9 +284,9 @@ public class ResponseWrapperMiddleware
                         .Where(s => !string.IsNullOrEmpty(s))
                         .Cast<string>()
                         .ToArray(),
-                    
+
                     JsonValueKind.String => new[] { property.Value.GetString()! },
-                    
+
                     _ => new[] { property.Value.ToString() }
                 };
 
@@ -330,8 +335,8 @@ public class ResponseWrapperMiddleware
 
     private async Task WriteResponseAsync(HttpContext context, object response, int statusCode, Stream outputStream)
     {
-        var jsonResponse = JsonSerializer.Serialize(response, new JsonSerializerOptions 
-        { 
+        var jsonResponse = JsonSerializer.Serialize(response, new JsonSerializerOptions
+        {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = false
         });
@@ -342,7 +347,7 @@ public class ResponseWrapperMiddleware
 
         var bytes = Encoding.UTF8.GetBytes(jsonResponse);
         context.Response.ContentLength = bytes.Length;
-        
+
         await context.Response.Body.WriteAsync(bytes);
     }
 

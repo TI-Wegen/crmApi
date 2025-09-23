@@ -14,32 +14,19 @@ public static class ApiServiceExtensions
         IConfiguration configuration)
     {
         services.AddControllers();
+        services.AddJwtAuthentication(configuration);
         
         services.Configure<ApiBehaviorOptions>(options =>
         {
             options.SuppressModelStateInvalidFilter = true;
         });
 
-        services.AddSwaggerDocumentation();
         services.AddJwtAuthentication(configuration);
 
         services.AddEndpointsApiExplorer();
         return services;
     }
-
-    private static IServiceCollection AddSwaggerDocumentation(this IServiceCollection services)
-    {
-        services.AddSwaggerGen(c => {
-            c.SwaggerDoc("v1", new OpenApiInfo { 
-                Title = "CRM.API", 
-                Version = "v1",
-                Description = "API do Sistema CRM"
-            });
-        });
-        return services;
-    }
-
-
+    
 
     private static IServiceCollection AddJwtAuthentication(
         this IServiceCollection services,

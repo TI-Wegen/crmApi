@@ -16,13 +16,14 @@ namespace Agents.Application.UseCases.Queries.Handler;
 
     public async Task<string> HandleAsync(LoginQuery query, CancellationToken cancellationToken)
     {
-        var agente = await _agentRepository.GetByEmailAsync(query.Email);
-        if (agente == null || !agente.VerificarSenha(query.Password))
+        var agente = await _agentRepository.FilterAsync(1, 1, false, x => x.Email == query.Email);
+        
+        if (agente.Any() || !agente.First().VerificarSenha(query.Password))
         {
             throw new UnauthorizedAccessException("E-mail ou senha inválidos.");
         }
 
-        var token = await _tokenService.GerarToken(agente);
+        var token = await _tokenService.GerarToken(agente.First());
         return token;
     }
 }
