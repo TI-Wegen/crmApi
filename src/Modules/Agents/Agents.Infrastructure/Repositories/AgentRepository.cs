@@ -1,6 +1,6 @@
-﻿using Agents.Domain.Aggregates;
+﻿using Agents.Application.Repository;
+using Agents.Domain.Aggregates;
 using Agents.Domain.Enuns;
-using Agents.Domain.Repository;
 using CRM.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,6 +1,7 @@
-﻿namespace Conversations.Infrastructure.Services;
+﻿using Conversations.Application.Repository;
 
-using Conversations.Application.Abstractions;
+namespace Conversations.Infrastructure.Services;
+
 using StackExchange.Redis;
 using System.Text.Json;
 

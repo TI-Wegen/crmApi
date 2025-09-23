@@ -1,7 +1,6 @@
 ﻿using Agents.Infrastructure.Services;
 using Amazon;
 using Amazon.S3;
-using Conversations.Application.Abstractions;
 using Conversations.Infrastructure.Services;
 using CRM.API.Services;
 using CRM.Application.Interfaces;
@@ -18,6 +17,7 @@ using Npgsql;
 using StackExchange.Redis;
 using System.Data;
 using System.Text;
+using Conversations.Application.Repository;
 
 namespace CRM.API.Configurations;
 

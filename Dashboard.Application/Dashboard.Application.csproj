@@ -7,7 +7,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Dashboard.Domain\Dashboard.Domain.csproj" />
       <ProjectReference Include="..\src\Core\CRM.Application\CRM.Application.csproj" />
     </ItemGroup>
 

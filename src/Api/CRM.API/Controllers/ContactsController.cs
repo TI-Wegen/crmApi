@@ -3,7 +3,6 @@ using Contacts.Application.UseCases.Commands;
 using Contacts.Application.UseCases.Commands.Queries;
 using Conversations.Application.UseCases.Commands;
 using CRM.API.Controllers.Base;
-using CRM.API.Dtos;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 using CRM.Domain.Exceptions;

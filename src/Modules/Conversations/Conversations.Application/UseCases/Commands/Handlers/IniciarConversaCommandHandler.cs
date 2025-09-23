@@ -1,10 +1,10 @@
-﻿using Agents.Domain.Enuns;
-using Agents.Domain.Repository;
+﻿using Agents.Application.Repository;
+using Agents.Domain.Enuns;
 using Contacts.Domain.Repository;
-using Conversations.Application.Abstractions;
 using Conversations.Application.Dtos;
 using Conversations.Application.Mappers;
-using Conversations.Domain.Aggregates;
+using Conversations.Application.Repository;
+using Conversations.Application.Services;
 using Conversations.Domain.Entities;
 using Conversations.Domain.ValueObjects;
 using CRM.Application.Interfaces;

@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Infrastructure\CRM.Infrastructure\CRM.Infrastructure.csproj" />
+    <ProjectReference Include="..\Agents.Application\Agents.Application.csproj" />
     <ProjectReference Include="..\Agents.Domain\Agents.Domain.csproj" />
   </ItemGroup>
 

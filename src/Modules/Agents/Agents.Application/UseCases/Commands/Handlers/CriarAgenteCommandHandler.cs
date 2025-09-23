@@ -1,10 +1,10 @@
-﻿namespace Agents.Application.UseCases.Commands.Handlers;
+﻿using Agents.Application.Repository;
+
+namespace Agents.Application.UseCases.Commands.Handlers;
 
 using Agents.Application.Dtos;
 using Agents.Application.Mappers; 
 using Agents.Domain.Aggregates;
-using Agents.Domain.Repository;
-
 using CRM.Application.Interfaces;
 
 public class CriarAgenteCommandHandler : ICommandHandler<CriarAgenteCommand, AgenteDto>

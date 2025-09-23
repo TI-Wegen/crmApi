@@ -1,4 +1,4 @@
-﻿using Conversations.Application.Abstractions;
+﻿using Conversations.Application.Repository;
 using Conversations.Domain.Enuns;
 using CRM.Application.Interfaces;
 using CRM.Domain.Common;

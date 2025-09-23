@@ -1,6 +1,7 @@
-﻿using Conversations.Application.Abstractions;
-using Conversations.Application.Dtos;
+﻿using Conversations.Application.Dtos;
 using Conversations.Application.Mappers;
+using Conversations.Application.Repository;
+using Conversations.Application.Services;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 

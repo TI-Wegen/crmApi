@@ -1,6 +1,5 @@
 ﻿using Agents.Domain.Aggregates;
 using Contacts.Domain.Aggregates;
-using Conversations.Domain.Aggregates;
 using Conversations.Domain.Entities;
 using CRM.Domain.DomainEvents;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +24,7 @@ public class AppDbContext : DbContext
     public DbSet<Contato> Contatos { get; set; }
     public DbSet<MessageTemplate> MessageTemplates { get; set; }
     public DbSet<Atendimento> Atendimentos { get; set; }
-    public DbSet<Tags.Domain.Aggregates.Tags> Tags { get; set; }
+    public DbSet<Tags.Domain.Entities.Tags> Tags { get; set; }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

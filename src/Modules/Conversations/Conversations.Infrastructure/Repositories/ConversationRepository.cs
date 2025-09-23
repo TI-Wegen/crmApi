@@ -1,5 +1,4 @@
-﻿using Conversations.Application.Abstractions;
-using Conversations.Domain.Aggregates;
+﻿using Conversations.Application.Repository;
 using Conversations.Domain.Entities;
 using CRM.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;

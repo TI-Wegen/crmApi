@@ -1,6 +1,8 @@
-﻿namespace Conversations.Application.UseCases.Commands.Handlers;
-using Conversations.Application.Abstractions;
-using Conversations.Domain.Aggregates;
+﻿using Conversations.Application.Repository;
+using Conversations.Domain.Entities;
+
+namespace Conversations.Application.UseCases.Commands.Handlers;
+
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 

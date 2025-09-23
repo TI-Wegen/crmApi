@@ -1,7 +1,7 @@
 ﻿using Contacts.Application.Dtos;
 using Contacts.Application.UseCases.Commands;
 using Contacts.Application.UseCases.Commands.Queries;
-using Conversations.Application.Abstractions;
+using Conversations.Application.Repository;
 using Conversations.Application.UseCases.Commands;
 using CRM.API.Controllers.Base;
 using CRM.API.Services;

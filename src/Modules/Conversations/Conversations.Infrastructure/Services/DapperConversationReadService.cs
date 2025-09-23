@@ -1,7 +1,8 @@
 ﻿using System.Data;
 using System.Text;
-using Conversations.Application.Abstractions;
 using Conversations.Application.Dtos;
+using Conversations.Application.Repository;
+using Conversations.Application.Services;
 using Conversations.Application.UseCases.Queries;
 using Dapper;
 

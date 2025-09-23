@@ -1,4 +1,4 @@
-﻿using Agents.Domain.Repository;
+﻿using Agents.Application.Repository;
 using CRM.Application.Interfaces;
 
 namespace Agents.Application.UseCases.Queries.Handler;

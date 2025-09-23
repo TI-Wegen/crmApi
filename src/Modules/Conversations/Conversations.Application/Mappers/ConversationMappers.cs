@@ -1,5 +1,4 @@
 ﻿using Conversations.Application.Dtos;
-using Conversations.Domain.Aggregates;
 using Conversations.Domain.Entities;
 
 namespace Conversations.Application.Mappers;

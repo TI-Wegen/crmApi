@@ -1,10 +1,11 @@
-﻿namespace Agents.Application.UseCases.Queries.Handler;
+﻿using Agents.Application.Repository;
+
+namespace Agents.Application.UseCases.Queries.Handler;
 
 // Em Modules/Agents/Application/UseCases/Queries/Handlers/
 using Agents.Application.Dtos;
 using Agents.Application.Mappers;
 using Agents.Application.UseCases.Queries;
-using Agents.Domain.Repository;
 using CRM.Application.Interfaces;
 
 public class GetAllAgentsQueryHandler : IQueryHandler<GetAllAgentsQuery, IEnumerable<AgenteDto>>

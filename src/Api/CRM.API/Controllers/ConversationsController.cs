@@ -1,13 +1,15 @@
-﻿using Conversations.Application.Dtos;
+﻿using Agents.Application.UseCases.Commands;
+using Conversations.Application.Dtos;
 using Conversations.Application.UseCases.Commands;
 using Conversations.Application.UseCases.Queries;
 using Conversations.Domain.Enuns;
-using CRM.API.Dtos;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 using CRM.Domain.Exceptions;
 using CRM.Infrastructure.Config.Meta;
 using Microsoft.AspNetCore.Mvc;
+using Tags.Application.UseCases.Commands;
+using AddTagCommand = Tags.Application.UseCases.Commands.AddTagCommand;
 
 namespace CRM.API.Controllers;
 
@@ -23,7 +25,7 @@ public class ConversationsController : ControllerBase
     private readonly ICommandHandler<AdicionarMensagemCommand, MessageDto> _adicionarMensagemHandler;
     private readonly ICommandHandler<ResolverAtendimentoCommand> _resolverAtendimentoHandler;
     private readonly ICommandHandler<TransferirAtendimentoCommand> _transferirAtendimentoHandler;
-    private readonly ICommandHandler<AddTagCommand> _addTagAtendimentoHandler;
+    private readonly ICommandHandler<Conversations.Application.UseCases.Commands.AddTagCommand> _addTagAtendimentoHandler;
 
     private readonly IQueryHandler<GetAllConversationsQuery, IEnumerable<ConversationSummaryDto>>
         _getAllConversationsHandler;
@@ -40,7 +42,7 @@ public class ConversationsController : ControllerBase
         IQueryHandler<GetAllConversationsQuery, IEnumerable<ConversationSummaryDto>> getAllConversationsHandler,
         IQueryHandler<GetActiveChatQuery, ActiveChatDto> getActiveChatHandler,
         ICommandHandler<EnviarTemplateCommand> enviarTemplateHandler,
-        ICommandHandler<AddTagCommand> addTagAtendimentoHandler,
+        ICommandHandler<Conversations.Application.UseCases.Commands.AddTagCommand> addTagAtendimentoHandler,
         IQueryHandler<GetConversationByContactQuery, ConversationDetailsDto> getByContactIdHandler
     )
     {
@@ -272,9 +274,9 @@ public class ConversationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status202Accepted)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> AdicionarTag(Guid contactId, [FromBody] AddTagRequest request)
+    public async Task<IActionResult> AdicionarTag(Guid contactId, [FromBody] AddTagCommand request)
     {
-        var command = new AddTagCommand(contactId, request.TagId);
+        var command = new Conversations.Application.UseCases.Commands.AddTagCommand(contactId, request.TagId);
         await _addTagAtendimentoHandler.HandleAsync(command);
 
         return Accepted();

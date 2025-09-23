@@ -1,6 +1,6 @@
 using CRM.Application.Interfaces;
-using Dashboard.Domain.Dtos;
-using Dashboard.Domain.Repository;
+using Dashboard.Application.Dtos;
+using Dashboard.Application.Repository;
 
 namespace Dashboard.Application.UseCases.Queries.Handler;
 

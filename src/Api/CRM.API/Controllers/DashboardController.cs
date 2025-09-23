@@ -2,7 +2,7 @@ using CRM.API.Controllers.Base;
 using Dashboard.Application.UseCases.Queries;
 using Microsoft.AspNetCore.Mvc;
 using CRM.Application.Interfaces;
-using Dashboard.Domain.Dtos;
+using Dashboard.Application.Dtos;
 
 namespace CRM.API.Controllers;
 

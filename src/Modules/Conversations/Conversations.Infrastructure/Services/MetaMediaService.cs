@@ -1,8 +1,8 @@
-﻿using Conversations.Application.Abstractions;
-using CRM.Infrastructure.Config.Meta;
+﻿using CRM.Infrastructure.Config.Meta;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Conversations.Application.Repository;
 
 namespace Conversations.Infrastructure.Services;
 

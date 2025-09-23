@@ -2,7 +2,7 @@ using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 using Tags.Application.Dtos;
 using Tags.Application.Mappers;
-using Tags.Domain.repository;
+using Tags.Application.repository;
 
 namespace Tags.Application.UseCases.Commands.Handler;
 

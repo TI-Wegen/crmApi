@@ -1,7 +1,7 @@
 ﻿using Agents.Domain.Aggregates;
 using Contacts.Domain.Repository;
-using Conversations.Application.Abstractions;
-using Conversations.Domain.Aggregates;
+using Conversations.Application.Repository;
+using Conversations.Domain.Entities;
 using Conversations.Domain.Events;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;

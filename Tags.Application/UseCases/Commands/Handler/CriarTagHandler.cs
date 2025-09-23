@@ -1,7 +1,7 @@
 using CRM.Application.Interfaces;
 using Tags.Application.Dtos;
 using Tags.Application.Mappers;
-using Tags.Domain.repository;
+using Tags.Application.repository;
 
 namespace Tags.Application.UseCases.Commands.Handler;
 
@@ -34,7 +34,7 @@ public class CriarTagHandler : ICommandHandler<CriarTagCommand, TagDto>
             throw new ApplicationException("Usuário não logado");
         }
 
-        var tags = Domain.Aggregates.Tags.Criar(command.Nome, command.Cor, command.Descricao ?? "",
+        var tags = Domain.Entities.Tags.Criar(command.Nome, command.Cor, command.Descricao ?? "",
             (Guid)getCurrentUser);
         await _tagRepository.AddAsync(tags, cancellationToken);
 

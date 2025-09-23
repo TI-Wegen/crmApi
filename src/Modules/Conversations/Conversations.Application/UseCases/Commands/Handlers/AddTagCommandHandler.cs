@@ -1,4 +1,4 @@
-using Conversations.Application.Abstractions;
+using Conversations.Application.Repository;
 using CRM.Application.Interfaces;
 
 namespace Conversations.Application.UseCases.Commands.Handlers;

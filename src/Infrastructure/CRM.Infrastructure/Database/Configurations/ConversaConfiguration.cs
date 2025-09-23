@@ -1,4 +1,4 @@
-﻿using Conversations.Domain.Aggregates;
+﻿using Conversations.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

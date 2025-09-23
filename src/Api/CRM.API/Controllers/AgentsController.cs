@@ -1,19 +1,20 @@
 ﻿using Agents.Application.Dtos;
 using Agents.Application.UseCases.Commands;
 using Agents.Application.UseCases.Queries;
+using Conversations.Application.UseCases.Commands;
 using CRM.API.Controllers.Base;
-using CRM.API.Dtos;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 using CRM.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
+using AtualizarAgenteCommand = Conversations.Application.UseCases.Commands.AtualizarAgenteCommand;
 
 namespace CRM.API.Controllers;
 
 public class AgentsController : BaseController
 {
     private readonly ICommandHandler<CriarAgenteCommand, AgenteDto> _criarAgenteHandler;
-    private readonly ICommandHandler<AtualizarAgenteCommand> _atualizarAgenteHandler;
+    private readonly ICommandHandler<Agents.Application.UseCases.Commands.AtualizarAgenteCommand> _atualizarAgenteHandler;
     private readonly ICommandHandler<InativarAgenteCommand> _inativarAgenteHandler;
     private readonly IQueryHandler<GetAgentByIdQuery, AgenteDto> _getAgentByIdHandler;
     private readonly IQueryHandler<GetAllAgentsQuery, IEnumerable<AgenteDto>> _getAllAgentsHandler;
@@ -23,7 +24,7 @@ public class AgentsController : BaseController
     public AgentsController(ICommandHandler<CriarAgenteCommand, AgenteDto> criarAgenteHandler,
         IQueryHandler<GetAgentByIdQuery, AgenteDto> getAgentByIdHandler,
         IQueryHandler<GetAllAgentsQuery, IEnumerable<AgenteDto>> getAllAgentsHandler,
-        ICommandHandler<AtualizarAgenteCommand> atualizarAgenteHandler,
+        ICommandHandler<Agents.Application.UseCases.Commands.AtualizarAgenteCommand> atualizarAgenteHandler,
         ICommandHandler<InativarAgenteCommand> inativarAgenteHandler,
         IQueryHandler<GetSetoresQuery, IEnumerable<SetorDto>> getSetoresHandler
         )
@@ -81,11 +82,11 @@ public class AgentsController : BaseController
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Atualizar(Guid id, [FromBody] AtualizarAgenteRequest request)
+    public async Task<IActionResult> Atualizar(Guid id, [FromBody] AtualizarAgenteCommand request)
     {
         try
         {
-            var command = new AtualizarAgenteCommand(id, request.Nome, request.SetorIds);
+            var command = new Agents.Application.UseCases.Commands.AtualizarAgenteCommand(id, request.Nome, request.SetorIds);
             await _atualizarAgenteHandler.HandleAsync(command);
             return NoContent();
         }

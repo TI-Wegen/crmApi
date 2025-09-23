@@ -29,9 +29,17 @@ public static class ApiServiceExtensions
 
     private static IServiceCollection AddSwaggerDocumentation(this IServiceCollection services)
     {
-        services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo { Title = "CRM.API", Version = "v1.0.0" }); });
+        services.AddSwaggerGen(c => {
+            c.SwaggerDoc("v1", new OpenApiInfo { 
+                Title = "CRM.API", 
+                Version = "v1",
+                Description = "API do Sistema CRM"
+            });
+        });
         return services;
     }
+
+
 
     private static IServiceCollection AddJwtAuthentication(
         this IServiceCollection services,

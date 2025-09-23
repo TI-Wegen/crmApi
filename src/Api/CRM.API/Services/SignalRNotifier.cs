@@ -1,5 +1,5 @@
-﻿using Conversations.Application.Abstractions;
-using Conversations.Application.Dtos;
+﻿using Conversations.Application.Dtos;
+using Conversations.Application.Repository;
 using CRM.API.Hubs;
 using Microsoft.AspNetCore.SignalR;
 

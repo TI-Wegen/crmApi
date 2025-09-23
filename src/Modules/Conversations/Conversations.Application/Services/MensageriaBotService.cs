@@ -1,5 +1,5 @@
-﻿using Conversations.Application.Abstractions;
-using Conversations.Application.Mappers;
+﻿using Conversations.Application.Mappers;
+using Conversations.Application.Repository;
 using Conversations.Domain.Entities;
 using Conversations.Domain.ValueObjects;
 using CRM.Application.Interfaces;

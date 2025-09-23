@@ -1,9 +1,9 @@
-﻿using Conversations.Application.Abstractions;
-using Conversations.Application.Dtos;
+﻿using Conversations.Application.Dtos;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
 using System.Data;
+using Conversations.Application.Repository;
 
 namespace Infrastructure.ExternalServices.Services;
 
@@ -18,7 +18,7 @@ public class BoletoService : IBoletoService
             ?? throw new ArgumentNullException(nameof(configuration), "A connection string 'BoletoConnection' não foi encontrada.");
     }
 
-    public async Task<BoletoDto?> GetBoletoAsync(int idConta)
+    public async Task<BoletoDto?> GetBoletoAsync(int contaId)
     {
         try
         {
@@ -35,7 +35,7 @@ public class BoletoService : IBoletoService
                 ORDER BY tblboleto.idBoleto DESC LIMIT 1;";
 
             await using var connection = new MySqlConnection(_connectionString);
-            var result = await connection.QueryFirstOrDefaultAsync<BoletoDto>(sql, new { idFatura = idConta });
+            var result = await connection.QueryFirstOrDefaultAsync<BoletoDto>(sql, new { idFatura = contaId });
 
             return result;
         }

@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace CRM.Infrastructure.Database.Configurations;
 
-public class TagsConfiguration : IEntityTypeConfiguration<Tags.Domain.Aggregates.Tags>
+public class TagsConfiguration : IEntityTypeConfiguration<Tags.Domain.Entities.Tags>
 {
-    public void Configure(EntityTypeBuilder<Tags.Domain.Aggregates.Tags> builder)
+    public void Configure(EntityTypeBuilder<Tags.Domain.Entities.Tags> builder)
     {
         builder.ToTable("Tags");
         builder.HasKey(a => a.Id);

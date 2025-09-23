@@ -1,5 +1,5 @@
 ﻿using Contacts.Domain.Repository;
-using Conversations.Application.Abstractions;
+using Conversations.Application.Repository;
 using CRM.Application.Interfaces;
 using CRM.Domain.Common;
 using Microsoft.Extensions.Logging;

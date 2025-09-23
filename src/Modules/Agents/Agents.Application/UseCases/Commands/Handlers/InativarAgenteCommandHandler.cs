@@ -1,6 +1,7 @@
-﻿namespace Agents.Application.UseCases.Commands.Handlers;
+﻿using Agents.Application.Repository;
 
-using Agents.Domain.Repository;
+namespace Agents.Application.UseCases.Commands.Handlers;
+
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 

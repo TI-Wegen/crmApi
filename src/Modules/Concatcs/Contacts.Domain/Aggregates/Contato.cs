@@ -1,6 +1,5 @@
 ﻿using Contacts.Domain.Entities;
 using Contacts.Domain.Enums;
-using Conversations.Domain.Aggregates;
 using CRM.Domain.DomainEvents;
 using CRM.Domain.Exceptions;
 

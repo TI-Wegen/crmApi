@@ -1,10 +1,11 @@
-﻿namespace Agents.Application.UseCases.Queries.Handler;
+﻿using Agents.Application.Repository;
+
+namespace Agents.Application.UseCases.Queries.Handler;
 
 
 using Agents.Application.Dtos;
 using Agents.Application.Mappers;
 using Agents.Application.UseCases.Queries;
-using Agents.Domain.Repository;
 using CRM.Application.Exceptions;
 using CRM.Application.Interfaces;
 

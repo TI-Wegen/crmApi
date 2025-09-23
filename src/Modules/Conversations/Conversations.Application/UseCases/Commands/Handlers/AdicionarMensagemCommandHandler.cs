@@ -1,8 +1,7 @@
 ﻿using Contacts.Domain.Repository;
-using Conversations.Application.Abstractions;
 using Conversations.Application.Dtos;
 using Conversations.Application.Mappers;
-using Conversations.Domain.Aggregates;
+using Conversations.Application.Repository;
 using Conversations.Domain.Entities;
 using Conversations.Domain.Enuns;
 using Conversations.Domain.ValueObjects;
