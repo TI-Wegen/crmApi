@@ -18,7 +18,7 @@ namespace Agents.Application.UseCases.Queries.Handler;
     {
         var agente = await _agentRepository.FilterAsync(1, 1, false, x => x.Email == query.Email);
         
-        if (agente.Any() || !agente.First().VerificarSenha(query.Password))
+        if (!agente.Any() || !agente.First().VerificarSenha(query.Password))
         {
             throw new UnauthorizedAccessException("E-mail ou senha inválidos.");
         }
