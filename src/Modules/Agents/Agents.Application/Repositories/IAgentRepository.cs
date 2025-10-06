@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using Agents.Domain.Aggregates;
+using Agents.Domain.Entities;
 
 namespace Agents.Application.Repositories;
 

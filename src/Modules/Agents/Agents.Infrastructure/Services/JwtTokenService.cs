@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Agents.Application.Repositories;
 using Agents.Domain.Aggregates;
+using Agents.Domain.Entities;
 using CRM.Application.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;

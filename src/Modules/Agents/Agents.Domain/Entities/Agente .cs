@@ -1,8 +1,8 @@
-﻿namespace Agents.Domain.Aggregates;
-
-using Agents.Domain.Enuns;
+﻿using Agents.Domain.Enuns;
 using CRM.Domain.DomainEvents;
 using CRM.Domain.Exceptions;
+
+namespace Agents.Domain.Entities;
 
 public class Agente : Entity
 {
@@ -10,10 +10,11 @@ public class Agente : Entity
     public string Email { get; private set; }
     public string PasswordHash { get; private set; }
     public AgenteStatus Status { get; private set; }
-    public CargaDeTrabalho CargaDeTrabalho { get; private set; }
     public Guid SetorId { get; private set; }
 
-    private Agente() { }
+    private Agente()
+    {
+    }
 
     public static Agente Criar(string nome, string email)
     {
@@ -25,8 +26,7 @@ public class Agente : Entity
             Id = Guid.NewGuid(),
             Nome = nome,
             Email = email,
-            Status = AgenteStatus.Offline, 
-            CargaDeTrabalho = CargaDeTrabalho.Nenhuma() 
+            Status = AgenteStatus.Offline,
         };
     }
 
@@ -40,13 +40,9 @@ public class Agente : Entity
 
     public void Inativar()
     {
-        if (CargaDeTrabalho.Valor > 0)
-            throw new DomainException("Não é possível inativar um agente com conversas ativas.");
-
-        if (Status == AgenteStatus.Inativo) return; 
+        if (Status == AgenteStatus.Inativo) return;
 
         Status = AgenteStatus.Inativo;
-
     }
 
     public void DefinirSenha(string senha)
@@ -55,16 +51,12 @@ public class Agente : Entity
         {
             throw new DomainException("A senha deve ter no mínimo 8 caracteres.");
         }
+
         PasswordHash = BCrypt.Net.BCrypt.HashPassword(senha);
     }
 
     public bool VerificarSenha(string senha)
     {
         return BCrypt.Net.BCrypt.Verify(senha, this.PasswordHash);
-    }
-
-    public void AtribuirSetor(Guid setorId)
-    {
-        SetorId = setorId;
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Linq.Expressions;
 using Agents.Application.Repositories;
 using Agents.Domain.Aggregates;
+using Agents.Domain.Entities;
 using Agents.Domain.Enuns;
 using CRM.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;

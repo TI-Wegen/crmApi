@@ -1,4 +1,5 @@
 ﻿using Agents.Domain.Aggregates;
+using Agents.Domain.Entities;
 using Contacts.Domain.Entities;
 using Conversations.Domain.Entities;
 using CRM.Domain.DomainEvents;

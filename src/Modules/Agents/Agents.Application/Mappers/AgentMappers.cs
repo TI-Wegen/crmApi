@@ -1,5 +1,6 @@
 ﻿using Agents.Application.Dtos;
 using Agents.Domain.Aggregates;
+using Agents.Domain.Entities;
 
 namespace Agents.Application.Mappers;
 public static class AgentMappers
@@ -12,7 +13,6 @@ public static class AgentMappers
             Nome = agente.Nome,
             Email = agente.Email,
             Status = agente.Status.ToString(),
-            CargaDeTrabalho = agente.CargaDeTrabalho.Valor,
             SetorId = agente.SetorId
         };
     }

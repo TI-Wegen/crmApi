@@ -1,4 +1,5 @@
 using Agents.Domain.Aggregates;
+using Agents.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

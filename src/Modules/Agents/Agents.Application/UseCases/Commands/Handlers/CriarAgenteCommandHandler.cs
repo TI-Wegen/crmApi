@@ -2,6 +2,7 @@
 using Agents.Application.Mappers;
 using Agents.Application.Repositories;
 using Agents.Domain.Aggregates;
+using Agents.Domain.Entities;
 using CRM.Application.Interfaces;
 
 namespace Agents.Application.UseCases.Commands.Handlers;

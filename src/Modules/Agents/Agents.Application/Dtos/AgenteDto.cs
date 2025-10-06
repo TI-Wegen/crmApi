@@ -6,6 +6,5 @@ public record AgenteDto
     public string Nome { get; init; }
     public string Email { get; init; }
     public string Status { get; init; }
-    public int CargaDeTrabalho { get; init; }
     public Guid? SetorId { get; init; }
 }

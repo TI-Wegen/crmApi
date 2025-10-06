@@ -1,4 +1,5 @@
 ﻿using Agents.Domain.Aggregates;
+using Agents.Domain.Entities;
 using Agents.Domain.Enuns;
 using CRM.Domain.Common;
 using Microsoft.EntityFrameworkCore;
@@ -21,25 +22,6 @@ public class AgenteConfiguration : IEntityTypeConfiguration<Agente>
         builder.Property(a => a.PasswordHash).IsRequired();
 
         builder.Property(a => a.Status).HasConversion<string>().HasMaxLength(50);
-
-        builder.OwnsOne(a => a.CargaDeTrabalho, cargaBuilder =>
-        {
-            cargaBuilder.Property(c => c.Valor).HasColumnName("CargaDeTrabalho");
-
-            cargaBuilder.HasData(new
-            {
-                AgenteId = SystemGuids.SystemAgentId,
-                Valor = 0
-            });
-        });
-        var converter = new ValueConverter<List<Guid>, string>(
-            v => string.Join(',', v),
-            v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(Guid.Parse).ToList());
-
-        var comparer = new ValueComparer<List<Guid>>(
-            (c1, c2) => c1.SequenceEqual(c2),
-            c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-            c => c.ToList());
 
         builder.HasOne<Setor>()
             .WithMany()
