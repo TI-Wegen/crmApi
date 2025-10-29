@@ -14,6 +14,9 @@ using Templates.Domain.Enuns;
 
 namespace CRM.API.Controllers
 {
+
+    [Route("webhooks/[controller]")]
+    [ApiController]
     public class MetaWebhookController : BaseController
     {
         #region Campos e Construtor
@@ -61,6 +64,7 @@ namespace CRM.API.Controllers
             _fileStorageService = fileStorageService;
             _logger = logger;
         }
+
 
         #endregion
 
